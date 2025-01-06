@@ -1,0 +1,94 @@
+/* โครงสร้างพื้นฐาน */
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Hero Section */
+.hero {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-image: url('../styles/img/page.jpg'); /* ปรับ path ของรูปภาพตามโครงสร้างของคุณ */
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(63, 63, 63, 0.6); /* เงาพื้นหลังเพื่อให้ข้อความเด่นขึ้น */
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  color: #fff;
+  max-width: 800px;
+  padding: 20px;
+}
+
+/* Title และ Subtitle */
+.title {
+  font-size: 4rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.subtitle {
+  font-size: 1.8rem;
+  margin-bottom: 30px;
+}
+
+/* รายละเอียด */
+.description {
+  font-size: 1.2rem;
+  margin-bottom: 40px;
+}
+
+/* ปุ่ม CTA (สมัครสมาชิกและเข้าสู่ระบบ) */
+.ctaButtons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.signupButton, .loginButton {
+  padding: 15px 30px;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.signupButton {
+  background-color: #1abc9c;
+  color: #fff;
+}
+
+.signupButton:hover {
+  background-color: #16a085;
+}
+
+.loginButton {
+  background-color: transparent;
+  border: 2px solid #fff;
+  color: #fff;
+}
+
+.loginButton:hover {
+  background-color: #fff;
+  color: #1abc9c;
+}
