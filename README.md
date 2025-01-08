@@ -20,7 +20,10 @@ cd pos-UI
 ```bash
 npm install @zxing/library
 
-npm install
+npm install react-router-dom
+npm install @fortawesome/react-fontawesome
+npm install @fortawesome/free-solid-svg-icons
+npm install 
 npm start
 ```
 3. Start the server:
