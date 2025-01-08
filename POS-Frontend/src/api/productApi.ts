@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Base URL ของ API
-const API_BASE_URL = "http://172.20.10.4:8000/api";
+const API_BASE_URL = "http://localhost:5000/api";
 
 // ฟังก์ชันเพื่อดึงรายการสินค้าทั้งหมด
 export const getProducts = async () => {

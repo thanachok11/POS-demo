@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import cloudinary from '../utils/cloudinary'; // นำเข้า cloudinary config
 import Product from '../models/Product'; // นำเข้า model Product
-import upload from '../middlewares/uploadMiddleware'; // การตั้งค่า multer
 
 // Controller สำหรับการอัปโหลดภาพและบันทึกข้อมูล Product
 export const uploadProductImage = async (req: Request, res: Response): Promise<void> => {

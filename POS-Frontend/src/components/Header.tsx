@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faSignOutAlt, faSignInAlt, faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import "../styles/Navbar.css";
-import LoginPageModal from "./LoginPageModal.tsx"; // Ensure these are implemented
-import RegisterPageModal from "./RegisterPageModal.tsx"; // and imported correctly
+import LoginPageModal from "./LoginPageModal.tsx";
+import RegisterPageModal from "./RegisterPageModal.tsx";
 
 const Navbar: React.FC = () => {
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
@@ -18,12 +18,30 @@ const Navbar: React.FC = () => {
     setIsRegisterModalVisible(!isRegisterModalVisible);
   };
 
-  useEffect(() => {
+  const updateUserEmail = () => {
     const token = localStorage.getItem("token");
     if (token) {
       const storedEmail = localStorage.getItem("userEmail");
       setUserEmail(storedEmail);
+    } else {
+      setUserEmail(null);
     }
+  };
+
+  useEffect(() => {
+    // Initial check
+    updateUserEmail();
+
+    // Add event listener for storage changes
+    const handleStorageChange = () => {
+      updateUserEmail();
+    };
+    window.addEventListener("storage", handleStorageChange);
+
+    // Cleanup listener when the component is unmounted
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, []);
 
   const handleLogout = () => {

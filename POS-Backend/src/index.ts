@@ -2,11 +2,11 @@ import express from "express";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes";
 import productRoutes from "./routes/productRoutes";
-import barcodeRoutes from "./routes/barcodeRoutes";
 import uploadRoutes from "./routes/uploadRoutes";
 import { connectDB } from "./database";
 import bodyParser from "body-parser";
 import cors from "cors";
+
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -21,17 +21,16 @@ app.get("/", (req, res) => {
 
 app.use(cors());
 // Middleware
-app.use(bodyParser.json());
+app.use(express.json());  // ใช้ express.json() เท่านั้น
+app.use(bodyParser.json()); // ลบได้
+
 // เปิดใช้งาน CORS
 // หรือระบุเฉพาะ Frontend ของคุณ
 
-app.use(express.json());
 app.use("/api/products", productRoutes);
 app.use("/api/product/barcode", productRoutes);
 app.post("/api/product/upload", uploadRoutes);
-
-// เส้นทาง Auth6352
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRoutes);  // ใช้เพียงเส้นทางนี้
 
 // เริ่มเซิร์ฟเวอร์
 app.listen(PORT, () => {

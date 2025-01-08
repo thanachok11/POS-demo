@@ -1,31 +1,54 @@
-import mongoose, { Schema, Document } from "mongoose";
-import bcrypt from "bcryptjs";
+import mongoose, { Schema, Document, model, models } from 'mongoose';
 
+// Define an interface for the User document
 export interface IUser extends Document {
   email: string;
   password: string;
-  comparePassword: (password: string) => Promise<boolean>;
+  username: string;
+  firstName: string;
+  lastName: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const UserSchema: Schema = new Schema({
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-});
+// Define the schema for the User model
+const UserSchema = new Schema<IUser>(
+  {
+    email: {
+      type: String,
+      required: [true, 'Email is required'],
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
+    password: {
+      type: String,
+      required: [true, 'Password is required'],
+      minlength: [6, 'Password must be at least 6 characters long'],
+    },
+    username: {
+      type: String,
+      required: [true, 'Username is required'],
+      unique: true,
+      trim: true,
+    },
+    firstName: {
+      type: String,
+      required: [true, 'First name is required'],
+      trim: true,
+    },
+    lastName: {
+      type: String,
+      required: [true, 'Last name is required'],
+      trim: true,
+    },
+  },
+  {
+    timestamps: true, // Automatically adds createdAt and updatedAt fields
+  }
+);
 
-// เข้ารหัสรหัสผ่านก่อนบันทึก
-UserSchema.pre<IUser>("save", async function (next) {
-    if (!this.isModified("password")) return next();
-  
-    const salt = await bcrypt.genSalt(10);
-    
-    // บังคับให้ TypeScript เข้าใจว่า this.password เป็น string
-    this.password = await bcrypt.hash(this.password as string, salt);
-    next();
-  });
+// Check if the model already exists, if so, use it; otherwise, create a new one
+const User = models.User || model<IUser>('User', UserSchema);
 
-// ตรวจสอบรหัสผ่าน
-UserSchema.methods.comparePassword = async function (password: string): Promise<boolean> {
-  return bcrypt.compare(password, this.password);
-};
-
-export default mongoose.model<IUser>("User", UserSchema);
+export default User;

@@ -12,10 +12,6 @@ const HeroSection = () => {
           <p className="description">
             Sign up now to streamline your sales, manage inventory, and access insightful reports with ease.
           </p>
-          <div className="ctaButtons">
-            <button className="signupButton">Sign Up</button>
-            <button className="loginButton">Log In</button>
-          </div>
         </div>
       </div>
     </div>
