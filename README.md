@@ -25,7 +25,6 @@ npm install @fortawesome/react-fontawesome
 npm install @fortawesome/free-solid-svg-icons
 npm install chart.js react-chartjs-2
 npm install 
-npm start
 ```
 3. Start the server:
 
