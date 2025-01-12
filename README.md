@@ -13,7 +13,7 @@ Welcome to the POS (Point of Sale) Frontend System! This is a user interface (UI
 1. Clone this repository:
 ```bash
 git clone https://github.com/thanachok11/POS.git
-cd pos-UI
+cd POS-Frontend
 ```
 
 2. Install the dependencies:
@@ -71,7 +71,7 @@ Ensure that you have the following installed on your machine:
 
     ```bash
     git clone https://github.com/thanachok11/POS.git
-    cd pos-backend
+    cd POS-Backend
     ```
 
 2. Install the dependencies:
