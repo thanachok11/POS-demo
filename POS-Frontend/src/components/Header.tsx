@@ -1,14 +1,28 @@
 import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser, faSignOutAlt, faSignInAlt, faUserPlus } from "@fortawesome/free-solid-svg-icons";
-import "../styles/Navbar.css";
+import {
+  faBars,
+  faTimes,
+  faUser,
+  faSignOutAlt,
+  faSignInAlt,
+  faUserPlus,
+  faHome,
+  faBox,
+  faChartLine,
+  faCog,
+} from "@fortawesome/free-solid-svg-icons";
+import "../styles/Sidebar.css";
 import LoginPageModal from "./LoginPageModal.tsx";
 import RegisterPageModal from "./RegisterPageModal.tsx";
+import { useNavigate } from "react-router-dom";
 
-const Navbar: React.FC = () => {
+const Sidebar: React.FC = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
   const [isRegisterModalVisible, setIsRegisterModalVisible] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const handleLoginModalToggle = () => {
     setIsLoginModalVisible(!isLoginModalVisible);
@@ -48,49 +62,64 @@ const Navbar: React.FC = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userEmail");
     setUserEmail(null);
-    window.location.href = "/";
+    navigate("/");
+  };
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
+  };
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
   };
 
   return (
-    <header>
-      <nav className="navbar">
-        <a href="/dashboard" className="link">
-          <div className="logo">Product Management</div>
-        </a>
+    <>
+      {/* Toggle Button */}
+      <button className={`toggleButton ${isSidebarOpen ? "open" : "closed"}`} onClick={toggleSidebar}>
+        <FontAwesomeIcon icon={isSidebarOpen ? faTimes : faBars} />
+      </button>
+
+      {/* Sidebar */}
+      <aside className={`sidebar ${isSidebarOpen ? "open" : "closed"}`}>
+        <div className="logo">Product Management</div>
         <ul className="navLinks">
-          {userEmail ? (
-            <>
-              <li>
-                <span className="userEmail">
-                  <FontAwesomeIcon icon={faUser} /> สวัสดีคุณ {userEmail}
-                </span>
-              </li>
-              <li>
-                <button onClick={handleLogout} className="logoutButton">
-                  <FontAwesomeIcon icon={faSignOutAlt} /> ออกจากระบบ
-                </button>
-              </li>
-            </>
-          ) : (
-            <>
-              <li>
-                <a className="login" onClick={handleLoginModalToggle}>
-                  <FontAwesomeIcon icon={faSignInAlt} /> เข้าสู่ระบบ
-                </a>
-              </li>
-              <li>
-                <a className="register" onClick={handleRegisterModalToggle}>
-                  <FontAwesomeIcon icon={faUserPlus} /> สมัครสมาชิก
-                </a>
-              </li>
-            </>
-          )}
+          <li onClick={() => handleNavigation("/")}>
+            <FontAwesomeIcon icon={faHome} className="icon" /> <span>หน้าหลัก</span>
+          </li>
+          <li onClick={() => handleNavigation("/products")}>
+            <FontAwesomeIcon icon={faBox} className="icon" /> <span>จัดการสินค้า</span>
+          </li>
+          <li onClick={() => handleNavigation("/analytics")}>
+            <FontAwesomeIcon icon={faChartLine} className="icon" /> <span>รายงาน</span>
+          </li>
+          <li onClick={() => handleNavigation("/settings")}>
+            <FontAwesomeIcon icon={faCog} className="icon" /> <span>ตั้งค่า</span>
+          </li>
         </ul>
-        <LoginPageModal isVisible={isLoginModalVisible} onClose={handleLoginModalToggle} />
-        <RegisterPageModal isVisible={isRegisterModalVisible} onClose={handleRegisterModalToggle} />
-      </nav>
-    </header>
+
+        {/* User Info */}
+        {userEmail && isSidebarOpen && (
+          <div className="userInfo">
+            <FontAwesomeIcon icon={faUser} className="icon" />
+            <span>สวัสดีคุณ {userEmail}</span>
+          </div>
+        )}
+
+        {/* Logout Button */}
+        {userEmail && (
+          <div className="logoutSection">
+            <button onClick={handleLogout} className="logoutButton">
+              <FontAwesomeIcon icon={faSignOutAlt} className="icon" /> <span>ออกจากระบบ</span>
+            </button>
+          </div>
+        )}
+      </aside>
+
+      <LoginPageModal isVisible={isLoginModalVisible} onClose={handleLoginModalToggle} />
+      <RegisterPageModal isVisible={isRegisterModalVisible} onClose={handleRegisterModalToggle} />
+    </>
   );
 };
 
-export default Navbar;
+export default Sidebar;

@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // กำหนด URL ของ API
-const API_URL = 'http://10.30.136.5:8000/api/auth/';  // ปรับ URL ตามที่คุณกำหนดใน backend
+const API_URL = 'http://10.30.136.9:5000/api/auth/';  // ปรับ URL ตามที่คุณกำหนดใน backend
 
 // ฟังก์ชันสำหรับการลงทะเบียนผู้ใช้ใหม่
 export const registerUser = async (email: string, password: string, username: string, firstName: string, lastName: string) => {

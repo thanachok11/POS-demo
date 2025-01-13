@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Homepage from "./components/pages/Homepage.tsx";  // นำเข้า Homepage หรือส่วนประกอบอื่น ๆ ที่ต้องการใช้
 import Header from "./components/Header.tsx";  // นำเข้า Header หรือส่วนประกอบอื่น ๆ ที่ต้องการใช้
 import Dashboard from './components/pages/Dashboard.tsx';
+import Sidebar from "./components/Header.tsx";
 import ProductList from "./components/ProductList.tsx";
 import Barcodesearch from "./components/BarcodeSearch.tsx";
 import UploadProduct from "./components/upload.tsx";

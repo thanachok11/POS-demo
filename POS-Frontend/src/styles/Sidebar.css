@@ -1,0 +1,203 @@
+/* Sidebar Styles */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 250px;
+  /* Full width when open */
+  background-color: #2c3e50;
+  color: #ecf0f1;
+  overflow: hidden;
+  transition: width 0.3s ease, transform 0.3s ease-in-out;
+  z-index: 1000;
+}
+
+.sidebar.closed {
+  width: 56px;
+  /* Reduced width when closed */
+}
+
+/* Sidebar Logo */
+.sidebar .logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  padding: 20px;
+  background-color: #1a252f;
+  border-bottom: 1px solid #34495e;
+  white-space: nowrap;
+  /* Prevent text from wrapping */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar.closed .logo {
+  font-size: 0;
+  /* Hide text when sidebar is closed */
+  padding: 20px 10px;
+  /* Adjust padding for icon */
+}
+
+/* Navigation Links */
+.navLinks {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.navLinks li {
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease, padding 0.3s ease;
+
+}
+
+.navLinks li:hover {
+  background-color: #34495e;
+}
+
+.navLinks li .icon {
+  margin-right: 10px;
+  font-size: 1.5rem;
+  /* Icon size */
+}
+
+.sidebar.closed .navLinks li .icon {
+  margin-right: 0;
+  /* Remove spacing for closed sidebar */
+}
+
+.navLinks li span {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar.closed .navLinks li span {
+  opacity: 0;
+    /* Hide text when sidebar is closed */
+    width: 0;
+    /* Shrink width to hide text */
+    pointer-events: none;
+    /* Prevent interaction with hidden text */
+  display: none;
+  /* Hide text when sidebar is closed */
+}
+
+/* Toggle Button */
+.toggleButton {
+  position: fixed;
+  top: 15px;
+  left: 250px;
+  background-color: #34495e;
+  color: #ecf0f1;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1100;
+  transition: left 0.3s ease-in-out;
+}
+
+.toggleButton.closed {
+  left: 56px;
+  /* Adjust position when sidebar is closed */
+}
+
+/* User Email and Logout Button */
+.userInfo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 290px;
+  /* Adjust position */
+  font-size: 1rem;
+  transition: opacity 0.3s ease;
+}
+
+.userInfo .icon {
+  margin-right: 10px;
+  font-size: 1.5rem;
+}
+
+.userInfo span {
+  display: inline-block;
+  /* Ensure span text is block-level */
+  white-space: nowrap;
+  /* Prevent text wrap */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity 0.3s ease;
+}
+
+/* Logout Button */
+.logoutButton {
+  position: absolute;
+  bottom: 0;
+  color: #ecf0f1;
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, opacity 0.3s ease;
+  width: 100%;
+  padding: 15px 20px;
+  justify-content: center;
+  background-color: #e74c3c;
+}
+
+.logoutButton:hover {
+  background-color: #c0392b;
+}
+
+.logoutButton .icon {
+  margin-right: 10px;
+  font-size: 1.5rem;
+}
+
+.logoutButton span {
+  display: inline-block;
+  /* Ensure span text is block-level */
+  white-space: nowrap;
+  /* Prevent text wrap */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar.closed .logoutButton span {
+  opacity: 0;
+  /* Hide text when sidebar is closed */
+  width: 0;
+  /* Shrink width to hide text */
+  pointer-events: none;
+  /* Prevent interaction with hidden text */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 200px;
+  }
+
+  .sidebar.closed {
+    width: 60px;
+  }
+
+  .sidebar.open~.toggleButton {
+    left: 215px;
+  }
+
+  .sidebar.closed~.toggleButton {
+    left: 75px;
+  }
+}
