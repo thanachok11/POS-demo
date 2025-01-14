@@ -19,7 +19,7 @@ cd POS-Frontend
 2. Install the dependencies:
 ```bash
 npm install @zxing/library
-
+npm install jwt-decode@latest
 npm install react-router-dom
 npm install @fortawesome/react-fontawesome
 npm install @fortawesome/free-solid-svg-icons
