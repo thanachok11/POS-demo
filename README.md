@@ -24,6 +24,7 @@ npm install react-router-dom
 npm install @fortawesome/react-fontawesome
 npm install @fortawesome/free-solid-svg-icons
 npm install chart.js react-chartjs-2
+npm install @react-oauth/google
 npm install 
 ```
 3. Start the server:
@@ -78,6 +79,7 @@ Ensure that you have the following installed on your machine:
     ```bash
     npm install
     npm install multer
+    npm install google-auth-library
     npm install @types/multer
     npm install cloudinary
     npm install express body-parser cors dotenv
