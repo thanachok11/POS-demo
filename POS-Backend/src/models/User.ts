@@ -7,6 +7,8 @@ export interface IUser extends Document {
   username: string;
   firstName: string;
   lastName: string;
+  role: string; // เพิ่มฟิลด์ role
+  profile_img: string; // เพิ่มฟิลด์ profile_img
   createdAt: Date;
   updatedAt: Date;
 }
@@ -41,6 +43,15 @@ const UserSchema = new Schema<IUser>(
       type: String,
       required: [true, 'Last name is required'],
       trim: true,
+    },
+    role: {
+      type: String,
+      enum: ['user', 'admin'], // กำหนดค่าให้เลือกได้ระหว่าง 'user' และ 'admin'
+      default: 'user', // กำหนดค่าเริ่มต้นเป็น 'user'
+    },
+    profile_img: {
+      type: String,
+      default: 'https://res.cloudinary.com/dboau6axv/image/upload/v1735641179/qa9dfyxn8spwm0nwtako.jpg', // กำหนดค่าเริ่มต้นของ profile_img
     },
   },
   {

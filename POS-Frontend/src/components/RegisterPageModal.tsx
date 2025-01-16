@@ -67,7 +67,7 @@ const RegisterModal: React.FC<RegisterProps> = ({ isVisible, onClose }) => {
       <div className="modal-content">
         <button onClick={onClose} className="close-button">X</button>
         <form onSubmit={handleRegister} className="form">
-          <h1 className="title">สมัครสมาชิก</h1>
+          <h1 className="title-register">สมัครสมาชิก</h1>
           <input
             type="text"
             name="username"

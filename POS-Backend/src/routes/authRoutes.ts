@@ -1,14 +1,19 @@
 import { Router } from "express";
-import { register, login,showAllUsers } from "../controllers/authController";  // นำเข้าฟังก์ชัน register และ login
+import { register, login, showAllUsers } from "../controllers/authController";
+import { verifyGoogleTokenMiddleware } from "../controllers/google";
+
 const router = Router();
 
-// เส้นทางสำหรับการลงทะเบียนและล็อกอิน
-router.get('/users', showAllUsers);
+// แสดงผู้ใช้ทั้งหมด
+router.get("/users", showAllUsers);
+
+// ใช้ verifyGoogleTokenMiddleware ในเส้นทางนี้
+router.post("/google/callback", verifyGoogleTokenMiddleware);
 
 // เส้นทางสำหรับการลงทะเบียน
-router.post('/register', register);
+router.post("/register", register);
 
 // เส้นทางสำหรับการล็อกอิน
-router.post('/login', login);
+router.post("/login", login);
 
 export default router;

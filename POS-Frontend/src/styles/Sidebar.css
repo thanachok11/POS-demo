@@ -5,7 +5,6 @@
   left: 0;
   height: 100%;
   width: 250px;
-  /* Full width when open */
   background-color: #2c3e50;
   color: #ecf0f1;
   overflow: hidden;
@@ -20,14 +19,13 @@
 
 /* Sidebar Logo */
 .sidebar .logo {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: bold;
   text-align: center;
   padding: 20px;
   background-color: #1a252f;
   border-bottom: 1px solid #34495e;
   white-space: nowrap;
-  /* Prevent text from wrapping */
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -52,7 +50,6 @@
   align-items: center;
   cursor: pointer;
   transition: background-color 0.3s ease, padding 0.3s ease;
-
 }
 
 .navLinks li:hover {
@@ -79,11 +76,11 @@
 
 .sidebar.closed .navLinks li span {
   opacity: 0;
-    /* Hide text when sidebar is closed */
-    width: 0;
-    /* Shrink width to hide text */
-    pointer-events: none;
-    /* Prevent interaction with hidden text */
+  /* Hide text when sidebar is closed */
+  width: 0;
+  /* Shrink width to hide text */
+  pointer-events: none;
+  /* Prevent interaction with hidden text */
   display: none;
   /* Hide text when sidebar is closed */
 }
@@ -112,30 +109,67 @@
   /* Adjust position when sidebar is closed */
 }
 
-/* User Email and Logout Button */
 .userInfo {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin-top: 290px;
-  /* Adjust position */
-  font-size: 1rem;
-  transition: opacity 0.3s ease;
+  padding: 15px;
+  background-color: #2e3b4e;
+  border-radius: 8px;
+  margin: 10px;
+  color: white;
 }
 
-.userInfo .icon {
+.profilePicture {
   margin-right: 10px;
-  font-size: 1.5rem;
 }
 
-.userInfo span {
-  display: inline-block;
-  /* Ensure span text is block-level */
-  white-space: nowrap;
-  /* Prevent text wrap */
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid #4caf50;
+}
+
+.userDetails {
+  display: flex;
+  flex-direction: column;
+}
+
+.userName {
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.userRole {
+  font-size: 0.85rem;
+  color: #cfd8dc;
+}
+
+.userStatus {
+  font-size: 0.75rem;
+  color: #4caf50;
+  display: flex;
+  align-items: center;
+}
+
+.statusIcon {
+  margin-right: 5px;
+  color: #4caf50;
+}
+/* Login & Register Links */
+.login,
+.register {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 1rem;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  position: relative;
+  /* For pseudo-element positioning */
   overflow: hidden;
-  text-overflow: ellipsis;
-  transition: opacity 0.3s ease;
+  /* Hide overflow for sliding underline */
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Logout Button */

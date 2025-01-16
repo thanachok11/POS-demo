@@ -34,3 +34,24 @@ export const loginUser = async (email: string, password: string) => {
     throw new Error(error.response?.data?.message || 'Login failed');
   }
 };
+
+export const handleSuccess = async (response: any) => {
+  console.log('Google Token:', response.credential);
+
+  try {
+    const res = await fetch('http://localhost:5000/api/auth/google/callback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        token: response.credential,
+      }),
+    });
+
+    const data = await res.json();
+    console.log('Backend Response:', data); // ข้อมูลผู้ใช้ที่ได้จาก backend
+  } catch (error) {
+    console.error('Error verifying token with backend:', error);
+  }
+};

@@ -47,7 +47,7 @@ const Login: React.FC<LoginProps> = ({ isVisible, onClose }) => {
       <div className="modal-content">
         <button onClick={onClose} className="close-button">X</button>
         <form onSubmit={handleLogin} className="form">
-          <h1 className="title">เข้าสู่ระบบ</h1>
+          <h1 className="logintitle">เข้าสู่ระบบ</h1>
           <input
             type="email"
             name="email"
