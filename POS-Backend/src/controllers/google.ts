@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Request, Response } from 'express';
 import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User';  // สมมติว่าใช้ Mongoose หรือ ORM อื่นๆ
@@ -124,5 +125,35 @@ export const googleRegister = async (req: Request, res: Response): Promise<void>
   } catch (error) {
     console.error('Error in Google Register:', error);
     res.status(500).json({ message: 'เกิดข้อผิดพลาดในการสมัครสมาชิกด้วย Google' });
+=======
+import { Request, Response } from "express";
+import { OAuth2Client } from "google-auth-library";
+
+const client = new OAuth2Client("429542474271-omg13rrfbv9aidi9p7c788gsfe8akfsd.apps.googleusercontent.com");
+
+export const verifyGoogleTokenMiddleware = async (req: Request, res: Response): Promise<void> => {
+  const { token } = req.body;
+
+  if (!token) {
+     res.status(400).json({ error: "Token is required" });
+     return;
+  }
+
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: "429542474271-omg13rrfbv9aidi9p7c788gsfe8akfsd.apps.googleusercontent.com",
+    });
+
+    const payload = ticket.getPayload();
+    if (!payload) {
+      throw new Error("Invalid token payload");
+    }
+
+    // เพิ่มข้อมูลผู้ใช้ใน `req.user` เพื่อใช้ในฟังก์ชันถัดไป
+    req.body = payload;
+  } catch (error) {
+    res.status(401).json({ error: "Invalid Google Token" });
+>>>>>>> 53da7cf0ae02369164b1eb52be70513e8700ef81
   }
 };

@@ -2,7 +2,11 @@
 import axios from 'axios';
 
 // กำหนด URL ของ API
+<<<<<<< HEAD
 export const API_URL = 'http://localhost:5000/api/auth';  // ปรับ URL ตามที่คุณกำหนดใน backend
+=======
+const API_URL = 'http://10.30.136.9:5000/api/auth/';  // ปรับ URL ตามที่คุณกำหนดใน backend
+>>>>>>> 53da7cf0ae02369164b1eb52be70513e8700ef81
 
 // ฟังก์ชันสำหรับการลงทะเบียนผู้ใช้ใหม่
 export const registerUser = async (email: string, password: string, username: string, firstName: string, lastName: string) => {
@@ -57,6 +61,7 @@ export const loginUser = async (email: string, password: string) => {
   }
 };
 
+<<<<<<< HEAD
 // auth.ts
 
 export const googleLogin = async (googleToken: string) => {
@@ -68,5 +73,25 @@ export const googleLogin = async (googleToken: string) => {
     return response.data;  // ส่งข้อมูลที่ได้รับจาก API
   } catch (error: any) {
     throw new Error(error.response?.data?.message || 'Login failed');
+=======
+export const handleSuccess = async (response: any) => {
+  console.log('Google Token:', response.credential);
+
+  try {
+    const res = await fetch('http://localhost:5000/api/auth/google/callback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        token: response.credential,
+      }),
+    });
+
+    const data = await res.json();
+    console.log('Backend Response:', data); // ข้อมูลผู้ใช้ที่ได้จาก backend
+  } catch (error) {
+    console.error('Error verifying token with backend:', error);
+>>>>>>> 53da7cf0ae02369164b1eb52be70513e8700ef81
   }
 };

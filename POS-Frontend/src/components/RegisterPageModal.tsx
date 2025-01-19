@@ -88,12 +88,66 @@ const RegisterModal: React.FC<RegisterProps> = ({ isVisible, onClose }) => {
 
 
   return (
+<<<<<<< HEAD
     <GoogleOAuthProvider clientId="429542474271-omg13rrfbv9aidi9p7c788gsfe8akfsd.apps.googleusercontent.com">
       <div className="modal-overlay">
         <div className="modal-content">
           <button onClick={onClose} className="close-button">X</button>
           <form onSubmit={handleRegister} className="form">
             <h1 className="title-register">สมัครสมาชิก</h1>
+=======
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <button onClick={onClose} className="close-button">X</button>
+        <form onSubmit={handleRegister} className="form">
+          <h1 className="title-register">สมัครสมาชิก</h1>
+          <input
+            type="text"
+            name="username"
+            placeholder="ชื่อผู้ใช้"
+            value={formData.username}
+            onChange={handleChange}
+            className="input"
+            required
+          />
+          <input
+            type="email"
+            name="email"
+            placeholder="อีเมล"
+            value={formData.email}
+            onChange={handleChange}
+            className="input"
+            required
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="รหัสผ่าน"
+            value={formData.password}
+            onChange={handleChange}
+            className="input"
+            required
+          />
+          <input
+            type="text"
+            name="firstName"
+            placeholder="ชื่อ"
+            value={formData.firstName}
+            onChange={handleChange}
+            className="input"
+            required
+          />
+          <input
+            type="text"
+            name="lastName"
+            placeholder="นามสกุล"
+            value={formData.lastName}
+            onChange={handleChange}
+            className="input"
+            required
+          />
+          <div className="checkbox-container">
+>>>>>>> 53da7cf0ae02369164b1eb52be70513e8700ef81
             <input
               type="text"
               name="username"
