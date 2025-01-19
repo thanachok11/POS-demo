@@ -13,15 +13,19 @@ Welcome to the POS (Point of Sale) Frontend System! This is a user interface (UI
 1. Clone this repository:
 ```bash
 git clone https://github.com/thanachok11/POS.git
-cd pos-UI
+cd POS-Frontend
 ```
 
 2. Install the dependencies:
 ```bash
 npm install @zxing/library
-
-npm install
-npm start
+npm install jwt-decode@latest
+npm install react-router-dom
+npm install @fortawesome/react-fontawesome
+npm install @fortawesome/free-solid-svg-icons
+npm install chart.js react-chartjs-2
+npm install @react-oauth/google
+npm install 
 ```
 3. Start the server:
 
@@ -67,7 +71,7 @@ Ensure that you have the following installed on your machine:
 
     ```bash
     git clone https://github.com/thanachok11/POS.git
-    cd pos-backend
+    cd POS-Backend
     ```
 
 2. Install the dependencies:
@@ -75,6 +79,7 @@ Ensure that you have the following installed on your machine:
     ```bash
     npm install
     npm install multer
+    npm install google-auth-library
     npm install @types/multer
     npm install cloudinary
     npm install express body-parser cors dotenv

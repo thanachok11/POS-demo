@@ -42,9 +42,12 @@
   width: 100%;
   max-width: 400px;
 }
+.google-login-container{
+  margin-top: 20px;
+}
 
 /* Title */
-.title {
+.logintitle {
   font-size: 2rem;
   color: #7c9590;
   margin-bottom: 20px;
@@ -116,4 +119,5 @@
   font-size: 14px;
   margin-top: 10px;
   text-align: center;
+  margin-left: 5px;
 }

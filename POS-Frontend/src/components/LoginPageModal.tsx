@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { loginUser } from '../api/auth.ts';
-import '../styles/auth/LoginPageModal.css';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+import { googleLogin, loginUser } from "../api/auth.ts";
+import "../styles/auth/LoginPageModal.css";
 
 interface LoginProps {
   isVisible: boolean;
@@ -9,45 +10,68 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ isVisible, onClose }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
 
   if (!isVisible) return null;
 
+  // ฟังก์ชันจัดการล็อกอินด้วยอีเมลและรหัสผ่าน
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setSuccessMessage('');
-  
+    setError("");
+    setSuccessMessage("");
+
     try {
       const data = await loginUser(email, password);
-  
-      // เก็บ Token และ Email ลง LocalStorage
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('userEmail', email);
-  
-      // แสดงข้อความสำเร็จ
-      setSuccessMessage('เข้าสู่ระบบสำเร็จ!');
-      // หน่วงเวลาเล็กน้อยก่อนรีเฟรชหน้า
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("userEmail", email);
+
+      setSuccessMessage("เข้าสู่ระบบสำเร็จ!");
       setTimeout(() => {
-        navigate('/dashboard');
-        window.location.reload(); // รีเฟรชหน้า
+        navigate("/dashboard");
+        window.location.reload();
       }, 1000);
     } catch (err: any) {
-      setError(err.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+      setError(err.message || "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+    }
+  };
+
+  // ฟังก์ชันจัดการล็อกอินผ่าน Google
+  const handleGoogleSuccess = async (response: any) => {
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      // รับ googleToken จาก response
+      const googleToken = response.credential;
+
+      const data = await googleLogin(googleToken); // เรียกใช้ฟังก์ชัน googleLogin จาก auth.ts
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("userEmail", response.credential || "");
+
+      setSuccessMessage("เข้าสู่ระบบสำเร็จ!");
+      setTimeout(() => {
+        navigate("/dashboard");
+        window.location.reload();
+      }, 1000);
+    } catch (err: any) {
+      setError(err.message || "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
     }
   };
 
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <button onClick={onClose} className="close-button">X</button>
+        <button onClick={onClose} className="close-button">
+          X
+        </button>
         <form onSubmit={handleLogin} className="form">
-          <h1 className="title">เข้าสู่ระบบ</h1>
+          <h1 className="logintitle">เข้าสู่ระบบ</h1>
           <input
             type="email"
             name="email"
@@ -73,12 +97,28 @@ const Login: React.FC<LoginProps> = ({ isVisible, onClose }) => {
               checked={rememberMe}
               onChange={() => setRememberMe(!rememberMe)}
             />
-            <label className="label" htmlFor="rememberMe">จดจำฉัน</label>
+            <label className="label" htmlFor="rememberMe">
+              จดจำฉัน
+            </label>
           </div>
-          <button type="submit" className="button">เข้าสู่ระบบ</button>
+          <button type="submit" className="button">
+            เข้าสู่ระบบ
+          </button>
+        </form>
+
+        <div className="google-login-container">
+          <GoogleOAuthProvider clientId="429542474271-omg13rrfbv9aidi9p7c788gsfe8akfsd.apps.googleusercontent.com">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess} // ใช้ handleGoogleSuccess
+              onError={() => console.error("Google Login Failed")}
+              theme="outline"
+              size="large"
+              text="signin_with"
+            />
+          </GoogleOAuthProvider>
           {error && <p className="error">{error}</p>}
           {successMessage && <p className="success">{successMessage}</p>}
-        </form>
+        </div>
       </div>
     </div>
   );

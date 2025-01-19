@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getProducts } from "../api/productApi.ts";
 import "../styles/ProductList.css";
+
 function ProductList() {
   const [products, setProducts] = useState<any[]>([]);
   const [cart, setCart] = useState<any[]>([]);
@@ -23,11 +24,16 @@ function ProductList() {
     setCart((prevCart) => [...prevCart, product]);
   };
 
+  // Calculate total price
+  const calculateTotal = () => {
+    return cart.reduce((total, item) => total + item.price, 0);
+  };
+
   return (
     <div className="pos-container">
       {/* Left: Product List */}
       <div className="product-list">
-        <h2>Product List</h2>
+        <h2 className="product-h2">รายการสินค้า</h2>
         {error ? (
           <p className="error-message">Error: {error}</p>
         ) : (
@@ -47,7 +53,7 @@ function ProductList() {
                 </div>
                 <h3 className="product-name">{product.name}</h3>
                 <p>
-                  <strong>Price:</strong> {product.price} ฿
+                  <strong>ราคา:</strong> {product.price} ฿
                 </p>
               </div>
             ))}
@@ -57,10 +63,10 @@ function ProductList() {
 
       {/* Right: Checkout Area */}
       <div className="checkout-area">
-        <h2>Checkout</h2>
+        <h2>รายการสั่งซื้อ</h2>
         <div className="checkout-details">
           {cart.length === 0 ? (
-            <p>No items in the cart.</p>
+            <p>ยังไม่มีสินค้าในตะกร้า</p>
           ) : (
             <ul>
               {cart.map((item, index) => (
@@ -71,7 +77,10 @@ function ProductList() {
             </ul>
           )}
         </div>
-        <button className="checkout-btn">Proceed to Payment</button>
+        <div className="total-price">
+          <strong>ยอดรวม:</strong> {calculateTotal()} ฿
+        </div>
+        <button className="checkout-btn">ชำระเงิน</button>
       </div>
     </div>
   );

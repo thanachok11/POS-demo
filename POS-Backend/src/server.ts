@@ -19,7 +19,12 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3000', // URL ของ Frontend
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
 // Middleware
 app.use(express.json());  // ใช้ express.json() เท่านั้น
 app.use(bodyParser.json()); // ลบได้

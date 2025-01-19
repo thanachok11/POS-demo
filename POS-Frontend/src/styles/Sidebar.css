@@ -1,0 +1,237 @@
+/* Sidebar Styles */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 250px;
+  background-color: #2c3e50;
+  color: #ecf0f1;
+  overflow: hidden;
+  transition: width 0.3s ease, transform 0.3s ease-in-out;
+  z-index: 1000;
+}
+
+.sidebar.closed {
+  width: 56px;
+  /* Reduced width when closed */
+}
+
+/* Sidebar Logo */
+.sidebar .logo {
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-align: center;
+  padding: 20px;
+  background-color: #1a252f;
+  border-bottom: 1px solid #34495e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar.closed .logo {
+  font-size: 0;
+  /* Hide text when sidebar is closed */
+  padding: 20px 10px;
+  /* Adjust padding for icon */
+}
+
+/* Navigation Links */
+.navLinks {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.navLinks li {
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease, padding 0.3s ease;
+}
+
+.navLinks li:hover {
+  background-color: #34495e;
+}
+
+.navLinks li .icon {
+  margin-right: 10px;
+  font-size: 1.5rem;
+  /* Icon size */
+}
+
+.sidebar.closed .navLinks li .icon {
+  margin-right: 0;
+  /* Remove spacing for closed sidebar */
+}
+
+.navLinks li span {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar.closed .navLinks li span {
+  opacity: 0;
+  /* Hide text when sidebar is closed */
+  width: 0;
+  /* Shrink width to hide text */
+  pointer-events: none;
+  /* Prevent interaction with hidden text */
+  display: none;
+  /* Hide text when sidebar is closed */
+}
+
+/* Toggle Button */
+.toggleButton {
+  position: fixed;
+  top: 15px;
+  left: 250px;
+  background-color: #34495e;
+  color: #ecf0f1;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1100;
+  transition: left 0.3s ease-in-out;
+}
+
+.toggleButton.closed {
+  left: 56px;
+  /* Adjust position when sidebar is closed */
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  background-color: #2e3b4e;
+  border-radius: 8px;
+  margin: 10px;
+  color: white;
+}
+
+.profilePicture {
+  margin-right: 10px;
+}
+
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid #4caf50;
+}
+
+.userDetails {
+  display: flex;
+  flex-direction: column;
+}
+
+.userName {
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.userRole {
+  font-size: 0.85rem;
+  color: #cfd8dc;
+}
+
+.userStatus {
+  font-size: 0.75rem;
+  color: #4caf50;
+  display: flex;
+  align-items: center;
+}
+
+.statusIcon {
+  margin-right: 5px;
+  color: #4caf50;
+}
+/* Login & Register Links */
+.login,
+.register {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 1rem;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  position: relative;
+  /* For pseudo-element positioning */
+  overflow: hidden;
+  /* Hide overflow for sliding underline */
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Logout Button */
+.logoutButton {
+  position: absolute;
+  bottom: 0;
+  color: #ecf0f1;
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, opacity 0.3s ease;
+  width: 100%;
+  padding: 15px 20px;
+  justify-content: center;
+  background-color: #e74c3c;
+}
+
+.logoutButton:hover {
+  background-color: #c0392b;
+}
+
+.logoutButton .icon {
+  margin-right: 10px;
+  font-size: 1.5rem;
+}
+
+.logoutButton span {
+  display: inline-block;
+  /* Ensure span text is block-level */
+  white-space: nowrap;
+  /* Prevent text wrap */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar.closed .logoutButton span {
+  opacity: 0;
+  /* Hide text when sidebar is closed */
+  width: 0;
+  /* Shrink width to hide text */
+  pointer-events: none;
+  /* Prevent interaction with hidden text */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 200px;
+  }
+
+  .sidebar.closed {
+    width: 60px;
+  }
+
+  .sidebar.open~.toggleButton {
+    left: 215px;
+  }
+
+  .sidebar.closed~.toggleButton {
+    left: 75px;
+  }
+}
