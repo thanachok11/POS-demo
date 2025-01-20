@@ -18,13 +18,11 @@ connectDB();
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
-
 app.use(cors({
-  origin: 'http://localhost:3000', // URL ของ Frontend
+  origin: ['http://localhost:3000', 'http://10.10.23.21:3000'], // อนุญาตหลาย origin
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-
 // Middleware
 app.use(express.json());  // ใช้ express.json() เท่านั้น
 app.use(bodyParser.json()); // ลบได้

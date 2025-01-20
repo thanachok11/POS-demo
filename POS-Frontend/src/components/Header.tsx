@@ -165,7 +165,7 @@ const Sidebar: React.FC = () => {
             </ul>
           )}
 
-          <li onClick={() => handleNavigation("/shope")}>
+          <li onClick={() => handleNavigation("/shop")}>
             <FontAwesomeIcon icon={faShoppingCart} className="icon" /> <span>ซื้อสินค้า</span>
           </li>
 
