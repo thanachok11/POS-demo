@@ -26,11 +26,11 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     if (existingUser) {
       if (existingUser.email === email) {
-        res.status(400).json({ message: 'Email already registered' });
+        res.status(400).json({ message: 'อีเมลนี้ มีผู้ใช้อยู่ในระบบแล้ว' });
         return;
       }
       if (existingUser.username === username) {
-        res.status(400).json({ message: 'Username already taken' });
+        res.status(400).json({ message: 'ชื่อผู้ใช้นี้ได้มีอยู่ในระบบแล้ว' });
         return;
       }
     }
@@ -65,14 +65,14 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      res.status(400).json({ message: 'User not found' });
+      res.status(400).json({ message: 'ไม่พบผู้ใช้นี้ในระบบ' });
       return;
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      res.status(400).json({ message: 'Invalid credentials' });
+      res.status(400).json({ message: 'รหัสผ่านไม่ถูกต้อง' });
       return;
     }
 
@@ -91,7 +91,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
     res.status(200).json({ message: 'Login successful', token });
   } catch (error) {
-    res.status(500).json({ message: 'Login failed', error });
+    res.status(500).json({ message: 'เข้าสู่ระบบไม่สำเร็จ', error });
   }
 };
 

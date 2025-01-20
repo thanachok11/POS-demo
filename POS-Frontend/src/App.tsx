@@ -7,7 +7,6 @@ import Sidebar from "./components/Header.tsx";
 import ProductList from "./components/ProductList.tsx";
 import Barcodesearch from "./components/BarcodeSearch.tsx";
 import UploadProduct from "./components/upload.tsx";
-import Google from "./components/google.tsx";
 // ถ้าคุณมีหน้า login
 
 const App: React.FC = () => {
@@ -17,7 +16,6 @@ const App: React.FC = () => {
       <Routes>
       <Route path="/" element={<Homepage />} /> {/* หน้าแรกหรือ Homepage */}
       <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/google" element={<Google />} />
       <Route path="/shope" element={<ProductList />} />
       <Route path="/barcode" element={<Barcodesearch />} />
       <Route path="/add-products" element={<UploadProduct />} />

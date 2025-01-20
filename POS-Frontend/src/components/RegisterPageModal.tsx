@@ -1,7 +1,6 @@
-// RegisterModal.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { registerUser, handleGoogleRegister } from '../api/auth.ts'; // Import ฟังก์ชัน API
+import { registerUser, handleGoogleRegister } from '../api/auth.ts';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import '../styles/auth/RegisterModal.css';
 
@@ -46,7 +45,13 @@ const RegisterModal: React.FC<RegisterProps> = ({ isVisible, onClose }) => {
     }
 
     try {
-      const data = await registerUser(formData.email, formData.password, formData.username, formData.firstName, formData.lastName);
+      const data = await registerUser(
+        formData.email, 
+        formData.password, 
+        formData.username, 
+        formData.firstName, 
+        formData.lastName
+      );
       setSuccessMessage('สมัครสมาชิกสำเร็จ! คุณสามารถเข้าสู่ระบบได้แล้ว');
       setError('');
 
@@ -55,6 +60,7 @@ const RegisterModal: React.FC<RegisterProps> = ({ isVisible, onClose }) => {
         navigate('/');
       }, 2000);
     } catch (err: any) {
+      console.error('Register Error:', err);
       setError(err.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
       setSuccessMessage('');
     }
@@ -65,157 +71,53 @@ const RegisterModal: React.FC<RegisterProps> = ({ isVisible, onClose }) => {
 
     try {
       const data = await handleGoogleRegister(response.credential);
-      if (data.token) {
-        // Google Register Success
-        console.log('Token saved:', data.token);
-
-        // ตั้งค่าข้อความสำเร็จ
-        setSuccessMessage('สมัครสมาชิกสำเร็จ! คุณสามารถเข้าสู่ระบบได้แล้ว');
-        setError('');
-
-        // ปิด Modal และเปลี่ยนหน้าไปยัง Login
-        setTimeout(() => {
-          onClose();
-          navigate('/login'); // เปลี่ยนไปยังหน้า Login
-        }, 2000);
+      if (!data || !data.token) {
+        throw new Error('บัญชี google นี้มีอยู่ในระบบอยู่แล้ว ');
       }
-    } catch (error) {
+
+      setSuccessMessage('สมัครสมาชิกสำเร็จ! คุณสามารถเข้าสู่ระบบได้แล้ว');
+      setError('');
+
+      setTimeout(() => {
+        onClose();
+        navigate('/login');
+      }, 2000);
+    } catch (error: any) {
       console.error('Google Register Error:', error);
-      setError('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+      setError(error.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
       setSuccessMessage('');
     }
   };
 
-
   return (
-<<<<<<< HEAD
     <GoogleOAuthProvider clientId="429542474271-omg13rrfbv9aidi9p7c788gsfe8akfsd.apps.googleusercontent.com">
       <div className="modal-overlay">
         <div className="modal-content">
           <button onClick={onClose} className="close-button">X</button>
           <form onSubmit={handleRegister} className="form">
             <h1 className="title-register">สมัครสมาชิก</h1>
-=======
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <button onClick={onClose} className="close-button">X</button>
-        <form onSubmit={handleRegister} className="form">
-          <h1 className="title-register">สมัครสมาชิก</h1>
-          <input
-            type="text"
-            name="username"
-            placeholder="ชื่อผู้ใช้"
-            value={formData.username}
-            onChange={handleChange}
-            className="input"
-            required
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="อีเมล"
-            value={formData.email}
-            onChange={handleChange}
-            className="input"
-            required
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="รหัสผ่าน"
-            value={formData.password}
-            onChange={handleChange}
-            className="input"
-            required
-          />
-          <input
-            type="text"
-            name="firstName"
-            placeholder="ชื่อ"
-            value={formData.firstName}
-            onChange={handleChange}
-            className="input"
-            required
-          />
-          <input
-            type="text"
-            name="lastName"
-            placeholder="นามสกุล"
-            value={formData.lastName}
-            onChange={handleChange}
-            className="input"
-            required
-          />
-          <div className="checkbox-container">
->>>>>>> 53da7cf0ae02369164b1eb52be70513e8700ef81
-            <input
-              type="text"
-              name="username"
-              placeholder="ชื่อผู้ใช้"
-              value={formData.username}
-              onChange={handleChange}
-              className="input"
-              required
-            />
-            <input
-              type="email"
-              name="email"
-              placeholder="อีเมล"
-              value={formData.email}
-              onChange={handleChange}
-              className="input"
-              required
-            />
-            <input
-              type="password"
-              name="password"
-              placeholder="รหัสผ่าน"
-              value={formData.password}
-              onChange={handleChange}
-              className="input"
-              required
-            />
-            <input
-              type="text"
-              name="firstName"
-              placeholder="ชื่อ"
-              value={formData.firstName}
-              onChange={handleChange}
-              className="input"
-              required
-            />
-            <input
-              type="text"
-              name="lastName"
-              placeholder="นามสกุล"
-              value={formData.lastName}
-              onChange={handleChange}
-              className="input"
-              required
-            />
+            <input type="text" name="username" placeholder="ชื่อผู้ใช้" value={formData.username} onChange={handleChange} className="input" required />
+            <input type="email" name="email" placeholder="อีเมล" value={formData.email} onChange={handleChange} className="input" required />
+            <input type="password" name="password" placeholder="รหัสผ่าน" value={formData.password} onChange={handleChange} className="input" required />
+            <input type="text" name="firstName" placeholder="ชื่อ" value={formData.firstName} onChange={handleChange} className="input" required />
+            <input type="text" name="lastName" placeholder="นามสกุล" value={formData.lastName} onChange={handleChange} className="input" required />
             <div className="checkbox-container">
-              <input
-                type="checkbox"
-                id="acceptTerms"
-                checked={acceptedTerms}
-                onChange={handleCheckboxChange}
-              />
-              <label className="label" htmlFor="acceptTerms">
-                ฉันยอมรับเงื่อนไขและนโยบายความเป็นส่วนตัว
-              </label>
+              <input type="checkbox" id="acceptTerms" checked={acceptedTerms} onChange={handleCheckboxChange} />
+              <label className="label" htmlFor="acceptTerms">ฉันยอมรับเงื่อนไขและนโยบายความเป็นส่วนตัว</label>
             </div>
             <button type="submit" className="button">สมัครสมาชิก</button>
-            
 
-            {/* เพิ่มปุ่ม Google Register */}
             <div className="google-register-container">
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
-                onError={() => console.error("Google Register Failed")}
+                onError={() => {
+                  console.error("Google Register Failed");
+                  setError("เกิดข้อผิดพลาดในการสมัครผ่าน Google กรุณาลองใหม่อีกครั้ง");
+                }}
               />
-              {error && <p className="error">{error}</p>}
-              {successMessage && <p className="success">{successMessage}</p>}
             </div>
+            {error && <p className="error">{error}</p>}
+            {successMessage && <p className="success">{successMessage}</p>}
           </form>
         </div>
       </div>
