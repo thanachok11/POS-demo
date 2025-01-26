@@ -47,16 +47,16 @@ export const googleLogin = async (req: Request, res: Response): Promise<void> =>
 
     // สร้าง JWT Token ใหม่
     const token = jwt.sign(
-          {
-            id: user._id,           // user id
-            email: user.email,       // user email
-            username: user.username, // username ของผู้ใช้
-            role: user.role,  
-            profile_img:user.profile_img,       // role ของผู้ใช้
-          },
-          process.env.JWT_SECRET as string,
-          { expiresIn: '1h' }
-        );
+      {
+        id: user._id,           // user id
+        email: user.email,       // user email
+        username: user.username, // username ของผู้ใช้
+        role: user.role,
+        profile_img: user.profile_img,       // role ของผู้ใช้
+      },
+      process.env.JWT_SECRET as string,
+      { expiresIn: '1h' }
+    );
 
     res.json({ token, user });
 
@@ -79,18 +79,19 @@ export const googleRegister = async (req: Request, res: Response): Promise<void>
     });
 
     const payload = ticket.getPayload();
-    const googleEmail = payload?.email;
-    const googleId = payload?.sub;
-    const firstName = payload?.given_name ?? 'Guest';
-    const lastName = payload?.family_name ?? 'User';
-    const picture = payload?.picture ?? '';
-
-    if (!googleEmail || !googleId) {
+    if (!payload) {
       res.status(400).json({ message: 'ไม่สามารถตรวจสอบข้อมูลจาก Google ได้' });
       return;
     }
 
-    // เช็คว่าผู้ใช้มีบัญชีในระบบหรือยัง
+    const { email: googleEmail, sub: googleId, given_name: firstName = 'Guest', family_name: lastName = 'User', picture = '' } = payload;
+
+    if (!googleEmail || !googleId) {
+      res.status(400).json({ message: 'ไม่สามารถรับข้อมูลจาก Google' });
+      return;
+    }
+
+    // ตรวจสอบว่ามีบัญชีอยู่แล้วหรือไม่
     let user = await User.findOne({ googleId });
 
     if (user) {
@@ -98,7 +99,10 @@ export const googleRegister = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    // บันทึก googleToken ด้วย
+    // สร้าง username ไม่ให้ซ้ำกัน
+    const username = `${firstName}${Math.floor(Math.random() * 1000)}`;
+
+    // สร้างบัญชีใหม่
     user = new User({
       email: googleEmail,
       googleId,
@@ -106,13 +110,12 @@ export const googleRegister = async (req: Request, res: Response): Promise<void>
       lastName,
       profile_img: picture,
       role: 'user',
-      username: firstName,
-      googleToken, // 👉 บันทึก Google Token ลง DB
+      username,
     });
 
     await user.save();
 
-    // สร้าง Token สำหรับผู้ใช้
+    // สร้าง JWT Token
     const token = jwt.sign(
       { id: user._id, email: user.email },
       process.env.JWT_SECRET || 'yourSecretKey',
@@ -123,6 +126,10 @@ export const googleRegister = async (req: Request, res: Response): Promise<void>
 
   } catch (error) {
     console.error('Error in Google Register:', error);
-    res.status(500).json({ message: 'เกิดข้อผิดพลาดในการสมัครสมาชิกด้วย Google' });
+
+    // ตรวจสอบว่า error เป็น instanceof Error หรือไม่
+    const errorMessage = error instanceof Error ? error.message : 'เกิดข้อผิดพลาดในการสมัครสมาชิกด้วย Google';
+
+    res.status(500).json({ message: errorMessage });
   }
-}
+};
