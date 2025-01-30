@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
+
 // สร้าง interface สำหรับ Product
 export interface IProduct extends Document {
   name: string;
@@ -6,10 +7,9 @@ export interface IProduct extends Document {
   price: number;
   category: string;
   stock: number;
-  barcode: string; // New barcode field
-  imageUrl: string;  // เก็บ URL ขอ
-  createdAt: Date;
-  updatedAt: Date;
+  barcode: string;
+  imageUrl?: string;  // URL รูปภาพ (อาจไม่มี)
+  public_id?: string; // สำหรับการจัดการรูป (อาจไม่มี)
 }
 
 const ProductSchema: Schema = new Schema(
@@ -18,15 +18,13 @@ const ProductSchema: Schema = new Schema(
     description: { type: String, required: true },
     price: { type: Number, required: true },
     category: { type: String, required: true },
-    barcode: { type: String, required: true, unique: true }, // New barcode field
+    barcode: { type: String, required: true, unique: true },
     stock: { type: Number, required: true },
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now },
     imageUrl: { type: String }, // เก็บ URL ของภาพจาก Cloudinary
-    public_id: { type: String, required: true }, // เก็บ public_id สำหรับการลบหรือจัดการภาพในอนาคต
+    public_id: { type: String, required: false }, // ไม่จำเป็นต้อง required
   },
-  {
-    timestamps: true,  // Mongoose จะช่วยบันทึกเวลาของ createdAt และ updatedAt โดยอัตโนมัติ
-  }
+  { timestamps: true } // ไม่ต้องกำหนด createdAt และ updatedAt เอง
 );
-export default mongoose.models.Product || mongoose.model<IProduct>('products', ProductSchema);
+
+// ใช้ mongoose.models.Product ป้องกันการสร้าง model ซ้ำ
+export default mongoose.models.Product || mongoose.model<IProduct>('Product', ProductSchema);

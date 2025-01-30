@@ -94,103 +94,101 @@ const AddProductForm = () => {
   }, [showSuccessPopup]);
 
   return (
-    <div>
-      <h2>เพิ่มสินค้าใหม่</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>ชื่อสินค้า:</label>
+    <div className="add-product-container">
+      <h2 className="form-title">เพิ่มสินค้าใหม่</h2>
+      <form className="add-product-form" onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label className="form-label">ชื่อสินค้า:</label>
           <input
             type="text"
             name="name"
             value={productData.name}
             onChange={handleInputChange}
+            className="form-input"
           />
         </div>
-        <div>
-          <label>รายละเอียดสินค้า:</label>
+        <div className="form-group">
+          <label className="form-label">รายละเอียดสินค้า:</label>
           <input
             type="text"
             name="description"
             value={productData.description}
             onChange={handleInputChange}
+            className="form-input"
           />
         </div>
-        <div>
-          <label>ราคา:</label>
+        <div className="form-group">
+          <label className="form-label">ราคา:</label>
           <input
             type="number"
             name="price"
             value={productData.price}
             onChange={handleInputChange}
+            className="form-input"
           />
         </div>
-        <div>
-          <label>หมวดหมู่:</label>
+        <div className="form-group">
+          <label className="form-label">หมวดหมู่:</label>
           <input
             type="text"
             name="category"
             value={productData.category}
             onChange={handleInputChange}
+            className="form-input"
           />
         </div>
-        <div>
-          <label>บาร์โค้ด:</label>
+        <div className="form-group">
+          <label className="form-label">บาร์โค้ด:</label>
           <input
             type="text"
             name="barcode"
             value={productData.barcode}
             onChange={handleInputChange}
+            className="form-input"
           />
         </div>
-        <div>
-          <label>จำนวน:</label>
+        <div className="form-group">
+          <label className="form-label">จำนวน:</label>
           <input
             type="number"
             name="stock"
             value={productData.stock}
             onChange={handleInputChange}
+            className="form-input"
           />
         </div>
-        <div>
-          <label>เลือกรูปภาพสินค้า:</label>
-          <input type="file" onChange={handleImageChange} />
+        <div className="form-group">
+          <label className="form-label">เลือกรูปภาพสินค้า:</label>
+          <input
+            type="file"
+            onChange={handleImageChange}
+            className="form-file-input"
+          />
         </div>
-        <div>
-          <button type="submit" disabled={loading}>
+        <div className="form-group">
+          <button type="submit" disabled={loading} className="submit-button">
             {loading ? 'กำลังอัปโหลด...' : 'เพิ่มสินค้า'}
           </button>
         </div>
       </form>
-      {message && <p>{message}</p>}
+      {message && <p className="error-message">{message}</p>}
 
       {showSuccessPopup && (
-        <div className="successPopup">
-          <span className="successIcon">✔️</span>
+        <div className="success-popup">
+          <span className="success-icon">✔️</span>
           <p>สินค้าเพิ่มสำเร็จ!</p>
         </div>
       )}
 
       {addedProduct && (
         <div className="product-display">
-          <h3>สินค้าที่เพิ่ม</h3>
-          <p>
-            <strong>ชื่อสินค้า:</strong> {addedProduct.name}
-          </p>
-          <p>
-            <strong>รายละเอียด:</strong> {addedProduct.description}
-          </p>
-          <p>
-            <strong>ราคา:</strong> ฿{addedProduct.price}
-          </p>
-          <p>
-            <strong>หมวดหมู่:</strong> {addedProduct.category}
-          </p>
-          <p>
-            <strong>จำนวนในสต็อก:</strong> {addedProduct.stock}
-          </p>
-          <p>
-            <strong>บาร์โค้ด:</strong> {addedProduct.barcode}
-          </p>
+          <h3 className="product-display-title">สินค้าที่เพิ่ม</h3>
+          <p><strong>ชื่อสินค้า:</strong> {addedProduct.name}</p>
+          <p><strong>รายละเอียด:</strong> {addedProduct.description}</p>
+          <p><strong>ราคา:</strong> ฿{addedProduct.price}</p>
+          <p><strong>หมวดหมู่:</strong> {addedProduct.category}</p>
+          <p><strong>จำนวนในสต็อก:</strong> {addedProduct.stock}</p>
+          <p><strong>บาร์โค้ด:</strong> {addedProduct.barcode}</p>
           {addedProduct.imageUrl && (
             <img
               src={addedProduct.imageUrl}

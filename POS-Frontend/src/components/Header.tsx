@@ -12,8 +12,8 @@ import {
   faBox,
   faChartLine,
   faCog,
-  faChevronDown,
-  faChevronUp,
+  faWarehouse, 
+  faClipboardList,
 } from "@fortawesome/free-solid-svg-icons";
 import "../styles/Sidebar.css";
 import LoginPageModal from "./LoginPageModal.tsx";
@@ -105,7 +105,7 @@ const Sidebar: React.FC = () => {
 
   return (
     <>
-      <button className={`toggleButton ${isSidebarOpen ? "open" : "closed"}`} onClick={toggleSidebar}>
+       <button className={`toggleButton ${isSidebarOpen ? "open" : "closed"}`} onClick={toggleSidebar}>
         <FontAwesomeIcon icon={isSidebarOpen ? faTimes : faBars} />
       </button>
 
@@ -145,25 +145,12 @@ const Sidebar: React.FC = () => {
           <li onClick={() => handleNavigation("/dashboard")}>
             <FontAwesomeIcon icon={faChartLine} className="icon" /> <span>รายงาน</span>
           </li>
-          <li onClick={() => handleNavigation("")}>
-            <FontAwesomeIcon icon={faCog} className="icon" /> <span>ตั้งค่า</span>
-            <FontAwesomeIcon
-              icon={isSettingsDropdownOpen ? faChevronUp : faChevronDown}
-              className="dropdownIcon"
-              onClick={toggleSettingsDropdown}
-            />
+          <li onClick={() => handleNavigation("/stock")}>
+            <FontAwesomeIcon icon={faClipboardList} className="icon" /> <span>สต็อกสินค้า</span>
           </li>
-
-          {isSettingsDropdownOpen && (
-            <ul className="settingsDropdown">
-              <li onClick={() => handleNavigation("/settings/personal-info")}>
-                ข้อมูลส่วนตัว
-              </li>
-              <li onClick={() => handleNavigation("/settings/notifications")}>
-                การแจ้งเตือน
-              </li>
-            </ul>
-          )}
+          <li onClick={() => handleNavigation("/setting")}>
+            <FontAwesomeIcon icon={faCog} className="icon" /> <span>ตั้งค่า</span>
+          </li>
 
           <li onClick={() => handleNavigation("/shop")}>
             <FontAwesomeIcon icon={faShoppingCart} className="icon" /> <span>ซื้อสินค้า</span>

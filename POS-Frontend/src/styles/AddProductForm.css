@@ -1,0 +1,127 @@
+/* Container for the entire form */
+.add-product-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Title for the form */
+.form-title {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Styling for the form itself */
+.add-product-form {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Group of label and input */
+.form-group {
+    margin-bottom: 15px;
+}
+
+/* Styling for the label */
+.form-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* Styling for input fields */
+.form-input,
+.form-file-input {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.form-input:focus,
+.form-file-input:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+/* Styling for the submit button */
+.submit-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.submit-button:hover {
+    background-color: #218838;
+}
+
+.submit-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Styling for error messages */
+.error-message {
+    color: #dc3545;
+    font-size: 14px;
+    text-align: center;
+    margin-top: 10px;
+}
+
+/* Styling for the success popup */
+.success-popup {
+    background-color: #28a745;
+    color: white;
+    padding: 15px;
+    text-align: center;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.success-icon {
+    font-size: 24px;
+    margin-right: 10px;
+}
+
+/* Styling for the product display after adding */
+.product-display {
+    margin-top: 30px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+.product-display-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.product-display p {
+    font-size: 14px;
+    margin: 5px 0;
+}
+
+.product-image {
+    max-width: 200px;
+    margin-top: 15px;
+    border-radius: 4px;
+}

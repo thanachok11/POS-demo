@@ -1,0 +1,131 @@
+/* StockPage.css */
+/* styles/Navbar.css */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+/* พื้นหลังและการตั้งค่าเบื้องต้น */
+body {
+    background-color: #f7f7f7;
+    /* พื้นหลังอ่อน */
+    font-family: 'Arial', sans-serif;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+/* กรอบของหน้า stock */
+.stock-container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    /* พื้นหลังของ container */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    /* เพิ่มเงา */
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* หัวข้อหลัก */
+.stock-header {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #444;
+    text-align: center;
+    margin-bottom: 30px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* กรอบตาราง */
+.stock-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.stock-table th,
+.stock-table td {
+    padding: 15px;
+    text-align: center;
+    border: 1px solid #ddd;
+    font-size: 1rem;
+}
+
+/* สไตล์สำหรับแถวหัวตาราง */
+.stock-header-row {
+    background-color: #007bff;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+.stock-header-cell {
+    padding: 15px;
+}
+
+/* สไตล์แถวในตาราง */
+.stock-table-row {
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.stock-table-row:hover {
+    background-color: #f1f1f1;
+}
+
+/* สถานะของสินค้า */
+.status-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* กำหนดสีของไอคอนสถานะ */
+.icon-green {
+    color: #28a745;
+}
+
+.icon-yellow {
+    color: #ffc107;
+}
+
+.icon-red {
+    color: #dc3545;
+}
+
+/* สไตล์ของข้อความสถานะ */
+.loading-text {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #007bff;
+    margin-top: 50px;
+}
+
+.error-text {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #dc3545;
+    margin-top: 50px;
+}
+
+/* ปรับแต่งความสวยงามของปุ่มหรือการโต้ตอบ */
+.button-primary {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+    text-align: center;
+}
+
+.button-primary:hover {
+    background-color: #0056b3;
+}
