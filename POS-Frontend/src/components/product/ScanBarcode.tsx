@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { getProductByBarcode } from "../api/productApi.ts"; // import API
+import { getProductByBarcode } from "../../api/product/productApi.ts"; // import API
 import { BrowserBarcodeReader } from "@zxing/library";
 
 const BarcodeUploader = () => {

@@ -1,10 +1,5 @@
 /* StockPage.css */
-/* styles/Navbar.css */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+
 /* พื้นหลังและการตั้งค่าเบื้องต้น */
 body {
     background-color: #f7f7f7;
@@ -17,10 +12,10 @@ body {
 
 /* กรอบของหน้า stock */
 .stock-container {
-    width: 90%;
-    max-width: 1200px;
-    margin: 50px auto;
+    margin-left: 260px;
+    /* ขยับเนื้อหาไปทางขวาเพื่อเว้นที่ให้ Sidebar */
     padding: 20px;
+    font-family: "Arial", sans-serif;
     background-color: #ffffff;
     /* พื้นหลังของ container */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);

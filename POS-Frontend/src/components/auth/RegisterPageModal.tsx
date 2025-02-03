@@ -1,9 +1,9 @@
 // RegisterModal.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { registerUser, handleGoogleRegister } from '../api/auth.ts'; // Import ฟังก์ชัน API
+import { registerUser, handleGoogleRegister } from '../../api/auth/auth.ts'; // Import ฟังก์ชัน API
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
-import '../styles/auth/RegisterModal.css';
+import '../../styles/auth/RegisterModal.css';
 
 interface RegisterProps {
   isVisible: boolean;

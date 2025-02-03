@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckCircle, faExclamationTriangle, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
-import { fetchStockData } from '../api/stock.ts'; // นำเข้าฟังก์ชันที่ดึงข้อมูลจาก API
-import "../styles/StockPage.css";
+import { fetchStockData } from '../../api/stock/stock.ts'; // นำเข้าฟังก์ชันที่ดึงข้อมูลจาก API
+import "../../styles/StockPage.css";
 
 interface StockItem {
   productId: string;
@@ -52,7 +52,7 @@ const StockPage: React.FC = () => {
 
   return (
     <div className="stock-container">
-      <h2 className="stock-header">📦 Stock Management</h2>
+      <h2 className="stock-header">📦 จัดการสต็อกสินค้า</h2>
       <table className="stock-table">
         <thead>
           <tr className="stock-header-row">

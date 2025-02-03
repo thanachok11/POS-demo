@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
-import { googleLogin, loginUser } from "../api/auth.ts";
-import "../styles/auth/LoginPageModal.css";
+import { googleLogin, loginUser } from "../../api/auth/auth.ts";
+import "../../styles/auth/LoginPageModal.css";
 
 interface LoginProps {
   isVisible: boolean;

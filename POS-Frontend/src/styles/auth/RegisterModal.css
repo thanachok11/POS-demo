@@ -34,12 +34,9 @@
   display: flex;
   flex-direction: column;
 }
-<<<<<<< HEAD
 .google-resgister-container{
   margin-top: 20px;
 }
-=======
->>>>>>> 53da7cf0ae02369164b1eb52be70513e8700ef81
 .title-register {
   font-size: 2rem;
     color: #7c9590;
