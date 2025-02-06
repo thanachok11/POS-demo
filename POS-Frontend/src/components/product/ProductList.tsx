@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { getProducts } from "../../api/product/productApi.ts";
-import "../../styles/ProductList.css";
+import { getProducts,createOrder} from "../../api/product/productApi.ts"; // ดึงสินค้าจาก API
 
-function ProductList() {
+const Checkout: React.FC = () => {
   const [products, setProducts] = useState<any[]>([]);
-  const [cart, setCart] = useState<any[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<{ id: string; name: string; price: number; quantity: number }[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -19,71 +18,79 @@ function ProductList() {
     fetchProducts();
   }, []);
 
-  // Handle item click to add to cart
-  const handleItemClick = (product: any) => {
-    setCart((prevCart) => [...prevCart, product]);
+  // เพิ่มสินค้าไปในตะกร้า
+  const addToCart = (product: any) => {
+    setSelectedProducts((prev) => {
+      const existing = prev.find((item) => item.id === product.id);
+      if (existing) {
+        return prev.map((item) =>
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        );
+      }
+      return [...prev, { ...product, quantity: 1 }];
+    });
   };
 
-  // Calculate total price
-  const calculateTotal = () => {
-    return cart.reduce((total, item) => total + item.price, 0);
+  // ลบสินค้าออกจากตะกร้า
+  const removeFromCart = (productId: string) => {
+    setSelectedProducts((prev) => prev.filter((item) => item.id !== productId));
+  };
+
+  // คำนวณราคารวม
+  const getTotalPrice = () => {
+    return selectedProducts.reduce((total, item) => total + item.price * item.quantity, 0);
+  };
+
+  // ดำเนินการ Checkout
+  const handleCheckout = async () => {
+    if (selectedProducts.length === 0) {
+      alert("กรุณาเลือกสินค้าก่อนชำระเงิน");
+      return;
+    }
+
+    const orderData = {
+      products: selectedProducts,
+      total: getTotalPrice(),
+    };
+
+    try {
+      await createOrder(orderData);
+      alert("สั่งซื้อสำเร็จ!");
+      setSelectedProducts([]); // ล้างตะกร้า
+    } catch (err: any) {
+      setError(err.message);
+    }
   };
 
   return (
-    <div className="pos-container">
-      {/* Left: Product List */}
-      <div className="product-list">
-        <h2 className="product-h2">รายการสินค้า</h2>
-        {error ? (
-          <p className="error-message">Error: {error}</p>
-        ) : (
-          <div className="product-grid">
-            {products.map((product) => (
-              <div
-                key={product._id}
-                className="product-item"
-                onClick={() => handleItemClick(product)} // Click to add to cart
-              >
-                <div className="product-image">
-                  <img
-                    src={product.imageUrl}
-                    alt={product.name}
-                    className="product-img"
-                  />
-                </div>
-                <h3 className="product-name">{product.name}</h3>
-                <p>
-                  <strong>ราคา:</strong> {product.price} ฿
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+    <div>
+      <h2>เลือกสินค้า</h2>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      <ul>
+        {products.map((product) => (
+          <li key={product.id}>
+            <h3>{product.name}</h3>
+            <p>ราคา: ฿{product.price}</p>
+            <button onClick={() => addToCart(product)}>เพิ่มลงตะกร้า</button>
+          </li>
+        ))}
+      </ul>
 
-      {/* Right: Checkout Area */}
-      <div className="checkout-area">
-        <h2>รายการสั่งซื้อ</h2>
-        <div className="checkout-details">
-          {cart.length === 0 ? (
-            <p>ยังไม่มีสินค้าในตะกร้า</p>
-          ) : (
-            <ul>
-              {cart.map((item, index) => (
-                <li key={index}>
-                  <strong>{item.name}</strong> - {item.price} ฿
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        <div className="total-price">
-          <strong>ยอดรวม:</strong> {calculateTotal()} ฿
-        </div>
-        <button className="checkout-btn">ชำระเงิน</button>
-      </div>
+      <h2>ตะกร้าสินค้า</h2>
+      <ul>
+        {selectedProducts.map((item) => (
+          <li key={item.id}>
+            <h3>{item.name} x {item.quantity}</h3>
+            <p>ราคารวม: ฿{item.price * item.quantity}</p>
+            <button onClick={() => removeFromCart(item.id)}>ลบ</button>
+          </li>
+        ))}
+      </ul>
+
+      <h3>ราคารวมทั้งหมด: ฿{getTotalPrice()}</h3>
+      <button onClick={handleCheckout}>ชำระเงิน</button>
     </div>
   );
-}
+};
 
-export default ProductList;
+export default Checkout;

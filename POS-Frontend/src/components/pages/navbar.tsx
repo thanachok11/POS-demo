@@ -1,6 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBell, faSignOutAlt, faSignInAlt, faUserPlus,faCaretDown } from "@fortawesome/free-solid-svg-icons";
+import { 
+  faBell, 
+  faSignOutAlt, 
+  faSignInAlt, 
+  faUserPlus,
+  faCaretDown,
+  faBars,
+  faTimes,
+  faShoppingCart,
+  faHome,
+  faBox,
+  faChartLine,
+  faCog,
+  faClipboardList,
+
+} from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import LoginPageModal from "../auth/LoginPageModal.tsx";
@@ -8,6 +23,8 @@ import RegisterPageModal from "../auth/RegisterPageModal.tsx";
 import "../../styles/Navbar.css";
 
 const Navbar: React.FC = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
   const [profileImg, setProfileImg] = useState<string | null>(null);
@@ -17,12 +34,15 @@ const Navbar: React.FC = () => {
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
 
   const navigate = useNavigate();
-
+  const toggleSidebar = () => {
+      setIsSidebarOpen(!isSidebarOpen);
+    };
   // Get user info from token
   const getUserInfoFromToken = (token: string) => {
     const decoded: any = jwtDecode(token);
     setUsername(decoded.username);
     setUserEmail(decoded.email);
+    setUserRole(decoded.role);
     setProfileImg(decoded.profile_img);
   };
 
@@ -57,7 +77,9 @@ const Navbar: React.FC = () => {
   const handleRegisterModalToggle = () => {
     setIsRegisterModalVisible(!isRegisterModalVisible);
   };
-
+  const handleNavigation = (path: string) => {
+    navigate(path);
+  };
   // Handle Logout
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -72,9 +94,38 @@ const Navbar: React.FC = () => {
   };
 
   return (
+    <>
+      <button className={`toggleButton ${isSidebarOpen ? "open" : "closed"}`} onClick={toggleSidebar}>
+        <FontAwesomeIcon icon={isSidebarOpen ? faTimes : faBars} />
+      </button>
+
+    <aside className={`sidebar ${isSidebarOpen ? "open" : "closed"}`}></aside>
     <nav className="navbar">
       <div className="navbar-content">
-        <div className="logo">ระบบจัดการสินค้า</div>
+      <div className={`logo ${isSidebarOpen ? "shifted" : ""}`}>ระบบจัดการสินค้า</div>
+        <div className="sidebar open">
+          <ul className="navLinks">
+          <li onClick={() => handleNavigation("/")}>
+            <FontAwesomeIcon icon={faHome} className="icon" /> <span>หน้าหลัก</span>
+          </li>
+          <li onClick={() => handleNavigation("/products")}>
+            <FontAwesomeIcon icon={faBox} className="icon" /> <span>จัดการสินค้า</span>
+          </li>
+          <li onClick={() => handleNavigation("/dashboard")}>
+            <FontAwesomeIcon icon={faChartLine} className="icon" /> <span>รายงาน</span>
+          </li>
+          <li onClick={() => handleNavigation("/stock")}>
+            <FontAwesomeIcon icon={faClipboardList} className="icon" /> <span>สต็อกสินค้า</span>
+          </li>
+          <li onClick={() => handleNavigation("/setting")}>
+            <FontAwesomeIcon icon={faCog} className="icon" /> <span>ตั้งค่า</span>
+          </li>
+
+          <li onClick={() => handleNavigation("/shop")}>
+            <FontAwesomeIcon icon={faShoppingCart} className="icon" /> <span>ซื้อสินค้า</span>
+          </li>
+        </ul>
+        </div>
         <div className="nav-right">
           {userEmail && (
             <>
@@ -91,7 +142,7 @@ const Navbar: React.FC = () => {
                 </div>
                 {dropdownOpen && (
                   <div className="dropdown-menu">
-                    <p className="user-role">👤 Role: {userRole || "User"}</p>
+                    <p className="user-role">👤 Role: {userRole}</p>
                     <button onClick={handleLogout} className="logout-button">
                       <FontAwesomeIcon icon={faSignOutAlt} className="icon logout-icon" /> Logout
                     </button>
@@ -118,6 +169,7 @@ const Navbar: React.FC = () => {
       <LoginPageModal isVisible={isLoginModalVisible} onClose={handleLoginModalToggle} />
       <RegisterPageModal isVisible={isRegisterModalVisible} onClose={handleRegisterModalToggle} />
     </nav>
+    </>
   );
 };
 

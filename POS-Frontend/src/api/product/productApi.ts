@@ -39,3 +39,13 @@ export const uploadProduct = async (data: FormData) => {
     throw error;
   }
 };
+export const createOrder = async (orderData: any) => {
+  const token = localStorage.getItem("token"); // ดึง token ผู้ใช้
+  const response = await axios.post(`${API_BASE_URL}/order`, orderData, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+export const placeOrder = async (orderData: any) => {
+  return await axios.post(`${API_BASE_URL}/checkout`, orderData);
+};
