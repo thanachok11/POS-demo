@@ -1,9 +1,23 @@
-/* General styling for the app */
+.app-container {
+  display: flex;
+  transition: margin-left 0.3s ease-in-out;
+  /* ทำให้การเลื่อนราบรื่น */
+}
 
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f5f5f5;
-  color: #333;
+.app-container.sidebar-open .main-content {
+  margin-left: 250px;
+  transition: margin-left 0.5s ease-in-out;
+  /* เลื่อนเมื่อเปิด sidebar */
+}
+
+.app-container.sidebar-closed .main-content {
+  margin-left: 0;
+  /* เมื่อลบ sidebar ออก เลื่อนกลับไปที่ 0 */
+  transition: margin-left 0.5s ease-in-out;
+  /* เลื่อนกลับเมื่อปิด sidebar */
+}
+
+.main-content {
+  flex-grow: 1;
+  padding: 20px;
 }

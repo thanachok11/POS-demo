@@ -21,7 +21,7 @@
     /* ดันไอคอนไปทางขวาสุด */
 }
 
-.icon {
+.iconName {
     color: white;
     font-size: 20px;
     cursor: pointer;
@@ -35,11 +35,12 @@
     padding: 5px;
 }
 
-.navbar .logo {
+.navbar .iconName {
     font-size: 24px;
     font-weight: bold;
     color: white;
-    margin:10px 20px;
+    margin: 10px 20px;
+    margin-left: 30px;
 }
 
 
@@ -47,13 +48,14 @@
     margin-right: 10px;
 }
 
-.logo {
+.iconName {
     transition: margin-left 0.5s ease;
 }
 
-.logo.shifted {
-    margin-left: 210px;
+.iconName.shifted {
+    margin-left: 80px;
 }
+
 .toggleButton {
     position: fixed;
     top: 30px;
@@ -70,10 +72,12 @@
     left: 200px;
     transition: left 0.5s ease;
 }
+
 .toggleButton.closed {
-    left: 10px;
+    left: 60px;
     transition: left 0.5s ease;
 }
+
 .user-dropdown {
     position: relative;
     cursor: pointer;
@@ -122,6 +126,7 @@
     color: white;
     font-size: 14px;
 }
+
 /* ปรับ dropdown-menu ให้ดูมีมิติมากขึ้น */
 .dropdown-menu {
     position: absolute;
@@ -225,25 +230,35 @@
         font-size: 12px;
     }
 }
+
+/* Responsive: ปรับให้เล็กลงในมือถือ */
+@media (max-width: 768px) {
+    .nav-right {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .nav-right span {
+        font-size: 12px;
+    }
+}
+
 .sidebar {
     position: fixed;
     left: 0;
     top: 0;
     width: 250px;
     height: 100%;
-    margin-top:100px;
-    background: linear-gradient(135deg, #1f2b36, #2c3e50);
-    /* Gradient สีสวยๆ */
+    margin-top: 100px;
+    transition: width 0.3s ease-in-out;
+    background: linear-gradient(135deg, #5e768b, #456686);
     color: white;
     padding-top: 20px;
     transition: all 0.3s ease-in-out;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
-    /* เงาสวยๆ */
     overflow: hidden;
     border-top-right-radius: 15px;
-    /* ขอบมนด้านขวาบน */
     border-bottom-right-radius: 15px;
-    /* ขอบมนด้านขวาล่าง */
 }
 
 /* เมื่อ Sidebar ปิด */
@@ -263,22 +278,45 @@
 
 /* ขยาย Sidebar ตามปกติเมื่อเปิด */
 .sidebar.open {
-    width: 250px;
+    width: 220px;
 }
-/* สไตล์เมนู */
+
+/* ---------------- Sidebar Logo Image ---------------- */
+.sidebar-logo-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.2);
+}
+
+/* ---------------- Sidebar Logo Text ---------------- */
+.sidebar-logo-text {
+    font-size: 18px;
+    font-weight: bold;
+    color: #fff;
+    margin-left: 10px;
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+/* ---------------- เปิด Sidebar ---------------- */
+.sidebar.open .sidebar-logo-text {
+    opacity: 1;
+    /* แสดงชื่อโลโก้ */
+    transform: translateX(5px);
+}
+
 .navLinks {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
-/* เอฟเฟกต์ Hover */
 .navLinks li:hover {
     background: rgba(255, 255, 255, 0.2);
-    transform: scale(1.05); /* ขยายเล็กน้อย */
+    transform: scale(1.05);
 }
 
-/* ปรับแต่ละรายการเมนู */
 .navLinks li {
     padding: 12px 20px;
     display: flex;
@@ -289,10 +327,27 @@
     transition: background 0.3s ease, transform 0.2s ease;
     border-radius: 8px;
     gap: 10px;
-    /* ระยะห่างระหว่างไอคอนและข้อความ */
 }
 
-/* ปรับให้ไอคอนและข้อความอยู่ตรงกลางแนวตั้ง */
+.logo-image {
+    width: 40px;
+    height: 40px;
+    margin-top: 10px;
+}
+
+.logo-text {
+    font-size: 1.2rem;
+    text-shadow: 1px 1px rgb(212, 248, 255);
+    text-transform: uppercase;
+
+}
+
+.logo-navbar {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+}
+
 .navLinks .icon {
     font-size: 20px;
     color: #ffffff;
@@ -301,24 +356,19 @@
     align-items: center;
     justify-content: center;
     width: 30px;
-    /* กำหนดขนาดให้ไอคอนเท่ากัน */
     text-align: center;
 }
 
-/* ปรับให้ข้อความอยู่แนวเดียวกันกับไอคอน */
 .navLinks span {
     flex-grow: 1;
     text-align: left;
-    /* ชิดซ้ายให้ดูเป็นระเบียบ */
     font-size: 16px;
 }
 
-/* เปลี่ยนสีไอคอนเมื่อ Hover */
 .navLinks li:hover .icon {
-    color: #f39c12; /* สีหลักของธีม */
+    color: #f39c12;
 }
 
-/* ปรับขนาด Sidebar บนมือถือ */
 @media (max-width: 768px) {
     .sidebar {
         width: 200px;
@@ -333,3 +383,55 @@
     }
 }
 
+.auth-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.auth-button .icon {
+    font-size: 1.2rem;
+}
+
+.auth-button:hover {
+    background-color: #2980b9;
+}
+
+.auth-button:last-child {
+    background-color: #2ecc71;
+}
+
+.auth-button:last-child:hover {
+    background-color: #27ae60;
+}
+
+@media (max-width: 768px) {
+    .auth-button {
+        font-size: 0.9rem;
+        padding: 8px 14px;
+    }
+
+    .auth-button .icon {
+        font-size: 1rem;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .logo-text {
+        font-size: 1rem;
+    }
+
+    .iconName {
+        font-size: 1.2rem;
+    }
+}

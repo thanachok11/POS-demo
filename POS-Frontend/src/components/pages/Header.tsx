@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { 
-  faBell, 
-  faSignOutAlt, 
-  faSignInAlt, 
+import {
+  faBell,
+  faSignOutAlt,
+  faSignInAlt,
   faUserPlus,
   faCaretDown,
   faBars,
@@ -13,8 +13,7 @@ import {
   faBox,
   faChartLine,
   faCog,
-  faClipboardList,
-
+  faClipboardList
 } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
@@ -22,154 +21,121 @@ import LoginPageModal from "../auth/LoginPageModal.tsx";
 import RegisterPageModal from "../auth/RegisterPageModal.tsx";
 import "../../styles/Header.css";
 
-const Navbar: React.FC = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+interface NavbarProps {
+  isSidebarOpen: boolean;
+  toggleSidebar: () => void;
+}
 
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [username, setUsername] = useState<string | null>(null);
-  const [profileImg, setProfileImg] = useState<string | null>(null);
-  const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);  // ใช้ useState สำหรับ modal visibility
-  const [isRegisterModalVisible, setIsRegisterModalVisible] = useState(false);  // ใช้ useState สำหรับ modal visibility
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
-
+const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
+  const [user, setUser] = useState<{ username: string; email: string; role: string; profileImg: string } | null>(null);
+  const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
+  const [isRegisterModalVisible, setIsRegisterModalVisible] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [activeMenu, setActiveMenu] = useState("ระบบจัดการสินค้า"); // 👈 เก็บชื่อเมนูที่ถูกเลือก
   const navigate = useNavigate();
-  const toggleSidebar = () => {
-      setIsSidebarOpen(!isSidebarOpen);
-    };
-  // Get user info from token
-  const getUserInfoFromToken = (token: string) => {
-    const decoded: any = jwtDecode(token);
-    setUsername(decoded.username);
-    setUserEmail(decoded.email);
-    setUserRole(decoded.role);
-    setProfileImg(decoded.profile_img);
-  };
-
-  // Update user info based on localStorage
-  const updateUserInfo = () => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      getUserInfoFromToken(token);
-    } else {
-      setUserEmail(null);
-      setUsername(null);
-      setUserRole(null);
-      setProfileImg(null);
-    }
-  };
 
   useEffect(() => {
-    updateUserInfo();
-    const handleStorageChange = () => updateUserInfo();
-    window.addEventListener("storage", handleStorageChange);
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded: any = jwtDecode(token);
+        setUser({
+          username: decoded.username,
+          email: decoded.email,
+          role: decoded.role,
+          profileImg: decoded.profile_img || "default-avatar.png",
+        });
+      } catch (error) {
+        console.error("Invalid token:", error);
+      }
+    }
   }, []);
 
-  // Toggle Login Modal
-  const handleLoginModalToggle = () => {
-    setIsLoginModalVisible(!isLoginModalVisible);
-  };
-
-  // Toggle Register Modal
-  const handleRegisterModalToggle = () => {
-    setIsRegisterModalVisible(!isRegisterModalVisible);
-  };
-  const handleNavigation = (path: string) => {
+  const handleMenuClick = (path: string, menuName: string) => {
+    setActiveMenu(menuName); // อัปเดตชื่อเมนูที่เลือก
     navigate(path);
   };
-  // Handle Logout
   const handleLogout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("userEmail");
-    localStorage.removeItem("username");
-    localStorage.removeItem("role");
-    setUserEmail(null);
-    setUsername(null);
-    setUserRole(null);
-    setProfileImg(null);
+    setUser(null);
     navigate("/");
   };
 
   return (
     <>
+      {/* ปุ่ม Toggle Sidebar */}
       <button className={`toggleButton ${isSidebarOpen ? "open" : "closed"}`} onClick={toggleSidebar}>
         <FontAwesomeIcon icon={isSidebarOpen ? faTimes : faBars} />
       </button>
-    <aside className={`sidebar ${isSidebarOpen ? "open" : "closed"}`}></aside>
-        <div className="sidebar open">
-          <ul className="navLinks">
-          <li onClick={() => handleNavigation("/")}>
-            <FontAwesomeIcon icon={faHome} className="icon" /> <span>หน้าหลัก</span>
-          </li>
-          <li onClick={() => handleNavigation("/products")}>
-            <FontAwesomeIcon icon={faBox} className="icon" /> <span>จัดการสินค้า</span>
-          </li>
-          <li onClick={() => handleNavigation("/dashboard")}>
-            <FontAwesomeIcon icon={faChartLine} className="icon" /> <span>รายงาน</span>
-          </li>
-          <li onClick={() => handleNavigation("/stock")}>
-            <FontAwesomeIcon icon={faClipboardList} className="icon" /> <span>สต็อกสินค้า</span>
-          </li>
-          <li onClick={() => handleNavigation("/setting")}>
-            <FontAwesomeIcon icon={faCog} className="icon" /> <span>ตั้งค่า</span>
-          </li>
 
-          <li onClick={() => handleNavigation("/shop")}>
-            <FontAwesomeIcon icon={faShoppingCart} className="icon" /> <span>ซื้อสินค้า</span>
-          </li>
+      {/* Sidebar */}
+      <aside className={`sidebar ${isSidebarOpen ? "open" : "closed"}`}>
+        {isSidebarOpen && <span className="sidebar-logo-text">POS ระบบจัดการสินค้า</span>}
+        <ul className="navLinks">
+          {[
+            { path: "/", icon: faHome, label: "หน้าหลัก" },
+            { path: "/products", icon: faBox, label: "จัดการสินค้า" },
+            { path: "/dashboard", icon: faChartLine, label: "รายงาน" },
+            { path: "/stock", icon: faClipboardList, label: "สต็อกสินค้า" },
+            { path: "/setting", icon: faCog, label: "ตั้งค่า" },
+            { path: "/shop", icon: faShoppingCart, label: "ซื้อสินค้า" },
+          ].map((item) => (
+            
+            <li key={item.path} onClick={() => handleMenuClick(item.path, item.label)}>
+              <FontAwesomeIcon icon={item.icon} className="icon" /> <span>{item.label}</span>
+            </li>
+          ))}
         </ul>
-        </div>
-      <nav className="navbar">
-      <div className="navbar-content">
-      <div className={`logo ${isSidebarOpen ? "shifted" : ""}`}>ระบบจัดการสินค้า</div>
-        <div className="nav-right">
-          {userEmail && (
-            <>
-              <FontAwesomeIcon icon={faBell} className="icon notification-icon" />
-              {/* User Dropdown */}
-              <div className="user-dropdown" onClick={() => setDropdownOpen(!dropdownOpen)}>
-                <div className="user-info">
-                  <img src={profileImg || "default-avatar.png"} alt="User" className="avatar" />
-                  <div className="user-details">
-                    <span className="username">{username}</span>
-                    <span className="status-online">🟢 กำลังออนไลน์</span>
-                  </div>
-                  <FontAwesomeIcon icon={faCaretDown} className="icon caret-icon" />
-                </div>
-                {dropdownOpen && (
-                  <div className="dropdown-menu">
-                    <p className="user-role">👤 Role: {userRole}</p>
-                    <button onClick={handleLogout} className="logout-button">
-                      <FontAwesomeIcon icon={faSignOutAlt} className="icon logout-icon" /> Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-          {/* ถ้ายังไม่ได้ล็อกอิน แสดงปุ่มเข้าสู่ระบบ/สมัครสมาชิก */}
-          {!userEmail && !username && (
-            <>
-              <li onClick={handleLoginModalToggle}>
-                <FontAwesomeIcon icon={faSignInAlt} className="icon" /> <span >เข้าสู่ระบบ</span>
-              </li>
-              <li onClick={handleRegisterModalToggle}>
-                <FontAwesomeIcon icon={faUserPlus} className="icon" /> <span >สมัครสมาชิก</span>
-              </li>
-            </>
-          )}
-        </div>
-      </div>
+      </aside>
 
-      {/* แสดง Login และ Register Modal */}
-      <LoginPageModal isVisible={isLoginModalVisible} onClose={handleLoginModalToggle} />
-      <RegisterPageModal isVisible={isRegisterModalVisible} onClose={handleRegisterModalToggle} />
-    </nav>
+      {/* Navbar */}
+      <nav className="navbar">
+        <img src="https://res.cloudinary.com/dboau6axv/image/upload/v1738923984/pos_icon_zpyzmj.png" alt="Logo" className="logo-image" />
+        {isSidebarOpen && <span className="logo-text">ระบบจัดการสินค้า</span>}
+        <div className="navbar-content">
+          <div className={`iconName ${isSidebarOpen ? "shifted" : "closed"}`}>{activeMenu}</div>
+          <div className="nav-right">
+            {user ? (
+              <>
+                <FontAwesomeIcon icon={faBell} className="icon notification-icon" />
+                <div className="user-dropdown" onClick={() => setDropdownOpen(!dropdownOpen)}>
+                  <div className="user-info">
+                    <img src={user.profileImg} alt="User" className="avatar" />
+                    <div className="user-details">
+                      <span className="username">{user.username}</span>
+                      <span className="status-online">🟢 กำลังออนไลน์</span>
+                    </div>
+                    <FontAwesomeIcon icon={faCaretDown} className="icon caret-icon" />
+                  </div>
+                  {dropdownOpen && (
+                    <div className="dropdown-menu">
+                      <p className="user-role">👤 Role: {user.role}</p>
+                      <button onClick={handleLogout} className="logout-button">
+                        <FontAwesomeIcon icon={faSignOutAlt} className="icon logout-icon" /> Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <button onClick={() => setIsLoginModalVisible(true)} className="auth-button">
+                  <FontAwesomeIcon icon={faSignInAlt} className="icon" /> <span>เข้าสู่ระบบ</span>
+                </button>
+                <button onClick={() => setIsRegisterModalVisible(true)} className="auth-button">
+                  <FontAwesomeIcon icon={faUserPlus} className="icon" /> <span>สมัครสมาชิก</span>
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {/* Login และ Register Modal */}
+      <LoginPageModal isVisible={isLoginModalVisible} onClose={() => setIsLoginModalVisible(false)} />
+      <RegisterPageModal isVisible={isRegisterModalVisible} onClose={() => setIsRegisterModalVisible(false)} />
     </>
   );
 };
 
-export default Navbar;
+export default Header;

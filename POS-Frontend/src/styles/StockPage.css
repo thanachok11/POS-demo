@@ -12,8 +12,8 @@ body {
 
 /* กรอบของหน้า stock */
 .stock-container {
-    margin-left: 260px;
-    /* ขยับเนื้อหาไปทางขวาเพื่อเว้นที่ให้ Sidebar */
+    margin-top: 100px;
+    margin-left: 120px;
     padding: 20px;
     font-family: "Arial", sans-serif;
     background-color: #ffffff;
