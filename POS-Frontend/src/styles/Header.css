@@ -122,50 +122,72 @@
     color: white;
     font-size: 14px;
 }
-
+/* ปรับ dropdown-menu ให้ดูมีมิติมากขึ้น */
 .dropdown-menu {
     position: absolute;
     top: 100%;
     right: 0;
-    background-color: #444;
-    border-radius: 5px;
-    padding: 7px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    /* เพิ่มความโค้งมนให้ดูนุ่มนวลขึ้น */
+    padding: 10px;
     width: 150px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    /* ขยายขนาดให้พอดี */
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+    /* เพิ่มเงาให้ดูมีมิติ */
     z-index: 100;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    /* เพิ่มขอบบางๆ */
+    transition: opacity 0.3s ease, transform 0.2s ease;
 }
 
+/* ปรับสไตล์ของ user-role ให้ดูโดดเด่น */
 .user-role {
-    color: white;
+    color: #555555;
     font-size: 14px;
     font-weight: bold;
-    margin-bottom: 8px;
-    padding: 5px;
-    margin-top: 5px;
+    margin-bottom: 10px;
+    padding: 8px 10px;
+    border-bottom: 1px solid #ddd;
+    /* เส้นแบ่ง */
+    width: 100%;
 }
 
+/* ปรับปุ่ม Logout ให้ดูเป็นปุ่มที่คลิกง่าย */
 .logout-button {
     background: none;
     border: none;
-    color: white;
+    color: #444444;
     width: 100%;
     font-size: 14px;
+    font-weight: bold;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 6px;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* เอฟเฟกต์ Hover */
 .logout-button:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: #ff4d4d;
+    color: white;
 }
 
+/* ปรับไอคอน Logout */
 .logout-icon {
     color: #ff4d4d;
+    font-size: 16px;
+    transition: color 0.2s ease;
+}
 
+.logout-button:hover .logout-icon {
+    color: white;
 }
 
 /* ปรับข้อความให้อยู่กลางไอคอน */
@@ -203,21 +225,111 @@
         font-size: 12px;
     }
 }
-
 .sidebar {
     position: fixed;
-    margin-top: 75px;
     left: 0;
+    top: 0;
+    width: 250px;
     height: 100%;
-    width: 220px;
-    background-color: #2c3e50;
-    color: #ecf0f1;
+    margin-top:100px;
+    background: linear-gradient(135deg, #1f2b36, #2c3e50);
+    /* Gradient สีสวยๆ */
+    color: white;
+    padding-top: 20px;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+    /* เงาสวยๆ */
     overflow: hidden;
-    transition: width 0.3s ease, transform 0.3s ease-in-out;
-
+    border-top-right-radius: 15px;
+    /* ขอบมนด้านขวาบน */
+    border-bottom-right-radius: 15px;
+    /* ขอบมนด้านขวาล่าง */
 }
 
+/* เมื่อ Sidebar ปิด */
 .sidebar.closed {
-    width: 56px;
-    /* Reduced width when closed */
+    width: 60px;
 }
+
+/* ปิดข้อความและแสดงเฉพาะไอคอน */
+.sidebar.closed .navLinks span {
+    display: none;
+}
+
+/* จัดให้ไอคอนอยู่ตรงกลาง */
+.sidebar.closed .navLinks li {
+    justify-content: center;
+}
+
+/* ขยาย Sidebar ตามปกติเมื่อเปิด */
+.sidebar.open {
+    width: 250px;
+}
+/* สไตล์เมนู */
+.navLinks {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* เอฟเฟกต์ Hover */
+.navLinks li:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05); /* ขยายเล็กน้อย */
+}
+
+/* ปรับแต่ละรายการเมนู */
+.navLinks li {
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    /* จัดไอคอนและข้อความให้อยู่ทางซ้าย */
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+    border-radius: 8px;
+    gap: 10px;
+    /* ระยะห่างระหว่างไอคอนและข้อความ */
+}
+
+/* ปรับให้ไอคอนและข้อความอยู่ตรงกลางแนวตั้ง */
+.navLinks .icon {
+    font-size: 20px;
+    color: #ffffff;
+    transition: color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    /* กำหนดขนาดให้ไอคอนเท่ากัน */
+    text-align: center;
+}
+
+/* ปรับให้ข้อความอยู่แนวเดียวกันกับไอคอน */
+.navLinks span {
+    flex-grow: 1;
+    text-align: left;
+    /* ชิดซ้ายให้ดูเป็นระเบียบ */
+    font-size: 16px;
+}
+
+/* เปลี่ยนสีไอคอนเมื่อ Hover */
+.navLinks li:hover .icon {
+    color: #f39c12; /* สีหลักของธีม */
+}
+
+/* ปรับขนาด Sidebar บนมือถือ */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 200px;
+    }
+
+    .sidebar.closed {
+        width: 60px;
+    }
+
+    .toggleButton.open {
+        left: 210px;
+    }
+}
+
