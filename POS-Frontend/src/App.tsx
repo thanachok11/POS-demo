@@ -1,26 +1,33 @@
-import React from "react";
+import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Homepage from "./components/pages/Homepage.tsx";  // นำเข้า Homepage หรือส่วนประกอบอื่น ๆ ที่ต้องการใช้
-import Header from "./components/pages/Header.tsx";  // นำเข้า Header หรือส่วนประกอบอื่น ๆ ที่ต้องการใช้
-import Dashboard from './components/pages/Dashboard.tsx';
-import ProductList from "./components/product/ProductList.tsx";
+import Homepage from "./components/pages/Homepage.tsx"; // หน้าแรก
+import Header from "./components/pages/Header.tsx"; // ใช้ Header ที่คุณสร้างขึ้น
+import Dashboard from './components/pages/Dashboard.tsx'; 
+import ProductList from "./components/product/ProductList.tsx"; 
 import UploadProduct from "./components/product/AddProduct.tsx";
 import StockPage from "./components/stock/Stock.tsx";
-import Navbar from "./components/pages/navbar.tsx";
-// ถ้าคุณมีหน้า login
+import "./App.css";  // นำเข้าการตั้งค่าของ CSS
 
 const App: React.FC = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen); // เปลี่ยนสถานะของ Sidebar
+  };
   return (
     <Router>
-      <Header /> {/* แสดง Header ที่จะใช้ในทุกหน้า */}
-      <Routes>
-      <Route path="/" element={<Homepage />} /> {/* หน้าแรกหรือ Homepage */}
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/shop" element={<ProductList />} />
-      <Route path="/add-products" element={<UploadProduct />} />
-      <Route path="/stock" element={<StockPage />} />
-
-      </Routes>
+      <div className={`app-container ${isSidebarOpen ? "sidebar-open" : ""}`}>
+        <Header toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
+        <div className="main-content">
+          <Routes>
+            <Route path="/" element={<Homepage />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/shop" element={<ProductList />} />
+            <Route path="/add-products" element={<UploadProduct />} />
+            <Route path="/stock" element={<StockPage />} />
+          </Routes>
+        </div>
+      </div>
     </Router>
   );
 };
