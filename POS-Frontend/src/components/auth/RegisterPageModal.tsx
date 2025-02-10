@@ -17,6 +17,7 @@ const RegisterModal: React.FC<RegisterProps> = ({ isVisible, onClose }) => {
     username: '',
     firstName: '',
     lastName: '',
+    nameStore: '',
   });
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState('');
@@ -46,7 +47,7 @@ const RegisterModal: React.FC<RegisterProps> = ({ isVisible, onClose }) => {
     }
 
     try {
-      const data = await registerUser(formData.email, formData.password, formData.username, formData.firstName, formData.lastName);
+      const data = await registerUser(formData.email, formData.password, formData.username, formData.firstName, formData.lastName , formData.nameStore);
       setSuccessMessage('สมัครสมาชิกสำเร็จ! คุณสามารถเข้าสู่ระบบได้แล้ว');
       setError('');
 
@@ -102,6 +103,15 @@ const RegisterModal: React.FC<RegisterProps> = ({ isVisible, onClose }) => {
           <button onClick={onClose} className="close-button">X</button>
           <form onSubmit={handleRegister} className="form">
             <h1 className="title-register">สมัครสมาชิก</h1>
+            <input
+              type="text"
+              name="nameStore"
+              placeholder="ชื่อร้านค้า"
+              value={formData.nameStore}
+              onChange={handleChange}
+              className="input"
+              required
+            />           
             <input
               type="text"
               name="username"

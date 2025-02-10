@@ -1,96 +1,184 @@
-import React, { useEffect, useState } from "react";
-import { getProducts,createOrder} from "../../api/product/productApi.ts"; // ดึงสินค้าจาก API
+import { useState, useEffect } from "react";
+import { getProducts } from "../../api/product/productApi.ts";
+import { updateStockByBarcode } from "../../api/stock/stock.ts";
+import "../../styles/product/ProductList.css";
+import React from "react";
 
-const Checkout: React.FC = () => {
-  const [products, setProducts] = useState<any[]>([]);
-  const [selectedProducts, setSelectedProducts] = useState<{ id: string; name: string; price: number; quantity: number }[]>([]);
-  const [error, setError] = useState<string | null>(null);
+interface Product {
+  barcode: string;
+  name: string;
+  price: number;
+  quantity: number;
+  imageUrl: string;
+}
+
+const ProductList = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [cart, setCart] = useState<Product[]>([]);
+  const [showCart, setShowCart] = useState<boolean>(false);
+  const [showNumberPad, setShowNumberPad] = useState<boolean>(false);
+  const [selectedProductBarcode, setSelectedProductBarcode] = useState<string>("");
+  const [currentQuantity, setCurrentQuantity] = useState<number>(0);
+  const [successMessage, setSuccessMessage] = useState<string>("");
 
   useEffect(() => {
     const fetchProducts = async () => {
-      try {
-        const data = await getProducts();
-        setProducts(data);
-      } catch (err: any) {
-        setError(err.message);
-      }
+      const productData = await getProducts();
+      setProducts(productData);
     };
     fetchProducts();
   }, []);
 
-  // เพิ่มสินค้าไปในตะกร้า
-  const addToCart = (product: any) => {
-    setSelectedProducts((prev) => {
-      const existing = prev.find((item) => item.id === product.id);
-      if (existing) {
-        return prev.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+  const addToCart = (product: Product) => {
+    setCart((prevCart) => {
+      const existingProduct = prevCart.find((item) => item.barcode === product.barcode);
+      if (existingProduct) {
+        return prevCart.map((item) =>
+          item.barcode === product.barcode
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
         );
       }
-      return [...prev, { ...product, quantity: 1 }];
+      return [...prevCart, { ...product, quantity: 1 }];
+    });
+    setShowCart(true);
+  };
+
+  const removeFromCart = (barcode: string) => {
+    setCart((prevCart) => {
+      const updatedCart = prevCart
+        .map((item) => (item.barcode === barcode ? { ...item, quantity: item.quantity - 1 } : item))
+        .filter((item) => item.quantity > 0);
+
+      if (updatedCart.length === 0) {
+        setShowCart(false); // ซ่อนตะกร้าเมื่อไม่มีสินค้า
+      }
+
+      return updatedCart;
     });
   };
 
-  // ลบสินค้าออกจากตะกร้า
-  const removeFromCart = (productId: string) => {
-    setSelectedProducts((prev) => prev.filter((item) => item.id !== productId));
+  const checkout = async () => {
+    for (const item of cart) {
+      await updateStockByBarcode(item.barcode, item.quantity);
+    }
+    setCart([]);
+    setShowCart(false);
+    setSuccessMessage("ชำระเงินสำเร็จ!");
+    setTimeout(() => {
+      setSuccessMessage(""); // ซ่อนข้อความสำเร็จหลังจาก 3 วินาที
+      setShowCart(false); // ซ่อนตะกร้าหลังจากข้อความหายไป
+    }, 3000); // เวลา 3 วินาที
   };
 
-  // คำนวณราคารวม
+  const getCartQuantity = (barcode: string) => {
+    const product = cart.find((item) => item.barcode === barcode);
+    return product ? product.quantity : 0;
+  };
+
+  // คำนวณยอดรวมทั้งหมดในตะกร้า
   const getTotalPrice = () => {
-    return selectedProducts.reduce((total, item) => total + item.price * item.quantity, 0);
+    return cart.reduce((total, item) => total + item.price * item.quantity, 0);
   };
 
-  // ดำเนินการ Checkout
-  const handleCheckout = async () => {
-    if (selectedProducts.length === 0) {
-      alert("กรุณาเลือกสินค้าก่อนชำระเงิน");
-      return;
+  const handleQuantityChange = (value: string) => {
+    if (value === "ลบทั้งหมด") {
+      setCurrentQuantity(0); // Reset the quantity if 'del' is clicked
+    } else {
+      setCurrentQuantity((prev) => Number(prev.toString() + value)); // Append number to the quantity
     }
+  };
 
-    const orderData = {
-      products: selectedProducts,
-      total: getTotalPrice(),
-    };
-
-    try {
-      await createOrder(orderData);
-      alert("สั่งซื้อสำเร็จ!");
-      setSelectedProducts([]); // ล้างตะกร้า
-    } catch (err: any) {
-      setError(err.message);
-    }
+  const handleSetQuantity = () => {
+    setCart((prevCart) => {
+      return prevCart.map((item) =>
+        item.barcode === selectedProductBarcode ? { ...item, quantity: currentQuantity } : item
+      );
+    });
+    setShowNumberPad(false); // Close the number pad after setting the quantity
   };
 
   return (
-    <div>
-      <h2>เลือกสินค้า</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <ul>
-        {products.map((product) => (
-          <li key={product.id}>
-            <h3>{product.name}</h3>
-            <p>ราคา: ฿{product.price}</p>
-            <button onClick={() => addToCart(product)}>เพิ่มลงตะกร้า</button>
-          </li>
-        ))}
-      </ul>
+    <div className="product-page">
+      <div className="product-list-container">
+        <h1>รายการสินค้า</h1>
+        <div className="product-grid">
+          {products.map((product) => (
+            <div key={product.barcode} className="product-card" onClick={() => addToCart(product)}>
+              {getCartQuantity(product.barcode) > 0 && (
+                <div className="cart-quantity">{getCartQuantity(product.barcode)}</div>
+              )}
+              <img src={product.imageUrl} alt={product.name} />
+              <h2>{product.name}</h2>
+              <p>{product.price} ฿</p>
+            </div>
+          ))}
+        </div>
+      </div>
 
-      <h2>ตะกร้าสินค้า</h2>
-      <ul>
-        {selectedProducts.map((item) => (
-          <li key={item.id}>
-            <h3>{item.name} x {item.quantity}</h3>
-            <p>ราคารวม: ฿{item.price * item.quantity}</p>
-            <button onClick={() => removeFromCart(item.id)}>ลบ</button>
-          </li>
-        ))}
-      </ul>
+      {/* ตะกร้าสินค้า */}
+      <div className={`cart ${showCart && cart.length > 0 ? "show-cart" : "hidden-cart"}`}>
+        <h2>ตะกร้าสินค้า</h2>
+        <div className="cart-items">
+          {cart.map((item) => (
+            <div key={item.barcode} className="cart-item">
+              <img src={item.imageUrl} alt={item.name} className="cart-item-img" />
+              <div className="cart-item-info">
+                <p className="cart-item-name">{item.name}</p>
+                <p className="cart-item-quantity">จำนวน: {item.quantity}</p>
+                <button
+                  onClick={() => {
+                    setSelectedProductBarcode(item.barcode);
+                    setCurrentQuantity(item.quantity); // Pre-fill the quantity in number pad
+                    setShowNumberPad(true); // Show number pad
+                  }}
+                  className="edit-quantity-btn"
+                >
+                  แก้ไขจำนวน
+                </button>
+              </div>
+              <button onClick={() => removeFromCart(item.barcode)} className="remove-btn">
+                ลบ
+              </button>
+            </div>
+          ))}
+        </div>
 
-      <h3>ราคารวมทั้งหมด: ฿{getTotalPrice()}</h3>
-      <button onClick={handleCheckout}>ชำระเงิน</button>
+        {/* ✅ แสดงยอดรวมด้านบนปุ่มชำระเงิน ✅ */}
+        <div className="cart-total">
+          <p>ยอดรวม: <span>{getTotalPrice()} ฿</span></p>
+        </div>
+
+        <div className="checkout">
+          <button onClick={checkout} className="checkout-btn">
+            ชำระเงิน
+          </button>
+        </div>
+      </div>
+
+      {/* Success Message */}
+      {successMessage && (
+        <div className="success-message">
+          <p>{successMessage}</p>
+        </div>
+      )}
+
+      {/* Number Pad for Quantity */}
+      {showNumberPad && (
+        <div className="number-pad">
+          <div className="number-pad-display">
+            <p>จำนวน: {currentQuantity}</p>
+          </div>
+          <div className="number-pad-buttons">
+            {["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "ลบทั้งหมด"].map((button) => (
+              <button key={button} onClick={() => handleQuantityChange(button)}>{button}</button>
+            ))}
+          </div>
+          <button onClick={handleSetQuantity} className="set-quantity-btn">ตั้งค่า</button>
+        </div>
+      )}
     </div>
   );
 };
 
-export default Checkout;
+export default ProductList;

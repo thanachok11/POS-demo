@@ -21,7 +21,7 @@ app.get("/", (req, res) => {
 });
 app.use(cors({
   origin: ['http://localhost:3000', 'http://10.30.132.26:3000'], // อนุญาตหลาย origin
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // อนุญาตเฉพาะ method ที่ระบุ
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 // Middleware
@@ -32,7 +32,7 @@ app.use(bodyParser.json()); // ลบได้
 // หรือระบุเฉพาะ Frontend ของคุณ
 
 app.use("/api/products", productRoutes);
-app.use("/api/producs/barcode", productRoutes);
+app.use("/api/products/barcode", productRoutes);
 app.post("/api/product/upload", uploadRoutes);
 app.use("/api/auth", authRoutes);  // ใช้เพียงเส้นทางนี้
 app.use("/api/stock", Stock);

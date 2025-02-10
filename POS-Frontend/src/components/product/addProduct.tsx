@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { uploadProduct } from "../../api/product/productApi.ts"; // Ensure this import is correct
-import '../../styles/AddProductForm.css';
+import '../../styles/product/AddProductForm.css';
 
 const AddProductForm = () => {
   const [productData, setProductData] = useState({

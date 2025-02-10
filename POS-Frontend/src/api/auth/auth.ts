@@ -5,9 +5,10 @@ import axios from 'axios';
 export const API_URL = 'http://localhost:5000/api/auth';  // ปรับ URL ตามที่คุณกำหนดใน backend
 
 // ฟังก์ชันสำหรับการลงทะเบียนผู้ใช้ใหม่
-export const registerUser = async (email: string, password: string, username: string, firstName: string, lastName: string) => {
+export const registerUser = async (email: string, password: string, username: string, firstName: string, lastName: string, nameStore: string) => {
   try {
     const response = await axios.post(`${API_URL}/register`, {
+      nameStore,
       email,
       password,
       username,

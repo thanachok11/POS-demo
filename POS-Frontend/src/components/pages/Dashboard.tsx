@@ -9,7 +9,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import "../../styles/POSDashboard.css";
+import "../../styles/page/POSDashboard.css";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);  // Register BarElement
 

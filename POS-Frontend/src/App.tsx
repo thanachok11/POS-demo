@@ -5,6 +5,7 @@ import Header from "./components/pages/Header.tsx"; // ใช้ Header ที�
 import Dashboard from './components/pages/Dashboard.tsx';
 import ProductList from "./components/product/ProductList.tsx";
 import StockPage from "./components/stock/Stock.tsx";
+import StockList from "./components/stock/StockList.tsx";
 import "./App.css";  // นำเข้าการตั้งค่าของ CSS
 
 const App: React.FC = () => {
@@ -21,6 +22,7 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<Homepage />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/stocklist" element={<StockList />} />
             <Route path="/shop" element={<ProductList />} />
             <Route path="/stock" element={<StockPage />} />
           </Routes>

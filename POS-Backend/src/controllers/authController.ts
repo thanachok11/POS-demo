@@ -19,7 +19,7 @@ export const showAllUsers = async (req: Request, res: Response): Promise<void> =
 
 // ฟังก์ชันสำหรับการลงทะเบียน
 export const register = async (req: Request, res: Response): Promise<void> => {
-  const { email, password, username, firstName, lastName } = req.body;
+  const { email, password, username, firstName, lastName,nameStore } = req.body;
 
   try {
     const existingUser = await User.findOne({ $or: [{ email }, { username }] });
@@ -45,6 +45,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       username,
       firstName,
       lastName,
+      nameStore,
       role: 'user', // เพิ่ม role ที่เป็น 'user' โดยอัตโนมัติ
       profile_img: 'https://res.cloudinary.com/dboau6axv/image/upload/v1735641179/qa9dfyxn8spwm0nwtako.jpg', // กำหนด profile_img
     });
@@ -83,6 +84,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         email: user.email,       // user email
         username: user.username, // username ของผู้ใช้
         role: user.role,  
+        nameStore: user.nameStore, // เพิ่ม nameStore ของผู้ใช้
         profile_img:user.profile_img,       // role ของผู้ใช้
       },
       process.env.JWT_SECRET as string,

@@ -17,7 +17,7 @@ export const getProducts = async () => {
 // ฟังก์ชันเพื่อดึงสินค้าโดยใช้ barcode
 export const getProductByBarcode = async (barcode: string) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/product/barcode/${barcode}`);
+    const response = await axios.get(`${API_BASE_URL}/products/barcode/${barcode}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching product by barcode:", error);

@@ -9,6 +9,7 @@ export interface IStock extends Document {
   threshold?: number; // ค่าขั้นต่ำที่ต้องมีในสต็อก
   status: 'In Stock' | 'Out of Stock' | 'Low Stock'; // สถานะของสินค้า
   lastRestocked?: Date; // วันที่เติมสต็อกล่าสุด
+  barcode?: string; // รหัสบาร์โค้ดของสินค้า
   createdAt: Date;
   updatedAt: Date;
 }
@@ -16,19 +17,20 @@ export interface IStock extends Document {
 // Schema ของ Stock
 const StockSchema: Schema = new Schema(
   {
-    productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true }, // เชื่อมกับ Product
+    productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
     quantity: { type: Number, required: true },
     supplier: { type: String },
     location: { type: String },
-    threshold: { type: Number, default: 5 }, // ค่าเริ่มต้นของสินค้าต่ำสุด
-    status: { 
-      type: String, 
-      enum: ['In Stock', 'Out of Stock', 'Low Stock'], 
-      default: 'In Stock' 
+    threshold: { type: Number, default: 5 },
+    status: {
+      type: String,
+      enum: ['In Stock', 'Out of Stock', 'Low Stock'],
+      default: 'In Stock'
     },
     lastRestocked: { type: Date },
+    barcode: { type: String, unique: true }, // เพิ่มฟิลด์สำหรับบาร์โค้ด
   },
-  { timestamps: true } // ให้ mongoose จัดการ createdAt & updatedAt อัตโนมัติ
+  { timestamps: true }
 );
 
 // Export model

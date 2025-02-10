@@ -1,38 +1,139 @@
-import { Request, Response } from 'express';
-import Stock from '../models/Stock';
+import Stock from "../models/Stock";
+import { Request, Response } from "express";
 
-// ฟังก์ชันสำหรับเพิ่มสินค้า
-export const addStock = async (req: Request, res: Response): Promise<void> => {
+// 📌 ดึงข้อมูล Stock ทั้งหมด
+export const getStock = async (req: Request, res: Response) => {
   try {
-    const { productId, name, quantity, supplier, location, threshold, status, lastRestocked } = req.body;
+    const stocks = await Stock.find().populate("productId");
+    res.json(stocks);
+  } catch (error) {
+    res.status(500).json({ error: "เกิดข้อผิดพลาดในการดึงข้อมูลสต็อก" });
+  }
+};
 
-    // ตรวจสอบว่ามีสินค้าในฐานข้อมูลหรือไม่
-    const existingStock = await Stock.findOne({ productId });
-    if (existingStock) {
-       res.status(400).json({ message: "Stock with this productId already exists." });
-       return;
+
+// ค้นหาสต็อกสินค้าจาก barcode
+export const getStockByBarcode = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { barcode } = req.params;
+
+    // ค้นหาจาก barcode
+    const stock = await Stock.findOne({ barcode }).populate('productId');
+    if (!stock) {
+       res.status(404).json({ message: 'Stock not found' });
+        return;
     }
 
-    // สร้างสินค้าใหม่
+    res.json(stock);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const updateStockByBarcode = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { barcode } = req.params;  // รับ barcode จาก URL params
+    const { quantity, supplier, location, threshold, status } = req.body; // รับข้อมูลที่ต้องการอัปเดต
+
+    // ค้นหาสต็อกจาก Barcode
+    const stock = await Stock.findOne({ barcode });
+    if (!stock) {
+      res.status(404).json({ message: 'Stock not found' });
+      return;
+    }
+
+    // ตรวจสอบว่า quantity ที่ได้รับไม่เป็นลบและไม่เกินจำนวนที่มีอยู่
+    if (quantity !== undefined) {
+      if (typeof quantity !== 'number' || quantity <= 0) {
+        res.status(400).json({ message: 'Quantity must be a positive number' });
+        return;
+      }
+      const updatedQuantity = stock.quantity - quantity;
+      if (updatedQuantity < 0) {
+        res.status(400).json({ message: 'Not enough stock available' });
+        return;
+      }
+      stock.quantity = updatedQuantity;  // ลดจำนวนสต็อกตามที่ซื้อไป
+    }
+
+    // อัปเดตข้อมูลอื่น ๆ ถ้ามี
+    stock.supplier = supplier || stock.supplier;
+    stock.location = location || stock.location;
+    stock.threshold = threshold !== undefined ? threshold : stock.threshold;
+    stock.status = status || stock.status;
+
+    // บันทึกการเปลี่ยนแปลง
+    await stock.save();
+
+    // ส่งข้อมูลที่อัปเดตกลับ
+    res.json({ message: 'Stock updated successfully', stock });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
+
+// เพิ่ม Stock ใหม่พร้อม barcode
+export const addStock = async (req: Request, res: Response) => {
+  try {
+    const { productId, quantity, barcode, supplier, location, threshold, status } = req.body;
+
+    // สร้าง Stock ใหม่
     const newStock = new Stock({
       productId,
-      name,
       quantity,
+      barcode,
       supplier,
       location,
       threshold,
       status,
-      lastRestocked,
     });
 
-    // บันทึกสินค้าใหม่ในฐานข้อมูล
+    // บันทึกลงฐานข้อมูล
     await newStock.save();
 
-    // ส่งกลับผลลัพธ์
-    res.status(201).json({ message: "Stock added successfully", data: newStock });
+    res.status(201).json({ message: 'Stock added successfully', newStock });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
+// 📌 อัปเดต Stock (เมื่อมีการขายสินค้า)
+export const updateStock = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { quantity } = req.body;
+
+    const stock = await Stock.findById(id);
+    if (!stock) {
+      res.status(404).json({ error: "ไม่พบสินค้าในสต็อก" });
+      return; // ต้องอยู่ภายใน if
+    }
+
+    stock.quantity = quantity;
+    stock.status = quantity === 0 ? "Out of Stock" : quantity < stock.threshold ? "Low Stock" : "In Stock";
+    await stock.save();
+
+    res.json({ message: "อัปเดตสต็อกเรียบร้อย", stock });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ error: "เกิดข้อผิดพลาดในการอัปเดตสต็อก" });
+  }
+};
+
+
+// 📌 ลบรายการสินค้าออกจาก Stock
+export const deleteStock = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await Stock.findByIdAndDelete(id);
+    res.json({ message: "ลบสินค้าออกจากสต็อกเรียบร้อย" });
+  } catch (error) {
+    res.status(500).json({ error: "เกิดข้อผิดพลาดในการลบสต็อกสินค้า" });
   }
 };
 
@@ -61,34 +162,3 @@ export const getStockById = async (req: Request, res: Response): Promise<void> =
   }
 };
 
-// ฟังก์ชันเพื่อแก้ไขข้อมูลสินค้า
-export const updateStock = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const updatedStock = await Stock.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
-    if (!updatedStock) {
-      res.status(404).json({ message: 'Stock not found' });
-      return;
-    }
-    res.status(200).json(updatedStock);
-  } catch (error) {
-    res.status(500).json({ message: 'Error updating stock', error });
-  }
-};
-
-// ฟังก์ชันเพื่อลบสินค้า
-export const deleteStock = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const deletedStock = await Stock.findByIdAndDelete(req.params.id);
-    if (!deletedStock) {
-       res.status(404).json({ message: 'Stock not found' });
-       return;
-    }
-    res.status(200).json({ message: 'Stock deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error deleting stock', error });
-  }
-};

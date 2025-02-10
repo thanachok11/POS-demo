@@ -7,6 +7,7 @@ export interface IUser extends Document {
   username: string;
   firstName: string;
   lastName: string;
+  nameStore: string; // เพิ่มฟิลด์ nameStore
   role: string; // เพิ่มฟิลด์ role
   profile_img: string; // เพิ่มฟิลด์ profile_img
   createdAt: Date;
@@ -39,6 +40,11 @@ const UserSchema = new Schema<IUser>(
     lastName: {
       type: String,
       required: [true, 'Last name is required'],
+      trim: true,
+    },
+    nameStore: {
+      type: String,
+      required: [true, 'Name Store is required'],
       trim: true,
     },
     role: {

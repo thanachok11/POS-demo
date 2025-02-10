@@ -52,6 +52,7 @@ export const googleLogin = async (req: Request, res: Response): Promise<void> =>
         email: user.email,       // user email
         username: user.username, // username ของผู้ใช้
         role: user.role,
+        nameStore: user.nameStore, // เพิ่ม nameStore ของผู้ใช้
         profile_img: user.profile_img,       // role ของผู้ใช้
       },
       process.env.JWT_SECRET as string,
@@ -111,6 +112,7 @@ export const googleRegister = async (req: Request, res: Response): Promise<void>
       profile_img: picture,
       role: 'user',
       username,
+      nameStore: 'My Store',
     });
 
     await user.save();

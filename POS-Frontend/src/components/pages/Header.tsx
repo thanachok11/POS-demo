@@ -13,13 +13,19 @@ import {
   faBox,
   faChartLine,
   faCog,
-  faClipboardList
+  faCartPlus,
+  faFileInvoice,
+  faExchangeAlt,
+  faBarcode,
+  faMoneyBillWave,
+  faExclamationTriangle,
+  faClipboardList,
 } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import LoginPageModal from "../auth/LoginPageModal.tsx";
 import RegisterPageModal from "../auth/RegisterPageModal.tsx";
-import "../../styles/Header.css";
+import "../../styles/page/Header.css";
 
 interface NavbarProps {
   isSidebarOpen: boolean;
@@ -27,11 +33,20 @@ interface NavbarProps {
 }
 
 const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
-  const [user, setUser] = useState<{ username: string; email: string; role: string; profileImg: string } | null>(null);
+  const [user, setUser] = useState<{
+    username: string;
+    email: string;
+    role: string;
+    profileImg: string;
+    nameStore: string;
+  } | null>(null);
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
   const [isRegisterModalVisible, setIsRegisterModalVisible] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [activeMenu, setActiveMenu] = useState("ระบบจัดการสินค้า"); // 👈 เก็บชื่อเมนูที่ถูกเลือก
+  const [userdropdown, setDropdownOpen] = useState(false);
+  const [activeMenu, setActiveMenu] = useState("ระบบจัดการสินค้า");
+  const [openDropdown, setOpenDropdown] = useState(null);
+  const [notificationOpen, setNotificationOpen] = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,6 +58,7 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
           username: decoded.username,
           email: decoded.email,
           role: decoded.role,
+          nameStore: decoded.nameStore,
           profileImg: decoded.profile_img || "default-avatar.png",
         });
       } catch (error) {
@@ -50,10 +66,15 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
       }
     }
   }, []);
-
   const handleMenuClick = (path: string, menuName: string) => {
-    setActiveMenu(menuName); // อัปเดตชื่อเมนูที่เลือก
+    setActiveMenu(menuName);
     navigate(path);
+  };
+  const toggleDropdown = (menu) => {
+    setOpenDropdown(openDropdown === menu ? null : menu);
+  };
+  const handleUserSettings = () => {
+    navigate("/settings"); 
   };
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -67,38 +88,91 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
       <button className={`toggleButton ${isSidebarOpen ? "open" : "closed"}`} onClick={toggleSidebar}>
         <FontAwesomeIcon icon={isSidebarOpen ? faTimes : faBars} />
       </button>
-
       {/* Sidebar */}
       <aside className={`sidebar ${isSidebarOpen ? "open" : "closed"}`}>
-        {isSidebarOpen && <span className="sidebar-logo-text">POS ระบบจัดการสินค้า</span>}
+        <span className="sidebar-logo-text">{user?.nameStore || "POS ระบบจัดการสินค้า"}</span>
         <ul className="navLinks">
-          {[
-            { path: "/", icon: faHome, label: "หน้าหลัก" },
-            { path: "/products", icon: faBox, label: "จัดการสินค้า" },
-            { path: "/dashboard", icon: faChartLine, label: "รายงาน" },
-            { path: "/stock", icon: faClipboardList, label: "สต็อกสินค้า" },
-            { path: "/setting", icon: faCog, label: "ตั้งค่า" },
-            { path: "/shop", icon: faShoppingCart, label: "ซื้อสินค้า" },
-          ].map((item) => (
-            
-            <li key={item.path} onClick={() => handleMenuClick(item.path, item.label)}>
-              <FontAwesomeIcon icon={item.icon} className="icon" /> <span>{item.label}</span>
+
+          <li onClick={() => handleMenuClick("/shop", "ซื้อสินค้า")}>
+            <FontAwesomeIcon icon={faShoppingCart} className="icon" /> <span className="menu-text">ซื้อสินค้า</span>
+          </li>
+          <li onClick={() => handleMenuClick("/", "หน้าหลัก")}>
+            <FontAwesomeIcon icon={faHome} className="icon" /> <span className="menu-text">หน้าหลัก</span>
+          </li>
+
+          {/* เมนู: จัดการสินค้า */}
+          <li className="item-dropdown" onClick={() => toggleDropdown("products")}>
+            <FontAwesomeIcon icon={faBox} className="icon" /> <span className="menu-text">จัดการสินค้า</span>
+            <FontAwesomeIcon icon={faCaretDown} className={`dropdown-icon ${openDropdown === "products" ? "open" : ""}`} />
+          </li>
+          <ul className={`item-details ${openDropdown === "products" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
+            <li onClick={() => handleMenuClick("/stocklist", "สต็อกสินค้า")}>
+              <FontAwesomeIcon icon={faClipboardList} className="icon" /> <span className="dropdown-text">สต็อกสินค้า</span>
             </li>
-          ))}
+            <li onClick={() => handleMenuClick("/buynewproduct", "ซื้อสินค้าใหม่")}>
+              <FontAwesomeIcon icon={faCartPlus} className="icon" /> <span className="dropdown-text">ซื้อสินค้าใหม่</span>
+            </li>
+            <li onClick={() => handleMenuClick("/transfer", "โอนสินค้า")}>
+              <FontAwesomeIcon icon={faExchangeAlt} className="icon" /> <span className="dropdown-text">โอนสินค้า</span>
+            </li>
+            <li onClick={() => handleMenuClick("/barcode", "บาร์โค้ด")}>
+              <FontAwesomeIcon icon={faBarcode} className="icon" /> <span className="dropdown-text">บาร์โค้ด</span>
+            </li>
+            <li onClick={() => handleMenuClick("/debt", "ค้างชำระ")}>
+              <FontAwesomeIcon icon={faMoneyBillWave} className="icon" /> <span className="dropdown-text">ค้างชำระ</span>
+            </li>
+            <li onClick={() => handleMenuClick("/expired", "สินค้าหมดอายุ/สินค้าหมด")}>
+              <FontAwesomeIcon icon={faExclamationTriangle} className="icon" /> <span className="dropdown-text">สินค้าเหลือน้อย</span>
+            </li>
+          </ul>
+          {/* เมนู: รายงาน */}
+          <li className="item-dropdown" onClick={() => toggleDropdown("reports")}>
+            <FontAwesomeIcon icon={faChartLine} className="icon" /> <span className="menu-text">รายงาน</span>
+            <FontAwesomeIcon icon={faCaretDown} className={`dropdown-icon ${openDropdown === "reports" ? "open" : ""}`} />
+          </li>
+          <ul className={`item-details ${openDropdown === "reports" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
+            <li onClick={() => handleMenuClick("/reports/sales", "รายงานยอดขาย")}>
+              <FontAwesomeIcon icon={faFileInvoice} className="icon" /> <span className="dropdown-text">รายงานยอดขาย</span>
+            </li>
+            <li onClick={() => handleMenuClick("/reports/stock", "รายงานสินค้าคงเหลือ")}>
+              <FontAwesomeIcon icon={faClipboardList} className="icon" /> <span className="dropdown-text">รายงานสินค้าคงเหลือ</span>
+            </li>
+          </ul>
+          {/* เมนูหลัก */}
+          <li onClick={() => handleMenuClick("/setting/store", "หน้าหลัก")}>
+            <FontAwesomeIcon icon={faCog} className="icon" /> <span className="menu-text">ตั้งค่าร้านค้า</span>
+          </li>
         </ul>
       </aside>
 
       {/* Navbar */}
       <nav className="navbar">
-        <img src="https://res.cloudinary.com/dboau6axv/image/upload/v1738923984/pos_icon_zpyzmj.png" alt="Logo" className="logo-image" />
+        <img
+          src="https://res.cloudinary.com/dboau6axv/image/upload/v1738923984/pos_icon_zpyzmj.png"
+          alt="Logo"
+          className="logo-image"
+        />
         {isSidebarOpen && <span className="logo-text">ระบบจัดการสินค้า</span>}
+
         <div className="navbar-content">
-          <div className={`iconName ${isSidebarOpen ? "shifted" : "closed"}`}>{activeMenu}</div>
+          <div className={`iconName ${isSidebarOpen ? "shifted" : "closed"}`}>
+            {activeMenu}
+          </div>
           <div className="nav-right">
             {user ? (
               <>
-                <FontAwesomeIcon icon={faBell} className="icon notification-icon" />
-                <div className="user-dropdown" onClick={() => setDropdownOpen(!dropdownOpen)}>
+                {/* Dropdown การแจ้งเตือน */}
+                <div className="user-dropdown" onClick={() => setNotificationOpen(!notificationOpen)}>
+                  <FontAwesomeIcon icon={faBell} className="icon notification-icon" />
+                  <FontAwesomeIcon icon={faCaretDown} className="dropdown-icon" />
+                  {notificationOpen && (
+                    <div className="notification-menu">
+                      <p className="notification-item">🔔 การแจ้งเตือนใหม่</p>
+                      <p className="notification-item">📦 สินค้าเหลือน้อย</p>
+                    </div>
+                  )}
+                </div>
+                <div className="user-dropdown" onClick={() => setDropdownOpen(!userdropdown)}>
                   <div className="user-info">
                     <img src={user.profileImg} alt="User" className="avatar" />
                     <div className="user-details">
@@ -107,11 +181,19 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
                     </div>
                     <FontAwesomeIcon icon={faCaretDown} className="icon caret-icon" />
                   </div>
-                  {dropdownOpen && (
+
+                  {userdropdown && (
                     <div className="dropdown-menu">
                       <p className="user-role">👤 Role: {user.role}</p>
+
+                      {/* เมนูตั้งค่าผู้ใช้ */}
+                      <button onClick={handleUserSettings} className="settings-button">
+                        <FontAwesomeIcon icon={faCog} className="icon settings-icon" /> ตั้งค่าผู้ใช้
+                      </button>
+
+                      {/* ปุ่มออกจากระบบ */}
                       <button onClick={handleLogout} className="logout-button">
-                        <FontAwesomeIcon icon={faSignOutAlt} className="icon logout-icon" /> Logout
+                        <FontAwesomeIcon icon={faSignOutAlt} className="icon logout-icon" /> ออกจากระบบ
                       </button>
                     </div>
                   )}
@@ -130,6 +212,7 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
           </div>
         </div>
       </nav>
+
 
       {/* Login และ Register Modal */}
       <LoginPageModal isVisible={isLoginModalVisible} onClose={() => setIsLoginModalVisible(false)} />

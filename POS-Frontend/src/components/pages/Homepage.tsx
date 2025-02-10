@@ -1,5 +1,5 @@
 import React from "react";
-import "../../styles/HomePage.css"; // นำเข้าไฟล์ CSS
+import "../../styles/page/HomePage.css"; // นำเข้าไฟล์ CSS
 
 const HomePage: React.FC = () => {
   return (

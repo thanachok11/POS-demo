@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckCircle, faExclamationTriangle, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { fetchStockData } from '../../api/stock/stock.ts'; // นำเข้าฟังก์ชันที่ดึงข้อมูลจาก API
-import "../../styles/StockPage.css";
+import "../../styles/stock/StockPage.css";
 
 interface StockItem {
   productId: string;
