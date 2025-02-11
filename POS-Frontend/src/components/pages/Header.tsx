@@ -43,7 +43,7 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
   const [isRegisterModalVisible, setIsRegisterModalVisible] = useState(false);
   const [userdropdown, setDropdownOpen] = useState(false);
-  const [activeMenu, setActiveMenu] = useState("ระบบจัดการสินค้า");
+  const [activeMenu, setActiveMenu] = useState("ยินดีต้อนรับสู่ระบบจัดการสินค้า");
   const [openDropdown, setOpenDropdown] = useState(null);
   const [notificationOpen, setNotificationOpen] = useState(false);
 
@@ -92,14 +92,16 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
       <aside className={`sidebar ${isSidebarOpen ? "open" : "closed"}`}>
         <span className="sidebar-logo-text">{user?.nameStore || "POS ระบบจัดการสินค้า"}</span>
         <ul className="navLinks">
-
-          <li onClick={() => handleMenuClick("/shop", "ซื้อสินค้า")}>
-            <FontAwesomeIcon icon={faShoppingCart} className="icon" /> <span className="menu-text">ซื้อสินค้า</span>
-          </li>
-          <li onClick={() => handleMenuClick("/", "หน้าหลัก")}>
+          
+          <li className="item-dropdown" onClick={() => toggleDropdown("management")}>
             <FontAwesomeIcon icon={faHome} className="icon" /> <span className="menu-text">หน้าหลัก</span>
+            <FontAwesomeIcon icon={faCaretDown} className={`dropdown-icon ${openDropdown === "management" ? "open" : ""}`} />
           </li>
-
+          <ul className={`item-details ${openDropdown === "management" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
+            <li onClick={() => handleMenuClick("/shop", "ซื้อสินค้า")}>
+              <FontAwesomeIcon icon={faShoppingCart} className="icon" /> <span className="dropdown-text">ซื้อสินค้า</span>
+            </li>
+          </ul>
           {/* เมนู: จัดการสินค้า */}
           <li className="item-dropdown" onClick={() => toggleDropdown("products")}>
             <FontAwesomeIcon icon={faBox} className="icon" /> <span className="menu-text">จัดการสินค้า</span>
@@ -139,9 +141,10 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
             </li>
           </ul>
           {/* เมนูหลัก */}
-          <li onClick={() => handleMenuClick("/setting/store", "หน้าหลัก")}>
+          <li onClick={() => handleMenuClick("/setting/store", "ตั้งค่าร้านค้า")}>
             <FontAwesomeIcon icon={faCog} className="icon" /> <span className="menu-text">ตั้งค่าร้านค้า</span>
           </li>
+
         </ul>
       </aside>
 
@@ -152,7 +155,7 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
           alt="Logo"
           className="logo-image"
         />
-        {isSidebarOpen && <span className="logo-text">ระบบจัดการสินค้า</span>}
+        {isSidebarOpen && <span className="logo-text">EAZYPOS</span>}
 
         <div className="navbar-content">
           <div className={`iconName ${isSidebarOpen ? "shifted" : "closed"}`}>

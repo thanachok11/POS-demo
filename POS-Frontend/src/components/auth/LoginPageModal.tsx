@@ -33,7 +33,7 @@ const Login: React.FC<LoginProps> = ({ isVisible, onClose }) => {
 
       setSuccessMessage("เข้าสู่ระบบสำเร็จ!");
       setTimeout(() => {
-        navigate("/dashboard");
+        navigate("/");
         window.location.reload();
       }, 1000);
     } catch (err: any) {

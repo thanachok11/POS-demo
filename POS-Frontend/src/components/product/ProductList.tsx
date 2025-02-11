@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { getProducts } from "../../api/product/productApi.ts";
 import { updateStockByBarcode } from "../../api/stock/stock.ts";
+import Checkout from "../product/Checkout.tsx"; // นำเข้า Checkout Modal
 import "../../styles/product/ProductList.css";
 import React from "react";
 
@@ -15,6 +16,7 @@ interface Product {
 const ProductList = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<Product[]>([]);
+  const [showCheckout, setShowCheckout] = useState<boolean>(false);
   const [showCart, setShowCart] = useState<boolean>(false);
   const [showNumberPad, setShowNumberPad] = useState<boolean>(false);
   const [selectedProductBarcode, setSelectedProductBarcode] = useState<string>("");
@@ -64,11 +66,16 @@ const ProductList = () => {
     }
     setCart([]);
     setShowCart(false);
-    setSuccessMessage("ชำระเงินสำเร็จ!");
     setTimeout(() => {
       setSuccessMessage(""); // ซ่อนข้อความสำเร็จหลังจาก 3 วินาที
       setShowCart(false); // ซ่อนตะกร้าหลังจากข้อความหายไป
     }, 3000); // เวลา 3 วินาที
+  };
+
+  const handleConfirmPayment = (method: string) => {
+    setShowCheckout(false); // ปิด Modal หลังชำระเงิน
+    setCart([]); // ล้างตะกร้าหลังชำระเงิน
+    setTimeout(() => setSuccessMessage(""), 3000);
   };
 
   const getCartQuantity = (barcode: string) => {
@@ -150,17 +157,19 @@ const ProductList = () => {
         </div>
 
         <div className="checkout">
-          <button onClick={checkout} className="checkout-btn">
+          <button onClick={() => setShowCheckout(true)} className="checkout-btn">
             ชำระเงิน
           </button>
         </div>
       </div>
-
-      {/* Success Message */}
-      {successMessage && (
-        <div className="success-message">
-          <p>{successMessage}</p>
-        </div>
+      {showCheckout && (
+        <Checkout
+          cart={cart}
+          totalPrice={getTotalPrice()} // Pass the total price here
+          onClose={() => setShowCheckout(false)}
+          onConfirmPayment={handleConfirmPayment}
+          checkout={checkout} // ส่งฟังก์ชัน checkout ไปให้ Modal
+        />
       )}
 
       {/* Number Pad for Quantity */}
@@ -174,7 +183,7 @@ const ProductList = () => {
               <button key={button} onClick={() => handleQuantityChange(button)}>{button}</button>
             ))}
           </div>
-          <button onClick={handleSetQuantity} className="set-quantity-btn">ตั้งค่า</button>
+          <button onClick={handleSetQuantity} className="set-quantity-btn">เลือก</button>
         </div>
       )}
     </div>

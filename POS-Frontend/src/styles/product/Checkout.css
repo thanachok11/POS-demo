@@ -1,0 +1,230 @@
+/* 🛍 Modal */
+.checkout-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.checkout-content {
+    background: white;
+    width: 70%;
+    max-width: 800px;
+    padding: 20px;
+    border-radius: 10px;
+    display: flex;
+    gap: 20px;
+}
+
+/* 🎯 แบ่ง Layout ซ้าย-ขวา */
+.checkout-left {
+    width: 50%;
+    border-right: 2px solid #ddd;
+    padding-right: 20px;
+}
+
+.checkout-right {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 🔢 Numpad */
+.checkout-numpad {
+    text-align: center;
+}
+
+.checkout-numpad-input {
+    width: 50%;
+    padding: 10px;
+    font-size: 20px;
+    text-align: center;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.numpad-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.numpad-btn {
+    padding: 15px;
+    font-size: 18px;
+    border: none;
+    background: #f4a261;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.numpad-btn:hover {
+    background: #e76f51;
+}
+
+.clear-btn {
+    background: #e63946;
+}
+
+.clear-btn:hover {
+    background: #b32d3e;
+}
+
+.confirm-btn {
+    background: #2a9d8f;
+}
+
+.confirm-btn:hover {
+    background: #21867a;
+}
+
+/* ✅ ปุ่มเลือกการชำระเงิน */
+.checkout-payment-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.checkout-btn {
+    padding: 15px;
+    font-size: 18px;
+    width: 100%;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    color: white;
+}
+.checkout-payment-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.checkout-payment-buttons button {
+    flex: 1;
+    padding: 5px 10px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.checkout-cash-btn {
+    background: #2a9d8f;
+    padding: 5px;
+    font-size: 18px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    color: white;
+}
+
+.checkout-qr-btn {
+    background: #e76f51;
+    padding: 5px;
+    font-size: 18px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    color: white;
+}
+
+.checkout-credit-btn {
+    background: #f4a261;
+    padding: 5px;
+    font-size: 18px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    color: white;
+}
+
+/* 🚀 ปรับปุ่มปิด */
+.checkout-close-btn {
+    display: block;
+    margin: 20px auto 0;
+    padding: 7px 15px;
+    margin-top: -15px;
+    margin-left: 340px;
+    font-size: 16px;
+    background: #d9534f;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+/* ข้อความแจ้งเตือน */
+.checkout-error {
+    color: red;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+.checkout-change {
+    font-size: 18px;
+    font-weight: bold;
+    color: green;
+    margin-top: 10px;
+}
+.checkout-close-btn:hover {
+    background: #c9302c;
+}
+/* Success Popup */
+.payment-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1100;
+}
+
+.payment-popup-content {
+    background-color: white;
+    padding: 20px;
+    margin-bottom: 250px;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.payment-popup-title {
+    font-size: 1.5em;
+    margin-bottom: 15px;
+}
+
+.payment-popup-change {
+    font-size: 1.2em;
+    margin-bottom: 20px;
+    color: green;
+}
+
+.payment-popup-close-btn {
+    padding: 10px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.payment-popup-close-btn:hover {
+    background-color: #45a049;
+}
