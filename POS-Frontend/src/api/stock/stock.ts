@@ -17,12 +17,20 @@ export const fetchStockData = async () => {
 export const getStockByBarcode = async (barcode: string) => {
   try {
     const response = await axios.get(`${API_BASE_URL}/barcode/${barcode}`);
-    return response.data; // ส่งข้อมูลที่ได้จาก API กลับไป
+
+    // เช็คสถานะการตอบกลับจาก API ถ้าสำเร็จ
+    if (response.status === 200) {
+      return response.data.stockQuantity; // คืนค่าจำนวนสินค้าที่มีในสต็อก
+    } else {
+      console.error("เกิดข้อผิดพลาดในการดึงข้อมูลสต็อก");
+      return ; // คืนค่า 0 ถ้าผลลัพธ์ไม่สำเร็จ
+    }
   } catch (error) {
     console.error('Error fetching stock by barcode:', error);
-    throw new Error('ไม่สามารถค้นหาสินค้าได้');
+    throw new Error('ไม่สามารถค้นหาสินค้าได้'); // แสดงข้อผิดพลาดเมื่อไม่สามารถดึงข้อมูลได้
   }
 };
+
 // 📌 ดึง Stock ตาม Product ID
 export const getStockByProductId = async (productId: string) => {
   try {

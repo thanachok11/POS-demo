@@ -15,16 +15,21 @@ export const getStock = async (req: Request, res: Response) => {
 // ค้นหาสต็อกสินค้าจาก barcode
 export const getStockByBarcode = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { barcode } = req.params;
+    const { barcode } = req.params; // ดึงค่า barcode จาก URL params
 
-    // ค้นหาจาก barcode
+    // ค้นหาสต็อกจาก barcode
     const stock = await Stock.findOne({ barcode }).populate('productId');
     if (!stock) {
-       res.status(404).json({ message: 'Stock not found' });
-        return;
+      res.status(404).json({ message: 'Stock not found' });
+      return;
     }
 
-    res.json(stock);
+    // ส่งข้อมูลสต็อกกลับไปยังผู้ใช้ พร้อมกับจำนวนสินค้าในสต็อก
+    res.json({
+      barcode: stock.barcode,
+      stockQuantity: stock.quantity, // จำนวนสินค้าที่มีในสต็อก
+      product: stock.productId, // ข้อมูลสินค้า (เช่น ชื่อ, ราคา ฯลฯ)
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

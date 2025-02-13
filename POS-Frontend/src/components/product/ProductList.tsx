@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getProducts } from "../../api/product/productApi.ts";
-import { updateStockByBarcode } from "../../api/stock/stock.ts";
+import { updateStockByBarcode, getStockByBarcode } from "../../api/stock/stock.ts";
 import Checkout from "../product/Checkout.tsx"; // นำเข้า Checkout Modal
 import "../../styles/product/ProductList.css";
 import React from "react";
@@ -21,7 +21,8 @@ const ProductList = () => {
   const [showNumberPad, setShowNumberPad] = useState<boolean>(false);
   const [selectedProductBarcode, setSelectedProductBarcode] = useState<string>("");
   const [currentQuantity, setCurrentQuantity] = useState<number>(0);
-  const [successMessage, setSuccessMessage] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>(""); // เก็บข้อความ error
+  const [lowStockMessages, setLowStockMessages] = useState<Map<string, string>>(new Map()); // To track low stock messages
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -31,7 +32,32 @@ const ProductList = () => {
     fetchProducts();
   }, []);
 
-  const addToCart = (product: Product) => {
+  const addToCart = async (product: Product) => {
+    const stockQuantity = await getStockByBarcode(product.barcode);
+    const currentCartQuantity = getCartQuantity(product.barcode);
+    const newQuantity = currentCartQuantity + 1;
+
+    if (newQuantity >= stockQuantity) {
+      setLowStockMessages((prevMessages) => {
+        const newMessages = new Map(prevMessages);
+        newMessages.set(product.barcode, "สินค้าหมด");
+        return newMessages;
+      });
+    } else {
+      setLowStockMessages((prevMessages) => {
+        const newMessages = new Map(prevMessages);
+        newMessages.delete(product.barcode); // Clear the low stock message
+        return newMessages;
+      });
+    }
+
+    // Check if cart quantity exceeds stock
+    if (newQuantity > stockQuantity) {
+      setErrorMessage("");
+      return;
+    }
+
+    // Update cart
     setCart((prevCart) => {
       const existingProduct = prevCart.find((item) => item.barcode === product.barcode);
       if (existingProduct) {
@@ -43,18 +69,33 @@ const ProductList = () => {
       }
       return [...prevCart, { ...product, quantity: 1 }];
     });
+
     setShowCart(true);
   };
 
-  const removeFromCart = (barcode: string) => {
+  const getCartQuantity = (barcode: string) => {
+    const product = cart.find((item) => item.barcode === barcode);
+    return product ? product.quantity : 0;
+  };
+
+  const removeFromCart = (product: Product, barcode: string) => {
     setCart((prevCart) => {
       const updatedCart = prevCart
-        .map((item) => (item.barcode === barcode ? { ...item, quantity: item.quantity - 1 } : item))
-        .filter((item) => item.quantity > 0);
+        .map((item) =>
+          item.barcode === barcode ? { ...item, quantity: item.quantity - 1 } : item
+        )
+        .filter((item) => item.quantity > 0); // ลบสินค้าออกถ้าจำนวนเป็น 0
 
       if (updatedCart.length === 0) {
         setShowCart(false); // ซ่อนตะกร้าเมื่อไม่มีสินค้า
       }
+
+      // Clear low stock message when item is removed from cart
+      setLowStockMessages((prevMessages) => {
+        const newMessages = new Map(prevMessages);
+        newMessages.delete(barcode); // Remove the low stock message when the item is removed
+        return newMessages;
+      });
 
       return updatedCart;
     });
@@ -67,7 +108,6 @@ const ProductList = () => {
     setCart([]);
     setShowCart(false);
     setTimeout(() => {
-      setSuccessMessage(""); // ซ่อนข้อความสำเร็จหลังจาก 3 วินาที
       setShowCart(false); // ซ่อนตะกร้าหลังจากข้อความหายไป
     }, 3000); // เวลา 3 วินาที
   };
@@ -75,12 +115,6 @@ const ProductList = () => {
   const handleConfirmPayment = (method: string) => {
     setShowCheckout(false); // ปิด Modal หลังชำระเงิน
     setCart([]); // ล้างตะกร้าหลังชำระเงิน
-    setTimeout(() => setSuccessMessage(""), 3000);
-  };
-
-  const getCartQuantity = (barcode: string) => {
-    const product = cart.find((item) => item.barcode === barcode);
-    return product ? product.quantity : 0;
   };
 
   // คำนวณยอดรวมทั้งหมดในตะกร้า
@@ -90,39 +124,53 @@ const ProductList = () => {
 
   const handleQuantityChange = (value: string) => {
     if (value === "ลบทั้งหมด") {
-      setCurrentQuantity(0); // Reset the quantity if 'del' is clicked
+      setCurrentQuantity(0); // รีเซ็ตจำนวนเมื่อกด "ลบทั้งหมด"
     } else {
-      setCurrentQuantity((prev) => Number(prev.toString() + value)); // Append number to the quantity
+      // ถ้ามีค่าปัจจุบันอยู่แล้ว (currentQuantity), ต่อเลขใหม่เข้าไป
+      setCurrentQuantity((prev) => Number(prev.toString() + value));
     }
   };
 
-  const handleSetQuantity = () => {
+  const handleSetQuantity = async () => {
+    const stockQuantity = await getStockByBarcode(selectedProductBarcode);
+
+    // ถ้าจำนวนที่ป้อนเกินจำนวนที่มีใน stock
+    if (currentQuantity > stockQuantity) {
+      setErrorMessage("สินค้าหมด");
+      setCurrentQuantity(stockQuantity); // ตั้งค่าให้เป็นจำนวน stock ที่มี
+      return;
+    }
+
+    setErrorMessage(""); // เคลียร์ข้อความ error
+
     setCart((prevCart) => {
       return prevCart.map((item) =>
-        item.barcode === selectedProductBarcode ? { ...item, quantity: currentQuantity } : item
+        item.barcode === selectedProductBarcode
+          ? { ...item, quantity: currentQuantity }
+          : item
       );
     });
-    setShowNumberPad(false); // Close the number pad after setting the quantity
+
+    setShowNumberPad(false); // ปิด numpad หลังจากเลือกจำนวน
   };
+
 
   return (
     <div className="product-page">
       <div className="product-list-container">
-        <h1>รายการสินค้า</h1>
         <div className="product-grid">
           {products.map((product) => (
             <div key={product.barcode} className="product-card" onClick={() => addToCart(product)}>
-              {getCartQuantity(product.barcode) > 0 && (
-                <div className="cart-quantity">{getCartQuantity(product.barcode)}</div>
+              {lowStockMessages.has(product.barcode) && (
+                <p className="out-of-stock-message">{lowStockMessages.get(product.barcode)}</p>
               )}
-              <img src={product.imageUrl} alt={product.name} />
+              <img src={product.imageUrl} alt={product.name} className="product-image" />
               <h2>{product.name}</h2>
-              <p>{product.price} ฿</p>
+              <p className="product-price">{product.price} ฿</p>
             </div>
           ))}
         </div>
       </div>
-
       {/* ตะกร้าสินค้า */}
       <div className={`cart ${showCart && cart.length > 0 ? "show-cart" : "hidden-cart"}`}>
         <h2>ตะกร้าสินค้า</h2>
@@ -144,8 +192,8 @@ const ProductList = () => {
                   แก้ไขจำนวน
                 </button>
               </div>
-              <button onClick={() => removeFromCart(item.barcode)} className="remove-btn">
-                ลบ
+              <button onClick={() => removeFromCart(item, item.barcode)} className="remove-btn">
+                ลบสินค้า
               </button>
             </div>
           ))}
@@ -176,14 +224,28 @@ const ProductList = () => {
       {showNumberPad && (
         <div className="number-pad">
           <div className="number-pad-display">
-            <p>จำนวน: {currentQuantity}</p>
+            {errorMessage ? (
+              <p className="error-message">{errorMessage}</p> // แสดงข้อความ error ถ้ามี
+            ) : (
+              <p>จำนวน: {currentQuantity}</p> // แสดงจำนวนที่ผู้ใช้ป้อน
+            )}
           </div>
           <div className="number-pad-buttons">
-            {["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "ลบทั้งหมด"].map((button) => (
-              <button key={button} onClick={() => handleQuantityChange(button)}>{button}</button>
+            {["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].map((button) => (
+              <button key={button} onClick={() => handleQuantityChange(button)}>
+                {button}
+              </button>
             ))}
           </div>
-          <button onClick={handleSetQuantity} className="set-quantity-btn">เลือก</button>
+          <button onClick={handleSetQuantity} className="set-quantity-btn">
+            เลือก
+          </button>
+          <button
+            onClick={() => handleQuantityChange("ลบทั้งหมด")}
+            className="clear-all-btn"
+          >
+            ลบทั้งหมด
+          </button>
         </div>
       )}
     </div>
