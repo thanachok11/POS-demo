@@ -1,6 +1,6 @@
 import Stock from "../models/Stock";
 import { Request, Response } from "express";
-
+import Order from '../models/order';
 // 📌 ดึงข้อมูล Stock ทั้งหมด
 export const getStock = async (req: Request, res: Response) => {
   try {
@@ -167,3 +167,71 @@ export const getStockById = async (req: Request, res: Response): Promise<void> =
   }
 };
 
+
+// ฟังก์ชันสำหรับการสร้างใบสั่งซื้อใหม่
+export const createOrder = async (req: Request, res: Response) :Promise<void> => {
+  const { productId, quantity, supplier, location } = req.body;
+
+  try {
+    // ตรวจสอบข้อมูลจาก client
+    if (!productId || quantity <= 0 || !supplier || !location) {
+      res.status(400).json({ message: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
+      return;
+    }
+
+    // สร้างใบสั่งซื้อใหม่
+    const newOrder = new Order({
+      productId,
+      quantity,
+      supplier,
+      location,
+    });
+
+    // บันทึกใบสั่งซื้อใหม่ในฐานข้อมูล
+    await newOrder.save();
+
+    // ส่งกลับข้อมูลใบสั่งซื้อที่สร้าง
+      res.status(201).json({
+      message: 'ใบสั่งซื้อสินค้าถูกสร้างแล้ว',
+      order: newOrder,
+    });
+  } catch (err) {
+    console.error('Error creating order:', err);
+    res.status(500).json({ message: 'เกิดข้อผิดพลาดในการสร้างใบสั่งซื้อ' });
+    return;
+  }
+};
+
+// ฟังก์ชันสำหรับดึงรายการใบสั่งซื้อทั้งหมด
+export const getOrders = async (req: Request, res: Response):Promise<void> => {
+  try {
+    const orders = await Order.find().populate('productId');
+    res.status(200).json(orders);
+    return;
+  } catch (err) {
+    console.error('Error fetching orders:', err);
+    res.status(500).json({ message: 'เกิดข้อผิดพลาดในการดึงรายการใบสั่งซื้อ' });
+    return;
+  }
+};
+
+// ฟังก์ชันสำหรับดึงข้อมูลใบสั่งซื้อโดยใช้ ID
+export const getOrderById = async (req: Request, res: Response) :Promise<void> => {
+  const { id } = req.params;
+
+  try {
+    const order = await Order.findById(id).populate('productId');
+    
+    if (!order) {
+       res.status(404).json({ message: 'ไม่พบใบสั่งซื้อที่ระบุ' });
+       return;
+    }
+
+     res.status(200).json(order);
+     return;
+  } catch (err) {
+    console.error('Error fetching order by ID:', err);
+     res.status(500).json({ message: 'เกิดข้อผิดพลาดในการดึงใบสั่งซื้อ' });
+     return;
+  }
+};

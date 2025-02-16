@@ -1,29 +1,30 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckCircle, faExclamationTriangle, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
-import { fetchStockData } from '../../api/stock/stock.ts'; // นำเข้าฟังก์ชันที่ดึงข้อมูลจาก API
+import { fetchStockData, } from "../../api/stock/stock.ts"; 
+import { getProducts } from "../../api/product/productApi.ts";
+import { Link } from "react-router-dom"; // เพิ่มการใช้งาน Link จาก react-router-dom
 import "../../styles/stock/StockPage.css";
 
-interface StockItem {
-  productId: string;
-  name: string;
-  quantity: number;
-  supplier: string;
-  location: string;
-  threshold: number;
-  status: string;
-  lastRestocked: string;
-}
 const StockPage: React.FC = () => {
-  const [stockData, setStockData] = useState<StockItem[]>([]);
+  const [stockData, setStockData] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [quantityToAdd, setQuantityToAdd] = useState<number>(0);
+  const [selectedProductId, setSelectedProductId] = useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await fetchStockData(); // เรียกใช้งานฟังก์ชันที่ดึงข้อมูลจาก API
-        setStockData(data);
+        const [stock, productList] = await Promise.all([
+          fetchStockData(),
+          getProducts()
+        ]);
+
+        setStockData(stock);
+        setProducts(productList);
       } catch (err) {
         setError("Error fetching data");
       } finally {
@@ -32,7 +33,14 @@ const StockPage: React.FC = () => {
     };
 
     fetchData();
-  }, []); // ดึงข้อมูลเมื่อ Component โหลดเสร็จ
+  }, []);
+
+  const filteredStockData = stockData.filter((item) => {
+    const product = products.find((product) => product._id === item.productId);
+    return product?.name.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -47,17 +55,76 @@ const StockPage: React.FC = () => {
     }
   };
 
+  const getProductDetails = (productId: string) => {
+    return products.find((product) => product._id === productId);
+  };
+
+  const formatDateTime = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    };
+    return new Date(dateString).toLocaleString("th-TH", options);
+  };
+
   if (loading) return <div className="loading-text">Loading...</div>;
   if (error) return <div className="error-text">{error}</div>;
 
   return (
     <div className="stock-container">
       <h2 className="stock-header">📦 จัดการสต็อกสินค้า</h2>
+
+      {/* ช่องค้นหาสินค้า */}
+      <div className="search-container">
+        <input
+          type="text"
+          placeholder="ค้นหาสินค้า..."
+          className="search-input"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
+      {/* ปุ่มไปยังหน้าเพิ่มสินค้า */}
+      <Link to="/add-product">
+        <button className="add-product-button">เพิ่มสินค้า</button>
+      </Link>
+
+      {/* เติมสต็อกสินค้า */}
+      <div className="add-stock-container">
+        <h3>เติมสต็อกสินค้า</h3>
+        <select
+          value={selectedProductId}
+          onChange={(e) => setSelectedProductId(e.target.value)}
+          className="select-product"
+        >
+          <option value="">เลือกสินค้า</option>
+          {products.map((product) => (
+            <option key={product.productId} value={product.productId}>
+              {product.name}
+            </option>
+          ))}
+        </select>
+        <input
+          type="number"
+          value={quantityToAdd}
+          onChange={(e) => setQuantityToAdd(Number(e.target.value))}
+          placeholder="จำนวนที่เติม"
+          className="quantity-input"
+        />
+      </div>
+
       <table className="stock-table">
         <thead>
           <tr className="stock-header-row">
-            <th className="stock-header-cell">#</th>
+            <th className="stock-header-cell">ลำดับ</th>
             <th className="stock-header-cell">สินค้า</th>
+            <th className="stock-header-cell">รูปภาพ</th>
             <th className="stock-header-cell">จำนวน</th>
             <th className="stock-header-cell">ซัพพลายเออร์</th>
             <th className="stock-header-cell">ที่เก็บ</th>
@@ -66,19 +133,29 @@ const StockPage: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {stockData.map((item, index) => (
-            <tr key={item.productId} className="stock-table-row">
-              <td className="stock-cell">{index + 1}</td>
-              <td className="stock-cell">{item.name}</td>
-              <td className="stock-cell">{item.quantity}</td>
-              <td className="stock-cell">{item.supplier}</td>
-              <td className="stock-cell">{item.location}</td>
-              <td className="stock-cell status-cell">
-                {getStatusIcon(item.status)} {item.status}
-              </td>
-              <td className="stock-cell">{item.lastRestocked}</td>
-            </tr>
-          ))}
+          {filteredStockData.map((item, index) => {
+            const product = getProductDetails(item.productId);
+            return (
+              <tr key={item.productId} className="stock-table-row">
+                <td className="stock-cell">{index + 1}</td>
+                <td className="stock-cell">{product?.name || "ไม่พบสินค้า"}</td>
+                <td className="stock-cell">
+                  {product?.imageUrl ? (
+                    <img src={product.imageUrl} alt={product.name} className="product-image" />
+                  ) : (
+                    "ไม่มีรูป"
+                  )}
+                </td>
+                <td className="stock-cell">{item.quantity}</td>
+                <td className="stock-cell">{item.supplier}</td>
+                <td className="stock-cell">{item.location}</td>
+                <td className="stock-cell status-cell">
+                  {getStatusIcon(item.status)} {item.status}
+                </td>
+                <td className="stock-cell">{formatDateTime(item.updatedAt)}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

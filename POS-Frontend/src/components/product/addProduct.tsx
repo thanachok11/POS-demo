@@ -179,25 +179,6 @@ const AddProductForm = () => {
           <p>สินค้าเพิ่มสำเร็จ!</p>
         </div>
       )}
-
-      {addedProduct && (
-        <div className="product-display">
-          <h3 className="product-display-title">สินค้าที่เพิ่ม</h3>
-          <p><strong>ชื่อสินค้า:</strong> {addedProduct.name}</p>
-          <p><strong>รายละเอียด:</strong> {addedProduct.description}</p>
-          <p><strong>ราคา:</strong> ฿{addedProduct.price}</p>
-          <p><strong>หมวดหมู่:</strong> {addedProduct.category}</p>
-          <p><strong>จำนวนในสต็อก:</strong> {addedProduct.stock}</p>
-          <p><strong>บาร์โค้ด:</strong> {addedProduct.barcode}</p>
-          {addedProduct.imageUrl && (
-            <img
-              src={addedProduct.imageUrl}
-              alt={addedProduct.name}
-              className="product-image"
-            />
-          )}
-        </div>
-      )}
     </div>
   );
 };

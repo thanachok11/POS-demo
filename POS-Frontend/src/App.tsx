@@ -3,9 +3,9 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Homepage from "./components/pages/Homepage.tsx"; // หน้าแรก
 import Header from "./components/pages/Header.tsx"; // ใช้ Header ที่คุณสร้างขึ้น
 import Dashboard from './components/pages/Dashboard.tsx';
+import Addproduct from './components/product/AddProduct.tsx'
 import ProductList from "./components/product/ProductList.tsx";
 import StockPage from "./components/stock/Stock.tsx";
-import StockList from "./components/stock/StockList.tsx";
 import "./App.css";  // นำเข้าการตั้งค่าของ CSS
 
 const App: React.FC = () => {
@@ -22,7 +22,7 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<Homepage />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/stocklist" element={<StockList />} />
+            <Route path="/add-product" element={<Addproduct />} />
             <Route path="/shop" element={<ProductList />} />
             <Route path="/stock" element={<StockPage />} />
           </Routes>

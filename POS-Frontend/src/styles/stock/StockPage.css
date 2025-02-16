@@ -1,126 +1,146 @@
-/* StockPage.css */
-
-/* พื้นหลังและการตั้งค่าเบื้องต้น */
-body {
-    background-color: #f7f7f7;
-    /* พื้นหลังอ่อน */
-    font-family: 'Arial', sans-serif;
-    color: #333;
-    margin: 0;
-    padding: 0;
-}
-
-/* กรอบของหน้า stock */
+/* 🎨 ตั้งค่าพื้นฐานสำหรับ container */
 .stock-container {
-    margin-top: 100px;
-    margin-left: 120px;
-    padding: 20px;
-    font-family: "Arial", sans-serif;
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto;
     background-color: #ffffff;
-    /* พื้นหลังของ container */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    /* เพิ่มเงา */
+    padding: 20px;
     border-radius: 8px;
-    overflow: hidden;
+    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.1);
 }
 
-/* หัวข้อหลัก */
+/* 🏷️ หัวข้อหลัก */
 .stock-header {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #444;
     text-align: center;
-    margin-bottom: 30px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
-
-/* กรอบตาราง */
-.stock-table {
-    width: 100%;
-    border-collapse: collapse;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
     margin-bottom: 20px;
 }
 
-.stock-table th,
-.stock-table td {
-    padding: 15px;
-    text-align: center;
-    border: 1px solid #ddd;
-    font-size: 1rem;
+/* 📦 ตารางสินค้า */
+.stock-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 16px;
 }
 
-/* สไตล์สำหรับแถวหัวตาราง */
+/* 🔹 หัวตาราง */
 .stock-header-row {
     background-color: #007bff;
     color: white;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: 600;
 }
 
 .stock-header-cell {
-    padding: 15px;
+    padding: 12px;
+    text-align: center;
+    font-weight: bold;
 }
 
-/* สไตล์แถวในตาราง */
-.stock-table-row {
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+/* 📝 แถวของตาราง */
+.stock-table-row:nth-child(even) {
+    background-color: #f9f9f9;
 }
 
 .stock-table-row:hover {
     background-color: #f1f1f1;
+    transition: 0.2s ease-in-out;
 }
 
-/* สถานะของสินค้า */
-.status-cell {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* กำหนดสีของไอคอนสถานะ */
-.icon-green {
-    color: #28a745;
-}
-
-.icon-yellow {
-    color: #ffc107;
-}
-
-.icon-red {
-    color: #dc3545;
-}
-
-/* สไตล์ของข้อความสถานะ */
-.loading-text {
+/* 📌 เซลล์ของตาราง */
+.stock-cell {
+    padding: 10px;
     text-align: center;
-    font-size: 1.2rem;
+    border-bottom: 1px solid #ddd;
+}
+
+/* 🖼️ ปรับสไตล์รูปภาพสินค้า */
+.product-image {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* ✅ มีสินค้าในสต็อก */
+.icon-green {
+    color: #2ecc71;
+    /* เขียว */
+}
+
+/* ⚠️ สินค้าใกล้หมด */
+.icon-yellow {
+    color: #f1c40f;
+    /* เหลือง */
+}
+
+/* ❌ สินค้าหมด */
+.icon-red {
+    color: #e74c3c;
+    /* แดง */
+}
+
+/* 🔄 ข้อความโหลดข้อมูล */
+.loading-text,
+.error-text {
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+.loading-text {
     color: #007bff;
-    margin-top: 50px;
 }
 
 .error-text {
-    text-align: center;
-    font-size: 1.2rem;
-    color: #dc3545;
-    margin-top: 50px;
+    color: #e74c3c;
 }
 
-/* ปรับแต่งความสวยงามของปุ่มหรือการโต้ตอบ */
-.button-primary {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: #fff;
+.search-container {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.search-input {
+    padding: 10px;
+    font-size: 16px;
+    width: 50%;
     border-radius: 5px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: background-color 0.3s ease;
+    border: 1px solid #ccc;
+    outline: none;
+}
+
+.search-input:focus {
+    border-color: #007bff;
+}
+
+.add-stock-container {
+    margin: 20px 0;
     text-align: center;
 }
 
-.button-primary:hover {
-    background-color: #0056b3;
+.select-product,
+.quantity-input {
+    padding: 10px;
+    font-size: 16px;
+    margin-right: 10px;
+    width: 200px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.add-stock-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.add-stock-button:hover {
+    background-color: #218838;
 }

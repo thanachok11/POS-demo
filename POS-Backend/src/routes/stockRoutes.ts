@@ -7,7 +7,6 @@ import {
   deleteStock,
   getStockByBarcode, updateStockByBarcode,
 } from '../controllers/stockController';
-
 const router = express.Router();
 
 // เส้นทางสำหรับการจัดการสินค้า
