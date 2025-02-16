@@ -3,99 +3,110 @@
     width: 90%;
     max-width: 1200px;
     margin: 20px auto;
+    margin-top: 70px;
     background-color: #ffffff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 40px rgba(0, 0, 0, 0.1);
 }
 
-/* 🏷️ หัวข้อหลัก */
+/* หัวข้อ */
 .stock-header {
-    text-align: center;
     font-size: 24px;
-    font-weight: bold;
+    text-align: center;
     color: #333;
     margin-bottom: 20px;
 }
 
-/* 📦 ตารางสินค้า */
+
+.add-product-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.add-product-button:hover {
+    background-color: #45a049;
+}
+
+.icon-add {
+    font-size: 20px;
+}
+
+/* ตาราง */
 .stock-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 16px;
+    margin-top: 10px;
 }
 
-/* 🔹 หัวตาราง */
 .stock-header-row {
-    background-color: #007bff;
-    color: white;
+    background-color: #f4f4f4;
 }
 
 .stock-header-cell {
     padding: 12px;
-    text-align: center;
+    text-align: left;
     font-weight: bold;
+    border-bottom: 2px solid #ddd;
 }
 
-/* 📝 แถวของตาราง */
-.stock-table-row:nth-child(even) {
-    background-color: #f9f9f9;
+.stock-table-row {
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
 }
 
 .stock-table-row:hover {
-    background-color: #f1f1f1;
-    transition: 0.2s ease-in-out;
+    background-color: #f9f9f9;
 }
 
-/* 📌 เซลล์ของตาราง */
 .stock-cell {
-    padding: 10px;
-    text-align: center;
+    padding: 12px;
     border-bottom: 1px solid #ddd;
 }
 
-/* 🖼️ ปรับสไตล์รูปภาพสินค้า */
+/* รูปสินค้า */
 .product-image {
     width: 50px;
     height: 50px;
     object-fit: cover;
     border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* ✅ มีสินค้าในสต็อก */
+/* ไอคอนสถานะ */
 .icon-green {
-    color: #2ecc71;
-    /* เขียว */
+    color: green;
 }
 
-/* ⚠️ สินค้าใกล้หมด */
 .icon-yellow {
-    color: #f1c40f;
-    /* เหลือง */
+    color: orange;
 }
 
-/* ❌ สินค้าหมด */
 .icon-red {
-    color: #e74c3c;
-    /* แดง */
+    color: red;
 }
 
-/* 🔄 ข้อความโหลดข้อมูล */
+/* โหลดข้อมูล */
 .loading-text,
 .error-text {
     text-align: center;
     font-size: 18px;
-    font-weight: bold;
-    margin-top: 20px;
+    color: #666;
 }
 
-.loading-text {
-    color: #007bff;
-}
 
-.error-text {
-    color: #e74c3c;
+/* 🔹 หัวตาราง */
+.stock-header-row {
+    background-color: #007bff;
+    color: white;
 }
 
 .search-container {
@@ -114,33 +125,4 @@
 
 .search-input:focus {
     border-color: #007bff;
-}
-
-.add-stock-container {
-    margin: 20px 0;
-    text-align: center;
-}
-
-.select-product,
-.quantity-input {
-    padding: 10px;
-    font-size: 16px;
-    margin-right: 10px;
-    width: 200px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-}
-
-.add-stock-button {
-    padding: 10px 20px;
-    font-size: 16px;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.add-stock-button:hover {
-    background-color: #218838;
 }

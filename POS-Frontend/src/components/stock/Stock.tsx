@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheckCircle, faExclamationTriangle, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
-import { fetchStockData, } from "../../api/stock/stock.ts"; 
+import { faCheckCircle, faExclamationTriangle, faTimesCircle, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { fetchStockData, } from "../../api/stock/stock.ts";
 import { getProducts } from "../../api/product/productApi.ts";
 import { Link } from "react-router-dom"; // เพิ่มการใช้งาน Link จาก react-router-dom
 import "../../styles/stock/StockPage.css";
@@ -12,8 +13,8 @@ const StockPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [quantityToAdd, setQuantityToAdd] = useState<number>(0);
-  const [selectedProductId, setSelectedProductId] = useState<string>("");
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -89,36 +90,10 @@ const StockPage: React.FC = () => {
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
-
       {/* ปุ่มไปยังหน้าเพิ่มสินค้า */}
       <Link to="/add-product">
-        <button className="add-product-button">เพิ่มสินค้า</button>
+        <button className="add-product-button"><FontAwesomeIcon icon={faPlus} className="icon-add" /></button>
       </Link>
-
-      {/* เติมสต็อกสินค้า */}
-      <div className="add-stock-container">
-        <h3>เติมสต็อกสินค้า</h3>
-        <select
-          value={selectedProductId}
-          onChange={(e) => setSelectedProductId(e.target.value)}
-          className="select-product"
-        >
-          <option value="">เลือกสินค้า</option>
-          {products.map((product) => (
-            <option key={product.productId} value={product.productId}>
-              {product.name}
-            </option>
-          ))}
-        </select>
-        <input
-          type="number"
-          value={quantityToAdd}
-          onChange={(e) => setQuantityToAdd(Number(e.target.value))}
-          placeholder="จำนวนที่เติม"
-          className="quantity-input"
-        />
-      </div>
-
       <table className="stock-table">
         <thead>
           <tr className="stock-header-row">
@@ -136,12 +111,22 @@ const StockPage: React.FC = () => {
           {filteredStockData.map((item, index) => {
             const product = getProductDetails(item.productId);
             return (
-              <tr key={item.productId} className="stock-table-row">
+              <tr
+                key={item.productId}
+                className="stock-table-row"
+                onClick={() => navigate(`/stock/${item.productId}`)} // นำทางไปยังหน้ารายละเอียด
+                style={{ cursor: "pointer" }} // เปลี่ยนเป็น cursor pointer
+              >
                 <td className="stock-cell">{index + 1}</td>
                 <td className="stock-cell">{product?.name || "ไม่พบสินค้า"}</td>
                 <td className="stock-cell">
                   {product?.imageUrl ? (
-                    <img src={product.imageUrl} alt={product.name} className="product-image" />
+                    <img
+                      src={product.imageUrl}
+                      alt={product.name}
+                      className="product-image"
+                      onClick={(e) => e.stopPropagation()} // ป้องกันคลิกภาพแล้วเกิดการนำทาง
+                    />
                   ) : (
                     "ไม่มีรูป"
                   )}
