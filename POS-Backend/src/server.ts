@@ -7,6 +7,7 @@ import { connectDB } from "./database";
 import bodyParser from "body-parser";
 import Stock from "./routes/stockRoutes";
 import orderRoutes from './routes/orderRoutes';
+import testRoute from './routes/testRoutes';
 
 import cors from "cors";
 
@@ -33,6 +34,7 @@ app.use(bodyParser.json()); // ลบได้
 
 // เปิดใช้งาน CORS
 // หรือระบุเฉพาะ Frontend ของคุณ
+app.use('/api/test', testRoute);
 
 app.use("/api/products", productRoutes);
 app.use("/api/products/barcode", productRoutes);

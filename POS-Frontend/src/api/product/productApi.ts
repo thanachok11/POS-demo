@@ -26,16 +26,18 @@ export const getProductByBarcode = async (barcode: string) => {
 };
 
 // ฟังก์ชันสำหรับอัปโหลดสินค้าใหม่ (จากตัวอย่างก่อนหน้า)
-export const uploadProduct = async (data: FormData) => {
+export const uploadProduct = async (formData: FormData, token: string | null) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/product/upload`, data, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    return response.data;
+    const response = await axios.post((`${API_BASE_URL}/product/upload`),formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`, // Include token in the Authorization header
+        },
+      }
+    );
+    return response;
   } catch (error) {
-    console.error("Error uploading product:", error);
     throw error;
   }
 };

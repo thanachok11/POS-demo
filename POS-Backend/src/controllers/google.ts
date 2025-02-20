@@ -48,7 +48,7 @@ export const googleLogin = async (req: Request, res: Response): Promise<void> =>
     // สร้าง JWT Token ใหม่
     const token = jwt.sign(
       {
-        id: user._id,           // user id
+        userId: user._id,           // user id
         email: user.email,       // user email
         username: user.username, // username ของผู้ใช้
         role: user.role,

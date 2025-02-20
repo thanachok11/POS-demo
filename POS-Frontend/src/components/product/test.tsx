@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { uploadProduct } from "../../api/product/productApi.ts"; // Ensure this import is correct
+import { uploadProduct } from "../../api/product/productApi.ts"; 
+import { addStock } from '../../api/stock/stock.ts'; // นำเข้าฟังก์ชันที่ดึงข้อมูลจาก API
 import '../../styles/product/AddProductForm.css';
 
 const AddProductForm = () => {
@@ -13,12 +14,26 @@ const AddProductForm = () => {
   const [image, setImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [addedProduct, setAddedProduct] = useState<any | null>(null); // Store added product data
-  const [showSuccessPopup, setShowSuccessPopup] = useState(false); // To control success popup visibility
+  const [addedProduct, setAddedProduct] = useState<any | null>(null); 
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false); 
+  const [stockData, setStockData] = useState({
+    productId: '',
+    quantity: 1,
+    supplier: '',
+    location: '',
+  });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleProductInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setProductData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  const handleStockInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setStockData((prevData) => ({
       ...prevData,
       [name]: value,
     }));
@@ -32,7 +47,7 @@ const AddProductForm = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    const token = localStorage.getItem("token"); // 🔥 ดึง token จาก LocalStorage หรือ State
+    const token = localStorage.getItem("token");  // ดึง token จาก localStorage
 
     e.preventDefault();
 
@@ -42,9 +57,16 @@ const AddProductForm = () => {
       !productData.price ||
       !productData.category ||
       !productData.barcode ||
-      !image
+      !image ||
+      !stockData.supplier ||
+      !stockData.location
     ) {
       setMessage('กรุณากรอกข้อมูลให้ครบถ้วน');
+      return;
+    }
+
+    if (!token) {
+      setMessage('ไม่พบ token กรุณาเข้าสู่ระบบ');
       return;
     }
 
@@ -61,15 +83,31 @@ const AddProductForm = () => {
     formData.append('image', image);
 
     try {
-      const response = await uploadProduct(formData, token); // Pass token in the API request
-      setAddedProduct(response.data); // Store the added product data
-      setShowSuccessPopup(true); // Show the success popup
+      // เพิ่มสินค้าใหม่
+      const response = await uploadProduct(formData, token);  // ส่ง token ไปใน header ของ API
+      setAddedProduct(response.data);
+
+      // เพิ่มข้อมูลสต็อก
+      const stockResponse = await addStock({
+        productId: response.data._id, // ใช้ product ID จากที่เพิ่ม
+        quantity: stockData.quantity,
+        supplier: stockData.supplier,
+        location: stockData.location,
+      }, token); // ส่ง token ไปใน header ของ API
+
+      setShowSuccessPopup(true);
       setProductData({
         name: '',
         description: '',
         price: '',
         category: '',
         barcode: '',
+      });
+      setStockData({
+        productId: '',
+        quantity: 1,
+        supplier: '',
+        location: '',
       });
       setImage(null);
     } catch (error) {
@@ -80,7 +118,6 @@ const AddProductForm = () => {
     }
   };
 
-  // Hide success popup after 3 seconds
   useEffect(() => {
     if (showSuccessPopup) {
       const timer = setTimeout(() => {
@@ -101,7 +138,7 @@ const AddProductForm = () => {
             type="text"
             name="name"
             value={productData.name}
-            onChange={handleInputChange}
+            onChange={handleProductInputChange}
             className="form-input"
           />
         </div>
@@ -111,7 +148,7 @@ const AddProductForm = () => {
             type="text"
             name="description"
             value={productData.description}
-            onChange={handleInputChange}
+            onChange={handleProductInputChange}
             className="form-input"
           />
         </div>
@@ -121,7 +158,7 @@ const AddProductForm = () => {
             type="number"
             name="price"
             value={productData.price}
-            onChange={handleInputChange}
+            onChange={handleProductInputChange}
             className="form-input"
           />
         </div>
@@ -131,7 +168,7 @@ const AddProductForm = () => {
             type="text"
             name="category"
             value={productData.category}
-            onChange={handleInputChange}
+            onChange={handleProductInputChange}
             className="form-input"
           />
         </div>
@@ -141,7 +178,7 @@ const AddProductForm = () => {
             type="text"
             name="barcode"
             value={productData.barcode}
-            onChange={handleInputChange}
+            onChange={handleProductInputChange}
             className="form-input"
           />
         </div>
@@ -153,18 +190,53 @@ const AddProductForm = () => {
             className="form-file-input"
           />
         </div>
+
+        {/* ฟอร์มข้อมูลสต็อกสินค้า */}
+        <h3>ข้อมูลสต็อกสินค้า</h3>
+        <div className="form-group">
+          <label className="form-label">ผู้จำหน่าย:</label>
+          <input
+            type="text"
+            name="supplier"
+            value={stockData.supplier}
+            onChange={handleStockInputChange}
+            className="form-input"
+          />
+        </div>
+        <div className="form-group">
+          <label className="form-label">ที่เก็บสินค้า:</label>
+          <input
+            type="text"
+            name="location"
+            value={stockData.location}
+            onChange={handleStockInputChange}
+            className="form-input"
+          />
+        </div>
+        <div className="form-group">
+          <label className="form-label">จำนวนสินค้า:</label>
+          <input
+            type="number"
+            name="quantity"
+            value={stockData.quantity}
+            onChange={handleStockInputChange}
+            className="form-input"
+          />
+        </div>
+
         <div className="form-group">
           <button type="submit" disabled={loading} className="submit-button">
-            {loading ? 'กำลังเพิ่มสินค้า...' : 'เพิ่มสินค้า'}
+            {loading ? 'กำลังอัปโหลด...' : 'เพิ่มสินค้า'}
           </button>
         </div>
       </form>
+
       {message && <p className="error-message">{message}</p>}
 
       {showSuccessPopup && (
         <div className="success-popup">
           <span className="success-icon">✔️</span>
-          <p>สินค้าเพิ่มสำเร็จ!</p>
+          <p>สินค้าและข้อมูลสต็อกเพิ่มสำเร็จ!</p>
         </div>
       )}
     </div>

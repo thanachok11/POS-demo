@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Base URL ของ API
-const API_BASE_URL = "http://localhost:5000/api/stock";
+const API_BASE_URL = "http://localhost:5000/api";
 
 export const fetchStockData = async () => {
   try {
@@ -16,7 +16,7 @@ export const fetchStockData = async () => {
 
 export const getStockByBarcode = async (barcode: string) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/barcode/${barcode}`);
+    const response = await axios.get(`${API_BASE_URL}/stock/barcode/${barcode}`);
 
     // เช็คสถานะการตอบกลับจาก API ถ้าสำเร็จ
     if (response.status === 200) {
@@ -57,23 +57,31 @@ export const updateStockByBarcode = async (barcode: string, quantity: number) =>
   }
 };
 
-
-// 📌 เพิ่มสินค้าเข้า Stock
 export const addStock = async (data: {
   productId: string;
   quantity: number;
   supplier?: string;
   location?: string;
   threshold?: number;
-}) => {
+}, token: string) => {
   try {
-    const response = await axios.post(API_BASE_URL, data);
+    // เพิ่ม headers เพื่อส่ง token ไปด้วย
+    const config = {
+      headers: {
+        'Authorization': `Bearer ${token}`,  // ส่ง token ผ่าน Authorization header
+        'Content-Type': 'application/json',  // ถ้าต้องการใช้ JSON
+      },
+    };
+
+    // ส่งข้อมูลไปยัง API
+    const response = await axios.post(`${API_BASE_URL}/orders/create`, data, config);
     return response.data;
   } catch (error) {
-    console.error("เกิดข้อผิดพลาดในการเพิ่ม Stock:", error);
+    console.error('เกิดข้อผิดพลาดในการเพิ่ม Stock:', error);
     throw error;
   }
 };
+
 
 // 📌 อัปเดต Stock (ใช้ตอน checkout)
 export const updateStock = async (stockId: string, newQuantity: number) => {

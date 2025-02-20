@@ -36,8 +36,6 @@ export const getAllProducts = async (req: Request, res: Response, next: NextFunc
   }
 };
 
-
-
 // ฟังก์ชันสำหรับการเพิ่มสินค้าใน Stock
 export const addProductToStock = async (req: Request, res: Response) => {
   const { productId, stockId, quantity } = req.body;

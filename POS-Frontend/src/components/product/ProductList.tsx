@@ -3,6 +3,8 @@ import { getProducts } from "../../api/product/productApi.ts";
 import { updateStockByBarcode, getStockByBarcode } from "../../api/stock/stock.ts";
 import Checkout from "../product/Checkout.tsx"; // นำเข้า Checkout Modal
 import "../../styles/product/ProductList.css";
+import { jwtDecode } from "jwt-decode";
+
 import React from "react";
 
 interface Product {
@@ -13,7 +15,8 @@ interface Product {
   imageUrl: string;
 }
 
-const ProductList = () => {
+const ProductList: React.FC = () => {
+  const [user, setUser] = useState<{ userId: string; username: string; email: string } | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<Product[]>([]);
   const [showCheckout, setShowCheckout] = useState<boolean>(false);
@@ -21,16 +24,40 @@ const ProductList = () => {
   const [showNumberPad, setShowNumberPad] = useState<boolean>(false);
   const [selectedProductBarcode, setSelectedProductBarcode] = useState<string>("");
   const [currentQuantity, setCurrentQuantity] = useState<number>(0);
-  const [errorMessage, setErrorMessage] = useState<string>(""); // เก็บข้อความ error
-  const [lowStockMessages, setLowStockMessages] = useState<Map<string, string>>(new Map()); // To track low stock messages
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [lowStockMessages, setLowStockMessages] = useState<Map<string, string>>(new Map());
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      const productData = await getProducts();
-      setProducts(productData);
-    };
-    fetchProducts();
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded: any = jwtDecode(token);
+        setUser({
+          userId: decoded.userId,
+          username: decoded.username,
+          email: decoded.email,
+        });
+      } catch (error) {
+        console.error("Invalid token:", error);
+      }
+    }
   }, []);
+
+useEffect(() => {
+  const fetchProducts = async () => {
+    if (user?.userId) {
+      const productData = await getProducts(user?.userId);
+      if (productData.length === 0) {
+        setErrorMessage("ข้อมูลสินค้ายังไม่ถูกเพิ่ม");
+      } else {
+        setErrorMessage(""); // เคลียร์ error ถ้ามีสินค้า
+      }
+      setProducts(productData);
+    }
+  };
+  fetchProducts();
+}, [user]);
+
 
   const addToCart = async (product: Product) => {
     const stockQuantity = await getStockByBarcode(product.barcode);
@@ -158,6 +185,8 @@ const ProductList = () => {
   return (
     <div className="product-page">
       <div className="product-list-container">
+        {errorMessage && <p className="error-message">{errorMessage}</p>}
+
         <div className="product-grid">
           {products.map((product) => (
             <div key={product.barcode} className="product-card" onClick={() => addToCart(product)}>

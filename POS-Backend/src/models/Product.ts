@@ -7,9 +7,9 @@ export interface IProduct extends Document {
   price: number;
   category: string;
   barcode: string;
-  stock: number;
   imageUrl?: string;
   public_id?: string;
+  userId: mongoose.Schema.Types.ObjectId; // เพิ่ม userId เพื่อเชื่อมโยงกับผู้ใช้
   createdAt: Date;
   updatedAt: Date;
 }
@@ -22,9 +22,9 @@ const ProductSchema: Schema = new Schema(
     price: { type: Number, required: true },
     category: { type: String, required: true },
     barcode: { type: String, required: true, unique: true },
-    stock: { type: Number, required: true },
     imageUrl: { type: String }, // เก็บ URL ของภาพจาก Cloudinary
     public_id: { type: String }, // เก็บ public_id ของภาพจาก Cloudinary
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // เพิ่ม userId ที่เป็น ObjectId ของผู้ใช้
   },
   { timestamps: true }
 );
