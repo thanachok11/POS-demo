@@ -10,18 +10,31 @@ const AddProductForm = () => {
     category: '',
     barcode: '',
   });
+  const [stockData, setStockData] = useState({
+    quantity: '',
+    supplier: '',
+    location: '',
+    threshold: '',
+  });
   const [image, setImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [addedProduct, setAddedProduct] = useState<any | null>(null); // Store added product data
-  const [showSuccessPopup, setShowSuccessPopup] = useState(false); // To control success popup visibility
+  const [addedProduct, setAddedProduct] = useState<any | null>(null);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setProductData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    if (name in productData) {
+      setProductData((prevData) => ({
+        ...prevData,
+        [name]: value,
+      }));
+    } else {
+      setStockData((prevData) => ({
+        ...prevData,
+        [name]: value,
+      }));
+    }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,7 +45,7 @@ const AddProductForm = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    const token = localStorage.getItem("token"); // 🔥 ดึง token จาก LocalStorage หรือ State
+    const token = localStorage.getItem("token");
 
     e.preventDefault();
 
@@ -42,7 +55,11 @@ const AddProductForm = () => {
       !productData.price ||
       !productData.category ||
       !productData.barcode ||
-      !image
+      !image ||
+      !stockData.quantity ||
+      !stockData.supplier ||
+      !stockData.location ||
+      !stockData.threshold
     ) {
       setMessage('กรุณากรอกข้อมูลให้ครบถ้วน');
       return;
@@ -59,17 +76,27 @@ const AddProductForm = () => {
     formData.append('category', productData.category);
     formData.append('barcode', productData.barcode);
     formData.append('image', image);
+    formData.append('quantity', stockData.quantity);
+    formData.append('supplier', stockData.supplier);
+    formData.append('location', stockData.location);
+    formData.append('threshold', stockData.threshold);
 
     try {
-      const response = await uploadProduct(formData, token); // Pass token in the API request
-      setAddedProduct(response.data); // Store the added product data
-      setShowSuccessPopup(true); // Show the success popup
+      const response = await uploadProduct(formData, token);
+      setAddedProduct(response.data);
+      setShowSuccessPopup(true);
       setProductData({
         name: '',
         description: '',
         price: '',
         category: '',
         barcode: '',
+      });
+      setStockData({
+        quantity: '',
+        supplier: '',
+        location: '',
+        threshold: '',
       });
       setImage(null);
     } catch (error) {
@@ -80,7 +107,6 @@ const AddProductForm = () => {
     }
   };
 
-  // Hide success popup after 3 seconds
   useEffect(() => {
     if (showSuccessPopup) {
       const timer = setTimeout(() => {
@@ -95,69 +121,118 @@ const AddProductForm = () => {
     <div className="add-product-container">
       <h2 className="form-title">เพิ่มสินค้าใหม่</h2>
       <form className="add-product-form" onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label className="form-label">ชื่อสินค้า:</label>
-          <input
-            type="text"
-            name="name"
-            value={productData.name}
-            onChange={handleInputChange}
-            className="form-input"
-          />
-        </div>
-        <div className="form-group">
-          <label className="form-label">รายละเอียดสินค้า:</label>
-          <input
-            type="text"
-            name="description"
-            value={productData.description}
-            onChange={handleInputChange}
-            className="form-input"
-          />
-        </div>
-        <div className="form-group">
-          <label className="form-label">ราคา:</label>
-          <input
-            type="number"
-            name="price"
-            value={productData.price}
-            onChange={handleInputChange}
-            className="form-input"
-          />
-        </div>
-        <div className="form-group">
-          <label className="form-label">หมวดหมู่:</label>
-          <input
-            type="text"
-            name="category"
-            value={productData.category}
-            onChange={handleInputChange}
-            className="form-input"
-          />
-        </div>
-        <div className="form-group">
-          <label className="form-label">บาร์โค้ด:</label>
-          <input
-            type="text"
-            name="barcode"
-            value={productData.barcode}
-            onChange={handleInputChange}
-            className="form-input"
-          />
-        </div>
-        <div className="form-group">
-          <label className="form-label">เลือกรูปภาพสินค้า:</label>
-          <input
-            type="file"
-            onChange={handleImageChange}
-            className="form-file-input"
-          />
-        </div>
-        <div className="form-group">
+        <div className="form-column">
+          <h3>สินค้า</h3>
+          <div className="form-group">
+            <label className="form-label">ชื่อสินค้า:</label>
+            <input
+              type="text"
+              name="name"
+              value={productData.name}
+              onChange={handleInputChange}
+              className="form-input"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">รายละเอียดสินค้า:</label>
+            <input
+              type="text"
+              name="description"
+              value={productData.description}
+              onChange={handleInputChange}
+              className="form-input"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">ราคา:</label>
+            <input
+              type="number"
+              name="price"
+              value={productData.price}
+              onChange={handleInputChange}
+              className="form-input"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">หมวดหมู่:</label>
+            <input
+              type="text"
+              name="category"
+              value={productData.category}
+              onChange={handleInputChange}
+              className="form-input"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">บาร์โค้ด:</label>
+            <input
+              type="text"
+              name="barcode"
+              value={productData.barcode}
+              onChange={handleInputChange}
+              className="form-input"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">เลือกรูปภาพสินค้า:</label>
+            <input
+              type="file"
+              onChange={handleImageChange}
+              className="form-file-input"
+            />
+          </div>
+           <div className="form-group">
           <button type="submit" disabled={loading} className="submit-button">
             {loading ? 'กำลังเพิ่มสินค้า...' : 'เพิ่มสินค้า'}
           </button>
         </div>
+        </div>
+        
+        <div className="form-column">
+          <h3>สต็อกสินค้า</h3>
+          <div className="form-group">
+            <label className="form-label">จำนวนสินค้า:</label>
+            <input
+              type="number"
+              name="quantity"
+              value={stockData.quantity}
+              onChange={handleInputChange}
+              className="form-input"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">ผู้จำหน่าย:</label>
+            <input
+              type="text"
+              name="supplier"
+              value={stockData.supplier}
+              onChange={handleInputChange}
+              className="form-input"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">ตำแหน่งจัดเก็บ:</label>
+            <input
+              type="text"
+              name="location"
+              value={stockData.location}
+              onChange={handleInputChange}
+              className="form-input"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">ค่าขั้นต่ำสต็อก:</label>
+            <input
+              type="number"
+              name="threshold"
+              value={stockData.threshold}
+              onChange={handleInputChange}
+              className="form-input"
+            />
+          </div>
+
+        </div>
+        
       </form>
       {message && <p className="error-message">{message}</p>}
 

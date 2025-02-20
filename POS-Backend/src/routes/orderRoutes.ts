@@ -1,6 +1,6 @@
 // routes/orderRoutes.ts
 import { Router } from 'express';
-import {createOrder} from '../controllers/stockController';
+import {createOrder} from '../controllers/orderController';
 
 const router = Router();
 

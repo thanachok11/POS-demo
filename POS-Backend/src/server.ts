@@ -40,7 +40,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/products/barcode", productRoutes);
 app.post("/api/product/upload", uploadRoutes);
 app.use("/api/auth", authRoutes);  // ใช้เพียงเส้นทางนี้
-app.use("/api/stock", Stock);
+app.use("/api/stocks", Stock);
 app.use('/api/orders', orderRoutes);
 
 // เริ่มเซิร์ฟเวอร์

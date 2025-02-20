@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import cloudinary from '../utils/cloudinary'; // นำเข้า cloudinary config
 import Product from '../models/Product'; // นำเข้า model Product
+import Stock from '../models/Stock'; // นำเข้า model Stock
 import jwt from 'jsonwebtoken'; // นำเข้า jwt สำหรับการตรวจสอบ token
 import User from '../models/User'; // นำเข้า model User
 
@@ -12,35 +13,34 @@ const verifyToken = (token: string) => {
     throw new Error('Invalid token');
   }
 };
-// Controller สำหรับการอัปโหลดภาพและบันทึกข้อมูล Product
-export const uploadProductImage = async (req: Request, res: Response): Promise<void> => {
+// Controller สำหรับการเพิ่มสินค้า พร้อมเพิ่มสต็อกสินค้า
+export const addProductWithStock = async (req: Request, res: Response): Promise<void> => {
   try {
-    // ดึง token จาก body (ถ้าส่งใน body) หรือ จาก headers (ถ้าส่งใน headers)
-    const token = req.headers['authorization']?.split(' ')[1] || req.body.token;
+    // ดึง token จาก headers
+    const token = req.headers['authorization']?.split(' ')[1];
 
     if (!token) {
-        res.status(401).json({
+      res.status(401).json({
         success: false,
         message: 'No token provided'
       });
-      return ;
+      return;
     }
 
     // ตรวจสอบ token และดึง userId
-    const decoded = verifyToken(token);  // ถอดรหัส token
+    const decoded = verifyToken(token);
 
     if (typeof decoded !== 'string' && 'userId' in decoded) {
-      // ตรวจสอบว่า userId ที่มาจาก token มีอยู่จริงในฐานข้อมูล
       const user = await User.findById(decoded.userId);
       if (!user) {
-          res.status(404).json({
+        res.status(404).json({
           success: false,
           message: 'User not found'
         });
         return;
       }
     } else {
-        res.status(401).json({
+      res.status(401).json({
         success: false,
         message: 'Invalid token'
       });
@@ -49,14 +49,14 @@ export const uploadProductImage = async (req: Request, res: Response): Promise<v
 
     // ตรวจสอบว่าไฟล์ถูกส่งมาหรือไม่
     if (!req.file) {
-        res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'No file uploaded'
       });
       return;
     }
 
-    // ใช้ cloudinary.v2.uploader.upload_stream
+    // อัปโหลดภาพไปที่ Cloudinary
     cloudinary.uploader.upload_stream(
       { resource_type: 'auto' },
       async (err, result) => {
@@ -67,34 +67,51 @@ export const uploadProductImage = async (req: Request, res: Response): Promise<v
             message: 'Error uploading image'
           });
         }
-        // สร้างข้อมูล Product ใหม่
-        const { name, description, price, category, barcode, stock } = req.body;
+
+        // ดึงข้อมูลจาก req.body
+        const { name, description, price, category, barcode, quantity, supplier, location, threshold } = req.body;
 
         try {
+          // ✅ 1. สร้างสินค้าใหม่
           const newProduct = new Product({
             name,
             description,
             price,
             category,
             barcode,
-            imageUrl: result?.secure_url, // บันทึก URL ของภาพจาก Cloudinary
-            public_id: result?.public_id, // บันทึก public_id ของ Cloudinary
+            imageUrl: result?.secure_url, // URL ของภาพจาก Cloudinary
+            public_id: result?.public_id, // public_id ของ Cloudinary
             userId: decoded.userId, // เก็บ userId ที่มาจาก token
           });
 
           await newProduct.save();
 
+          // ✅ 2. เพิ่มสต็อกสินค้าใหม่ (อ้างอิง productId)
+          const newStock = new Stock({
+            productId: newProduct._id,
+            userId: decoded.userId, // เชื่อมกับผู้ใช้
+            quantity: quantity|| 5, // ถ้าไม่ได้ใส่มา ให้เป็น 0
+            supplier,
+            location,
+            threshold: threshold || 5, // ค่าขั้นต่ำเริ่มต้นที่ 5
+            barcode,
+            status: quantity > 0 ? 'In Stock' : 'Out of Stock', // กำหนดสถานะอัตโนมัติ
+            lastRestocked: quantity > 0 ? new Date() : undefined,
+          });
+
+          await newStock.save();
+
           res.status(201).json({
             success: true,
-            message: 'Product created successfully',
-            data: newProduct
+            message: 'Product and stock created successfully',
+            data: { product: newProduct, stock: newStock }
           });
 
         } catch (error) {
           console.error(error);
           res.status(500).json({
             success: false,
-            message: 'Error saving product'
+            message: 'Error saving product and stock'
           });
         }
       }
@@ -107,5 +124,3 @@ export const uploadProductImage = async (req: Request, res: Response): Promise<v
     });
   }
 };
-
-

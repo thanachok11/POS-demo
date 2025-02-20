@@ -44,19 +44,24 @@ const ProductList: React.FC = () => {
   }, []);
 
 useEffect(() => {
-  const fetchProducts = async () => {
-    if (user?.userId) {
-      const productData = await getProducts(user?.userId);
-      if (productData.length === 0) {
-        setErrorMessage("ข้อมูลสินค้ายังไม่ถูกเพิ่ม");
-      } else {
-        setErrorMessage(""); // เคลียร์ error ถ้ามีสินค้า
-      }
-      setProducts(productData);
-    }
-  };
-  fetchProducts();
-}, [user]);
+    const fetchProducts = async () => {
+      try {
+        const productData = await getProducts();  // เรียกใช้ฟังก์ชันจาก productApi.ts
+        console.log("Product data: ", productData); // log ดูข้อมูลสินค้า
+        
+        if (productData.success && Array.isArray(productData.data)) {
+          setProducts(productData.data);  // ใช้ productData.data แทน
+        } else {
+          setErrorMessage("ไม่พบข้อมูลสินค้า");
+        }
+      } catch (error) {
+        setErrorMessage("เกิดข้อผิดพลาดในการดึงข้อมูลสินค้า");
+        console.error(error);
+      } 
+    };
+
+    fetchProducts();
+  }, []);
 
 
   const addToCart = async (product: Product) => {

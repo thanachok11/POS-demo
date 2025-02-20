@@ -108,7 +108,7 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
             <FontAwesomeIcon icon={faCaretDown} className={`dropdown-icon ${openDropdown === "products" ? "open" : ""}`} />
           </li>
           <ul className={`item-details ${openDropdown === "products" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
-            <li onClick={() => handleMenuClick("/stock", "สต็อกสินค้า")}>
+            <li onClick={() => handleMenuClick("/stocks", "สต็อกสินค้า")}>
               <FontAwesomeIcon icon={faClipboardList} className="icon" /> <span className="dropdown-text">สต็อกสินค้า</span>
             </li>
             <li onClick={() => handleMenuClick("/createOrder", "นำเข้าสินค้าใหม่")}>

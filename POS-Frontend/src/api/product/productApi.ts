@@ -5,12 +5,24 @@ const API_BASE_URL = "http://localhost:5000/api";
 
 // ฟังก์ชันเพื่อดึงรายการสินค้าทั้งหมด
 export const getProducts = async () => {
+  const token = localStorage.getItem('token'); // ดึง token จาก localStorage
+
+  if (!token) {
+    throw new Error('No token found');
+  }
+
   try {
-    const response = await axios.get(`${API_BASE_URL}/products`);
-    return response.data;
+    // ส่ง token ไปใน Authorization header
+    const response = await axios.get(`${API_BASE_URL}/products/get`, {
+      headers: {
+        'Authorization': `Bearer ${token}` // ใส่ token ใน header
+      }
+    });
+
+    return response.data; // ส่งข้อมูลที่ได้จาก API กลับมา
   } catch (error) {
     console.error("Error fetching products:", error);
-    throw error;
+    throw error; // ส่งข้อผิดพลาดออกไปหากเกิดการผิดพลาด
   }
 };
 

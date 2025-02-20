@@ -4,7 +4,6 @@ import Homepage from "./components/pages/Homepage.tsx"; // หน้าแรก
 import Header from "./components/pages/Header.tsx"; // ใช้ Header ที่คุณสร้างขึ้น
 import Dashboard from './components/pages/Dashboard.tsx';
 import AddProductForm from './components/product/AddProduct.tsx';
-import AddFrom from "./components/stock/AddStockForm.tsx";
 import ProductList from "./components/product/ProductList.tsx";
 import StockPage from "./components/stock/Stock.tsx";
 import StockDetailPage from "./components/stock/StockDetailPage.tsx";
@@ -36,7 +35,7 @@ const App: React.FC = () => {
             } />
 
             <Route path="/shop" element={<ProductList />} />
-            <Route path="/stock" element={<StockPage />} />
+            <Route path="/stocks" element={<StockPage />} />
             <Route path="/stock/:id" element={<StockDetailPage />} />
             <Route path="/createOrder" element={<CreateOrder />} />
           </Routes>
