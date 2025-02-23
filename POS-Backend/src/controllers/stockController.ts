@@ -78,6 +78,7 @@ export const getStockByBarcode = async (req: Request, res: Response): Promise<vo
       res.status(404).json({ message: 'Stock not found' });
       return;
     }
+
     // ส่งข้อมูลสต็อกกลับไปยังผู้ใช้ พร้อมกับจำนวนสินค้าในสต็อก
     res.json({
       barcode: stock.barcode,
@@ -147,4 +148,42 @@ export const deleteStock = async (req: Request, res: Response) => {
 };
 
 
+export const updateQuantityByBarcode = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { barcode } = req.body;  // รับ barcode จาก URL params
 
+    const { quantity } = req.body;
+
+    // ค้นหาสต็อกจาก barcode
+    const stock = await Stock.findOne({ barcode });
+
+    if (!stock) {
+       res.status(404).json({ success: false, message: "ไม่พบข้อมูลสต็อก" });
+      return;
+    }
+
+    // ตรวจสอบว่าสินค้ามีจำนวนพอหรือไม่
+    if (stock.quantity < quantity) {
+       res.status(400).json({
+        success: false,
+        message: `สินค้าในสต็อกไม่เพียงพอ (เหลือ ${stock.quantity} ชิ้น)`
+      });
+      return;
+    }
+
+    // ลดจำนวนสต็อก
+    stock.quantity -= quantity;
+    await stock.save();
+
+      res.status(200).json({
+      success: true,
+      message: "อัปเดตสต็อกสำเร็จ",
+      data: stock
+    });
+    return;
+
+  } catch (error) {
+    console.error("Stock Update Error:", error);
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
+  }
+};

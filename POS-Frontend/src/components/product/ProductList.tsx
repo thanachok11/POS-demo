@@ -102,30 +102,31 @@ useEffect(() => {
     });
   };
 
-const checkout = async () => {
-  // ทำการลดจำนวนสินค้าที่อยู่ใน stock
-  for (const item of cart) {
-    // เรียกใช้ฟังก์ชัน updateStockByBarcode เพื่อลดจำนวน stock
-    try {
-      const updatedStock = await updateStockByBarcode(item.barcode, item.quantity);
-      if (!updatedStock.success) {
-        setErrorMessage(`ไม่สามารถอัปเดตสต็อกของ ${item.name}`);
+  const checkout = async () => {
+    // ทำการลดจำนวนสินค้าที่อยู่ใน stock
+    for (const item of cart) {
+      // เรียกใช้ฟังก์ชัน updateStockByBarcode เพื่อลดจำนวน stock
+      try {
+        const updatedStock = await updateStockByBarcode(item.barcode, item.quantity);
+        if (!updatedStock.success) {
+          setErrorMessage(`ไม่สามารถอัปเดตสต็อกของ ${item.name}`);
+          return;
+        }
+      } catch (error) {
+        setErrorMessage(`เกิดข้อผิดพลาดในการอัปเดตสต็อกของ ${item.name}`);
+        console.error(error);
         return;
       }
-    } catch (error) {
-      setErrorMessage(`เกิดข้อผิดพลาดในการอัปเดตสต็อกของ ${item.name}`);
-      console.error(error);
-      return;
     }
-  }
 
-  // หากไม่มีข้อผิดพลาดในการอัปเดต stock ให้เคลียร์ตะกร้าและซ่อนตะกร้า
-  setCart([]);
-  setShowCart(false);
-  setTimeout(() => {
-    setShowCart(false); // ซ่อนตะกร้าหลังจากข้อความหายไป
-  }, 3000); // เวลา 3 วินาที
-};
+    // หากไม่มีข้อผิดพลาดในการอัปเดต stock ให้เคลียร์ตะกร้าและซ่อนตะกร้า
+    setCart([]);
+    setShowCart(false);
+    setTimeout(() => {
+      setShowCart(false); // ซ่อนตะกร้าหลังจากข้อความหายไป
+    }, 3000); // เวลา 3 วินาที
+  };
+
 
 
   const handleConfirmPayment = (method: string) => {
@@ -138,6 +139,7 @@ const checkout = async () => {
     return cart.reduce((total, item) => total + item.price * item.quantity, 0);
   };
 
+
   const handleQuantityChange = (value: string) => {
     if (value === "ลบทั้งหมด") {
       setCurrentQuantity(0); // รีเซ็ตจำนวนเมื่อกด "ลบทั้งหมด"
@@ -147,18 +149,8 @@ const checkout = async () => {
     }
   };
 
-  const handleSetQuantity = async () => {
-    const stockQuantity = await getStockByBarcode(selectedProductBarcode);
-
-    // ถ้าจำนวนที่ป้อนเกินจำนวนที่มีใน stock
-    if (currentQuantity > stockQuantity) {
-      setErrorMessage("สินค้าหมด");
-      setCurrentQuantity(stockQuantity); // ตั้งค่าให้เป็นจำนวน stock ที่มี
-      return;
-    }
-
-    setErrorMessage(""); // เคลียร์ข้อความ error
-
+  const handleSetQuantity = () => {
+    // Save the selected quantity when the user presses "เลือก"
     setCart((prevCart) => {
       return prevCart.map((item) =>
         item.barcode === selectedProductBarcode
@@ -166,8 +158,7 @@ const checkout = async () => {
           : item
       );
     });
-
-    setShowNumberPad(false); // ปิด numpad หลังจากเลือกจำนวน
+    setShowNumberPad(false); // Close the number pad
   };
 
 

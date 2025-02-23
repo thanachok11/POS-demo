@@ -41,21 +41,21 @@ export const getStockByProductId = async (productId: string) => {
     throw error;
   }
 };
+
 export const updateStockByBarcode = async (barcode: string, quantity: number) => {
   try {
-    // ทำการส่งค่า barcode และ quantity ไปยัง API เพื่ออัปเดตสต็อก
-    const response = await axios.put(
-      `${API_BASE_URL}/barcode/${barcode}`,  // URL ที่เชื่อมต่อกับ backend ของคุณ
-      {
-        quantity: quantity,  // จำนวนสินค้าที่ซื้อไป (จะทำการลดจำนวนสินค้าจากสต็อก)
-      }
-    );
-    return response.data;  // ส่งข้อมูลจาก backend กลับไป
-  } catch (error) {
-    console.error("Error updating stock:", error);
-    throw new Error("ไม่สามารถอัปเดตสต็อกได้");
+    const response = await axios.put(`${API_BASE_URL}/stocks/barcode`, {
+      barcode,
+      quantity,
+    });
+
+    return response.data; // ส่งผลลัพธ์กลับไปให้ใช้ใน Component
+  } catch (error: any) {
+    console.error("เกิดข้อผิดพลาดในการอัปเดตสต็อก:", error.response?.data || error.message);
+    return { success: false, message: "เกิดข้อผิดพลาดในการอัปเดตสต็อก" };
   }
 };
+
 
 export const addStock = async (data: {
   productId: string;
@@ -82,27 +82,40 @@ export const addStock = async (data: {
   }
 };
 
+const API_URL = "http://localhost:5000/api/stocks";
 
-// 📌 อัปเดต Stock (ใช้ตอน checkout)
-export const updateStock = async (stockId: string, newQuantity: number) => {
+// ✅ ดึงข้อมูล stock ตาม token
+export const getStockData = async (token: string) => {
   try {
-    const response = await axios.put(`${API_BASE_URL}/${stockId}`, {
-      quantity: newQuantity,
+    const response = await axios.get(API_URL, {
+      headers: { Authorization: `Bearer ${token}` },
     });
-    return response.data;
-  } catch (error) {
-    console.error("เกิดข้อผิดพลาดในการอัปเดต Stock:", error);
-    throw error;
+    return response.data.data; // คืนค่าเฉพาะข้อมูลสต็อก
+  } catch (error: any) {
+    console.error("Error fetching stock data:", error);
+    throw new Error(error.response?.data?.message || "Error fetching stock data");
   }
 };
 
-// 📌 ลบ Stock (ถ้าต้องการ)
-export const deleteStock = async (stockId: string) => {
+// ฟังก์ชันเพื่อดึงรายการสินค้าทั้งหมด
+export const getProducts = async () => {
+  const token = localStorage.getItem('token'); // ดึง token จาก localStorage
+
+  if (!token) {
+    throw new Error('No token found');
+  }
+
   try {
-    const response = await axios.delete(`${API_BASE_URL}/${stockId}`);
-    return response.data;
+    // ส่ง token ไปใน Authorization header
+    const response = await axios.get(`${API_BASE_URL}/products/get`, {
+      headers: {
+        'Authorization': `Bearer ${token}` // ใส่ token ใน header
+      }
+    });
+
+    return response.data; // ส่งข้อมูลที่ได้จาก API กลับมา
   } catch (error) {
-    console.error("เกิดข้อผิดพลาดในการลบ Stock:", error);
-    throw error;
+    console.error("Error fetching products:", error);
+    throw error; // ส่งข้อผิดพลาดออกไปหากเกิดการผิดพลาด
   }
 };

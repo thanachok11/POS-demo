@@ -44,7 +44,6 @@ export const googleLogin = async (req: Request, res: Response): Promise<void> =>
     // 🔄 อัปเดต googleToken ทุกครั้งที่ล็อกอิน
     user.googleToken = googleToken;
     await user.save();
-
     // สร้าง JWT Token ใหม่
     const token = jwt.sign(
       {

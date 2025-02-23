@@ -14,99 +14,8 @@
 .stock-header {
     font-size: 24px;
     text-align: center;
-    color: #333;
+    color: #6c5ce7;
     margin-bottom: 20px;
-}
-
-
-.add-product-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.add-product-button:hover {
-    background-color: #45a049;
-}
-
-.icon-add {
-    font-size: 20px;
-}
-
-/* ตาราง */
-.stock-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-}
-
-.stock-header-row {
-    background-color: #f4f4f4;
-}
-
-.stock-header-cell {
-    padding: 12px;
-    text-align: left;
-    font-weight: bold;
-    border-bottom: 2px solid #ddd;
-}
-
-.stock-table-row {
-    cursor: pointer;
-    transition: background-color 0.3s ease-in-out;
-}
-
-.stock-table-row:hover {
-    background-color: #f9f9f9;
-}
-
-.stock-cell {
-    padding: 12px;
-    border-bottom: 1px solid #ddd;
-}
-
-/* รูปสินค้า */
-.product-image {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-    border-radius: 5px;
-}
-
-/* ไอคอนสถานะ */
-.icon-green {
-    color: green;
-}
-
-.icon-yellow {
-    color: orange;
-}
-
-.icon-red {
-    color: red;
-}
-
-/* โหลดข้อมูล */
-.loading-text,
-.error-text {
-    text-align: center;
-    font-size: 18px;
-    color: #666;
-}
-
-
-/* 🔹 หัวตาราง */
-.stock-header-row {
-    background-color: #007bff;
-    color: white;
 }
 
 .search-container {
@@ -124,5 +33,104 @@
 }
 
 .search-input:focus {
-    border-color: #007bff;
+    border-color: #6c5ce7;
+}
+
+.add-product-button {
+    padding: 10px 20px;
+    background-color: #6c5ce7;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+}
+
+.add-product-button:hover {
+    background-color: #4834d4;
+}
+
+.loading,
+.error-message {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #888;
+}
+
+.stock-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.stock-header-row {
+    background-color: #6c5ce7;
+    color: white;
+}
+
+.stock-header-cell {
+    padding: 10px;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: bold;
+    border: 1px solid #ddd;
+}
+
+.stock-cell {
+    padding: 10px;
+    text-align: center;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    vertical-align: middle;
+}
+
+.product-image {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.status-cell {
+    font-weight: bold;
+}
+
+.no-data {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #888;
+}
+
+
+.status-cell span {
+    margin-left: 5px;
+    font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+    .search-input {
+        width: 200px;
+    }
+
+    .add-product-button {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
+
+    .stock-table {
+        font-size: 0.9rem;
+    }
+
+    .stock-header-cell,
+    .stock-cell {
+        padding: 8px;
+    }
+
+    .product-image {
+        width: 40px;
+        height: 40px;
+    }
 }
