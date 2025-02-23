@@ -78,7 +78,6 @@ export const getStockByBarcode = async (req: Request, res: Response): Promise<vo
       res.status(404).json({ message: 'Stock not found' });
       return;
     }
-
     // ส่งข้อมูลสต็อกกลับไปยังผู้ใช้ พร้อมกับจำนวนสินค้าในสต็อก
     res.json({
       barcode: stock.barcode,

@@ -16,7 +16,7 @@ export const fetchStockData = async () => {
 
 export const getStockByBarcode = async (barcode: string) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/stock/barcode/${barcode}`);
+    const response = await axios.get(`${API_BASE_URL}/stocks/barcode/${barcode}`);
 
     // เช็คสถานะการตอบกลับจาก API ถ้าสำเร็จ
     if (response.status === 200) {

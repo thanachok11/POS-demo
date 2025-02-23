@@ -64,32 +64,7 @@ useEffect(() => {
   }, []);
 
 
-  const addToCart = async (product: Product) => {
-    const stockQuantity = await getStockByBarcode(product.barcode);
-    const currentCartQuantity = getCartQuantity(product.barcode);
-    const newQuantity = currentCartQuantity + 1;
-
-    if (newQuantity >= stockQuantity) {
-      setLowStockMessages((prevMessages) => {
-        const newMessages = new Map(prevMessages);
-        newMessages.set(product.barcode, "สินค้าหมด");
-        return newMessages;
-      });
-    } else {
-      setLowStockMessages((prevMessages) => {
-        const newMessages = new Map(prevMessages);
-        newMessages.delete(product.barcode); // Clear the low stock message
-        return newMessages;
-      });
-    }
-
-    // Check if cart quantity exceeds stock
-    if (newQuantity > stockQuantity) {
-      setErrorMessage("");
-      return;
-    }
-
-    // Update cart
+  const addToCart = (product: Product) => {
     setCart((prevCart) => {
       const existingProduct = prevCart.find((item) => item.barcode === product.barcode);
       if (existingProduct) {
@@ -101,14 +76,8 @@ useEffect(() => {
       }
       return [...prevCart, { ...product, quantity: 1 }];
     });
-
-    setShowCart(true);
   };
 
-  const getCartQuantity = (barcode: string) => {
-    const product = cart.find((item) => item.barcode === barcode);
-    return product ? product.quantity : 0;
-  };
 
   const removeFromCart = (product: Product, barcode: string) => {
     setCart((prevCart) => {
@@ -133,16 +102,31 @@ useEffect(() => {
     });
   };
 
-  const checkout = async () => {
-    for (const item of cart) {
-      await updateStockByBarcode(item.barcode, item.quantity);
+const checkout = async () => {
+  // ทำการลดจำนวนสินค้าที่อยู่ใน stock
+  for (const item of cart) {
+    // เรียกใช้ฟังก์ชัน updateStockByBarcode เพื่อลดจำนวน stock
+    try {
+      const updatedStock = await updateStockByBarcode(item.barcode, item.quantity);
+      if (!updatedStock.success) {
+        setErrorMessage(`ไม่สามารถอัปเดตสต็อกของ ${item.name}`);
+        return;
+      }
+    } catch (error) {
+      setErrorMessage(`เกิดข้อผิดพลาดในการอัปเดตสต็อกของ ${item.name}`);
+      console.error(error);
+      return;
     }
-    setCart([]);
-    setShowCart(false);
-    setTimeout(() => {
-      setShowCart(false); // ซ่อนตะกร้าหลังจากข้อความหายไป
-    }, 3000); // เวลา 3 วินาที
-  };
+  }
+
+  // หากไม่มีข้อผิดพลาดในการอัปเดต stock ให้เคลียร์ตะกร้าและซ่อนตะกร้า
+  setCart([]);
+  setShowCart(false);
+  setTimeout(() => {
+    setShowCart(false); // ซ่อนตะกร้าหลังจากข้อความหายไป
+  }, 3000); // เวลา 3 วินาที
+};
+
 
   const handleConfirmPayment = (method: string) => {
     setShowCheckout(false); // ปิด Modal หลังชำระเงิน
@@ -195,9 +179,6 @@ useEffect(() => {
         <div className="product-grid">
           {products.map((product) => (
             <div key={product.barcode} className="product-card" onClick={() => addToCart(product)}>
-              {lowStockMessages.has(product.barcode) && (
-                <p className="out-of-stock-message">{lowStockMessages.get(product.barcode)}</p>
-              )}
               <img src={product.imageUrl} alt={product.name} className="product-image" />
               <h2>{product.name}</h2>
               <p className="product-price">{product.price} ฿</p>
@@ -205,8 +186,9 @@ useEffect(() => {
           ))}
         </div>
       </div>
+
       {/* ตะกร้าสินค้า */}
-      <div className={`cart ${showCart && cart.length > 0 ? "show-cart" : "hidden-cart"}`}>
+      <div className={`cart ${cart.length > 0 ? "show-cart" : "hidden-cart"}`}>
         <h2>ตะกร้าสินค้า</h2>
         <div className="cart-items">
           {cart.map((item) => (

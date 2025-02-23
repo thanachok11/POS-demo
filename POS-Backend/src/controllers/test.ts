@@ -17,7 +17,6 @@ export const addProduct = async (req: Request, res: Response): Promise<void> => 
        res.status(401).json({ message: 'No token provided' });
        return;
     }
-
     // ถอดรหัส JWT token และดึง userId
     const decoded = verifyToken(token);
 
