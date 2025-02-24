@@ -36,6 +36,8 @@ const StockPage: React.FC = () => {
       try {
         // ดึงข้อมูล stock
         const stock = await getStockData(token);
+        console.log("stock data: ", stock); // log ดูข้อมูลสินค้า
+
         setStockData(stock);
 
         // ดึงข้อมูลสินค้า
@@ -130,7 +132,7 @@ const StockPage: React.FC = () => {
                     <td className="stock-cell">{product ? product.name : "ไม่พบสินค้า"}</td>
                     <td className="stock-cell">
                       {product && product.imageUrl ? (
-                        <img src={product.imageUrl} alt={product.name} className="product-image" />
+                        <img src={product.imageUrl} className="product-image" />
                       ) : (
                         "ไม่มีรูป"
                       )}
