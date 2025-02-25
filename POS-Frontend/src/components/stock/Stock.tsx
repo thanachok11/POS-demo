@@ -58,9 +58,10 @@ const StockPage: React.FC = () => {
   }, []);
 
   // ฟังก์ชันสำหรับการหาข้อมูลสินค้า
-  const getProductDetails = (productId: string) => {
-    return products.find((product) => product.productId === productId);
+  const getProductDetails = (barcode: string) => {
+    return products.find((product) => product.barcode === barcode);
   };
+
 
   // ฟังก์ชันแปลงวันที่และเวลา
   const formatDateTime = (dateString: string) => {
@@ -114,18 +115,19 @@ const StockPage: React.FC = () => {
               <th className="stock-header-cell">ลำดับ</th>
               <th className="stock-header-cell">สินค้า</th>
               <th className="stock-header-cell">รูปภาพ</th>
+              <th className="stock-header-cell">ราคา</th>
               <th className="stock-header-cell">จำนวน</th>
               <th className="stock-header-cell">ที่เก็บ</th>
               <th className="stock-header-cell">ซัพพลายเออร์</th>
               <th className="stock-header-cell">สถานะ</th>
-              <th className="stock-header-cell">ประเภทสินค้า</th>
-              <th className="stock-header-cell">เติมล่าสุด</th>
+              <th className="stock-header-cell">หมวดหมู่</th>
+              <th className="stock-header-cell">อัพเดทล่าสุด</th>
             </tr>
           </thead>
           <tbody>
             {stockData.length > 0 ? (
               stockData.map((item, index) => {
-                const product = getProductDetails(item.name);
+                const product = getProductDetails(item.barcode);
                 return (
                   <tr key={item.barcode}>
                     <td className="stock-cell">{index + 1}</td>
@@ -137,6 +139,7 @@ const StockPage: React.FC = () => {
                         "ไม่มีรูป"
                       )}
                     </td>
+                    <td className="stock-cell">{product.price} บาท</td>
                     <td className="stock-cell">{item.quantity}</td>
                     <td className="stock-cell">{item.location}</td>
                     <td className="stock-cell">{item.supplier}</td>

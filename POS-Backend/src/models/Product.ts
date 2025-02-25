@@ -12,6 +12,8 @@ export interface IProduct extends Document {
   userId: mongoose.Schema.Types.ObjectId; // เพิ่ม userId เพื่อเชื่อมโยงกับผู้ใช้
   createdAt: Date;
   updatedAt: Date;
+  manufacturerId: mongoose.Schema.Types.ObjectId; 
+  isSelfPurchased: boolean;
 }
 
 // Schema ของ Product
@@ -24,7 +26,13 @@ const ProductSchema: Schema = new Schema(
     barcode: { type: String, required: true, unique: true },
     imageUrl: { type: String }, // เก็บ URL ของภาพจาก Cloudinary
     public_id: { type: String }, // เก็บ public_id ของภาพจาก Cloudinary
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // เพิ่ม userId ที่เป็น ObjectId ของผู้ใช้
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    manufacturerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Manufacturer",
+      default: null // ไม่บังคับว่าต้องมี
+    },
+    isSelfPurchased: { type: Boolean, default: false }
   },
   { timestamps: true }
 );

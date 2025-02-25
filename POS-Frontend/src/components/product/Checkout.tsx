@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import "../../styles/product/Checkout.css"; // CSS สำหรับ Modal
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { 
-  faTimes,faCartShopping,faMoneyBill,faQrcode,faCreditCard
+import {
+  faTimes, faCartShopping, faMoneyBill, faQrcode, faCreditCard, faCheckCircle
 
 } from "@fortawesome/free-solid-svg-icons";
+
 
 interface CheckoutProps {
   cart: { barcode: string; name: string; price: number; quantity: number }[];
@@ -42,7 +43,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfir
   return (
     <div className="checkout-modal">
       <div className="checkout-content">
-          <div className="checkout-left">
+        <div className="checkout-left">
           <div className="checkout-payment-buttons">
             <button className="checkout-cash-btn" onClick={() => setShowNumpad(true)}>
               <FontAwesomeIcon icon={faMoneyBill} /> เงินสด
@@ -57,19 +58,19 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfir
           <div className="checkout-items">
             {cart.map((item) => (
               <div key={item.barcode} className="checkout-item">
-                {item.name} ราคา {item.price} ฿ x {item.quantity}
+                {item.name} ราคา {item.price} บาท x{item.quantity} รายการ
               </div>
             ))}
           </div>
           <div className="checkout-total">ยอดรวม: {totalPrice} ฿</div>
-            {error && <p className="checkout-error">{error}</p>}
-            {change !== null && change >= 0 && (
-              <p className="checkout-change">จำนวนเงินถูกต้อง</p>
-            )}
+          {error && <p className="checkout-error">{error}</p>}
+          {change !== null && change >= 0 && (
+            <p className="checkout-change">จำนวนเงินถูกต้อง</p>
+          )}
 
         </div>
         <div className="checkout-right">
-         <button onClick={onClose} className="checkout-close-btn"><FontAwesomeIcon icon={faTimes} /></button>
+          <button onClick={onClose} className="checkout-close-btn"><FontAwesomeIcon icon={faTimes} /></button>
 
           {!showNumpad ? (
             <div>
@@ -105,9 +106,15 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfir
       {popupVisible && (
         <div className="payment-popup">
           <div className="payment-popup-content">
+            {/* ไอคอนติ๊กถูกพร้อมแอนิเมชัน */}
+            <FontAwesomeIcon icon={faCheckCircle} className="payment-popup-icon" />
+
             <h3 className="payment-popup-title">ชำระเงินสำเร็จ!</h3>
             <p className="payment-popup-change">เงินทอน: {change} ฿</p>
-            <button onClick={onClose} className="payment-popup-close-btn">ปิด</button>
+
+            <button onClick={onClose} className="payment-popup-close-btn">
+              ปิด
+            </button>
           </div>
         </div>
       )}

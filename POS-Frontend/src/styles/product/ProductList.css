@@ -141,12 +141,12 @@
 .cart-item-quantity {
   font-size: 18px;
   font-weight: bold;
-  margin-top: -45px;
-  margin-left: 20px;
+  margin-top: -20px;
+  margin-left: 2px;
   padding: 8px;
   border-radius: 5px;
   min-width: 50px;
-  text-align: center;
+
 }
 
 .edit-quantity-btn {

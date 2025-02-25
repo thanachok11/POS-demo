@@ -36,6 +36,17 @@
     justify-content: center;
 }
 
+.checkout-items {
+    margin-top: 10px;
+    font-size: 16px;
+}
+
+.checkout-total {
+    font-size: 20px;
+    font-weight: bold;
+    color: #4caf50;
+}
+
 /* 🔢 Numpad */
 .checkout-numpad {
     text-align: center;
@@ -104,6 +115,7 @@
     cursor: pointer;
     color: white;
 }
+
 .checkout-payment-buttons {
     display: flex;
     justify-content: space-between;
@@ -164,6 +176,7 @@
     border-radius: 5px;
     cursor: pointer;
 }
+
 /* ข้อความแจ้งเตือน */
 .checkout-error {
     color: red;
@@ -177,9 +190,11 @@
     color: green;
     margin-top: 10px;
 }
+
 .checkout-close-btn:hover {
     background: #c9302c;
 }
+
 /* Success Popup */
 .payment-popup {
     position: fixed;
@@ -193,7 +208,13 @@
     align-items: center;
     z-index: 1100;
 }
-
+/* ไอคอนติ๊กถูก */
+.payment-popup-icon {
+    font-size: 50px;
+    color: #4CAF50;
+    /* สีเขียว */
+    animation: bounceIn 0.5s ease-in-out;
+}
 .payment-popup-content {
     background-color: white;
     padding: 20px;
@@ -227,4 +248,31 @@
 
 .payment-popup-close-btn:hover {
     background-color: #45a049;
+}
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -55%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+@keyframes bounceIn {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    60% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }

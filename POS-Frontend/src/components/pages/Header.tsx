@@ -18,8 +18,11 @@ import {
   faExchangeAlt,
   faBarcode,
   faMoneyBillWave,
+  faHandshake,
+  faScroll,
   faExclamationTriangle,
   faClipboardList,
+ 
 } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
@@ -121,9 +124,9 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
               <FontAwesomeIcon icon={faBarcode} className="icon" /> <span className="dropdown-text">บาร์โค้ด</span>
             </li>
             <li onClick={() => handleMenuClick("/debt", "ค้างชำระ")}>
-              <FontAwesomeIcon icon={faMoneyBillWave} className="icon" /> <span className="dropdown-text">ค้างชำระ</span>
+              <FontAwesomeIcon icon={faScroll} className="icon" /> <span className="dropdown-text">ค้างชำระ</span>
             </li>
-            <li onClick={() => handleMenuClick("/expired", "สินค้าหมดอายุ/สินค้าหมด")}>
+            <li onClick={() => handleMenuClick("/expired", "สินค้าเหลือน้อย/สินค้าหมด")}>
               <FontAwesomeIcon icon={faExclamationTriangle} className="icon" /> <span className="dropdown-text">สินค้าเหลือน้อย</span>
             </li>
           </ul>
@@ -144,7 +147,9 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
           <li onClick={() => handleMenuClick("/setting/store", "ตั้งค่าร้านค้า")}>
             <FontAwesomeIcon icon={faCog} className="icon" /> <span className="menu-text">ตั้งค่าร้านค้า</span>
           </li>
-
+          <li onClick={() => handleMenuClick("/manufacturer", "ผู้ตลิต")}>
+            <FontAwesomeIcon icon={faHandshake} className="icon" /> <span className="menu-text">ผู้ผลิต</span>
+          </li>
         </ul>
       </aside>
 
