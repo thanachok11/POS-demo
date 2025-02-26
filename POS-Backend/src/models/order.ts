@@ -1,23 +1,25 @@
-// models/Order.ts
-import { Schema, model, Document } from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
 
-// สร้าง Interface สำหรับ TypeScript
 interface IOrder extends Document {
-  quantity: number;
-  supplier: string;
-  location: string;
-  orderDate: Date;
-  status: string;
+  supplier: mongoose.Schema.Types.ObjectId; // อ้างอิงถึง Supplier
+  productName: string; // ชื่อสินค้า
+  quantity: number; // จำนวนที่ต้องการสั่งซื้อ
+  orderDate: Date; // วันที่สั่งซื้อ
+  status: "pending" | "completed" | "cancelled"; // สถานะการสั่งซื้อ
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const orderSchema = new Schema<IOrder>({
-  quantity: { type: Number, required: true },
-  supplier: { type: String, required: true },
-  location: { type: String, required: true },
-  orderDate: { type: Date, default: Date.now },
-  status: { type: String, default: 'Pending' }, // สถานะของใบสั่งซื้อ เช่น Pending, Completed
-});
+const OrderSchema = new Schema<IOrder>(
+  {
+    supplier: { type: Schema.Types.ObjectId, ref: "Supplier", required: true },
+    productName: { type: String, required: true },
+    quantity: { type: Number, required: true },
+    orderDate: { type: Date, default: Date.now },
+    status: { type: String, enum: ["pending", "completed", "cancelled"], default: "pending" },
+  },
+  { timestamps: true }
+);
 
-const Order = model<IOrder>('Order', orderSchema);
-
+const Order = mongoose.model<IOrder>("Order", OrderSchema);
 export default Order;

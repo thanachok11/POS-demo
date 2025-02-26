@@ -8,7 +8,9 @@ import ProductList from "./components/product/ProductList.tsx";
 import StockPage from "./components/stock/Stock.tsx";
 import StockDetailPage from "./components/stock/StockDetailPage.tsx";
 import CreateOrder from "./components/stock/CreateOrderPage.tsx";
-
+import SupplierForm from "./components/supplier/SupplierForm.tsx";
+import SupplierList from "./components/supplier/SupplierList.tsx";
+import Test from "./components/supplier/test.tsx"
 import "./App.css";  // นำเข้าการตั้งค่าของ CSS
 
 const App: React.FC = () => {
@@ -26,14 +28,9 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<Homepage />} />
             <Route path="/dashboard" element={<Dashboard />} />
-
+            <Route path="/suppliers" element={<SupplierList />} />
             {/* หน้า Add Product และ Add Stock รวมกันในหน้าเดียว */}
-            <Route path="/add-product" element={
-            
-                <AddProductForm />
-            
-            } />
-
+            <Route path="/add-product" element={<AddProductForm />} />
             <Route path="/shop" element={<ProductList />} />
             <Route path="/stocks" element={<StockPage />} />
             <Route path="/stock/:id" element={<StockDetailPage />} />

@@ -86,12 +86,23 @@ const StockPage: React.FC = () => {
         return "⚠️";
     }
   };
+  const filteredStock = stockData.filter((item) => {
+    const product = getProductDetails(item.barcode);
+    const searchText = searchQuery.toLowerCase();
+
+    return (
+      product?.name?.toLowerCase().includes(searchText) ||
+      product?.category?.toLowerCase().includes(searchText) ||
+      item.supplier?.toLowerCase().includes(searchText) ||
+      item.barcode.includes(searchText)
+    );
+  });
 
   return (
     <div className="stock-container">
       <h2 className="stock-header">📦 จัดการสต็อกสินค้า</h2>
 
-      {loading && <p className="loading">⏳ Loading...</p>}
+      {loading && <p className="loadingStock">⏳ Loading...</p>}
       {error && <p className="error-message">{error}</p>}
       {/* ช่องค้นหาสินค้า */}
       <div className="search-container">
@@ -125,8 +136,8 @@ const StockPage: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {stockData.length > 0 ? (
-              stockData.map((item, index) => {
+            {filteredStock.length > 0 ? (
+              filteredStock.map((item, index) => {
                 const product = getProductDetails(item.barcode);
                 return (
                   <tr key={item.barcode}>
@@ -139,23 +150,24 @@ const StockPage: React.FC = () => {
                         "ไม่มีรูป"
                       )}
                     </td>
-                    <td className="stock-cell">{product.price} บาท</td>
+                    <td className="stock-cell">{product?.price} บาท</td>
                     <td className="stock-cell">{item.quantity}</td>
                     <td className="stock-cell">{item.location}</td>
                     <td className="stock-cell">{item.supplier}</td>
                     <td className="stock-cell status-cell">
                       {getStatusIcon(item.status)} {item.status}
                     </td>
-                    <td className="stock-cell">{product.category}</td>
+                    <td className="stock-cell">{product?.category}</td>
                     <td className="stock-cell">{formatDateTime(item.updatedAt)}</td>
                   </tr>
                 );
               })
             ) : (
               <tr>
-                <td colSpan={9} className="no-data">🔍 ไม่พบข้อมูลสต็อกของคุณ</td>
+                <td colSpan={10} className="no-data">🔍 ไม่พบข้อมูลที่ค้นหา</td>
               </tr>
             )}
+
           </tbody>
         </table>
       )}

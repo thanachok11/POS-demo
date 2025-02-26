@@ -1,0 +1,89 @@
+/* SupplierForm.css */
+.supplier-form-container {
+    max-width: 900px;
+    /* เพิ่มความกว้างของฟอร์ม */
+    margin: 50px auto;
+    padding: 40px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.supplier-form-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #6c5ce7;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* ปรับฟอร์มให้เป็นแนวนอน */
+.supplier-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: space-between;
+    width: 100%;
+}
+
+/* ปรับขนาด input และ select ให้แสดงเป็น 2 คอลัมน์ */
+.supplier-input,
+.supplier-select {
+    flex: 1;
+    min-width: 250px;
+    /* กำหนดขนาดขั้นต่ำ */
+    padding: 12px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    transition: 0.3s;
+    background: #f9f9f9;
+}
+
+.supplier-input:focus,
+.supplier-select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* ปุ่ม Submit */
+.supplier-button {
+    width: 100%;
+    max-width: 200px;
+    padding: 12px;
+    font-size: 18px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    align-self: center;
+}
+
+.supplier-button:hover {
+    background: linear-gradient(135deg, #0056b3, #004099);
+}
+
+.supplier-button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+/* Responsive สำหรับจอเล็ก */
+@media (max-width: 800px) {
+    .supplier-form {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .supplier-input,
+    .supplier-select {
+        width: 100%;
+    }
+}

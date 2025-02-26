@@ -27,11 +27,7 @@ const ProductSchema: Schema = new Schema(
     imageUrl: { type: String }, // เก็บ URL ของภาพจาก Cloudinary
     public_id: { type: String }, // เก็บ public_id ของภาพจาก Cloudinary
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    manufacturerId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Manufacturer",
-      default: null // ไม่บังคับว่าต้องมี
-    },
+    supplierId: { type: mongoose.Schema.Types.ObjectId, ref: "Supplier",default: null},
     isSelfPurchased: { type: Boolean, default: false }
   },
   { timestamps: true }

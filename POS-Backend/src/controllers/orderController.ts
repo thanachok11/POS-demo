@@ -1,82 +1,94 @@
-import { Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
-import User from '../models/User'; // นำเข้า model User
-import Order from '../models/order';
+import { Request, Response } from "express";
+import jwt from "jsonwebtoken";
+import Order from "../models/order";
+import User  from "../models/User";
+import Product  from "../models/Product";
+import dotenv from "dotenv";
+dotenv.config();
 
-// ตรวจสอบ token
+
 const verifyToken = (token: string) => {
   try {
     return jwt.verify(token, process.env.JWT_SECRET as string);
   } catch (error) {
-    throw new Error('Invalid token');
+    throw new Error("Invalid token");
   }
 };
 
-const JWT_SECRET = process.env.JWT_SECRET;  // ดึงค่า SECRET_KEY จาก .env
+const JWT_SECRET = process.env.JWT_SECRET;
 
 if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET is not defined in .env');
+  throw new Error("JWT_SECRET is not defined in .env");
 }
 
 export const createOrder = async (req: Request, res: Response): Promise<void> => {
   const { productId, quantity, supplier, location } = req.body;
-  
+
   // ดึง token จาก header
-  const token = req.headers.authorization?.split(' ')[1];
+  const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
-    res.status(403).json({ message: 'กรุณาเข้าสู่ระบบก่อน' });
+    res.status(403).json({ message: "กรุณาเข้าสู่ระบบก่อน" });
     return;
   }
 
   try {
-    // ตรวจสอบ token โดยใช้ SECRET_KEY จาก .env
-    const decoded = verifyToken(token);  // ใช้ฟังก์ชัน verifyToken
-    console.log('Decoded token:', decoded);
+    // ตรวจสอบ token
+    const decoded = verifyToken(token);
 
-    // ตรวจสอบว่า decoded เป็น JwtPayload และมี userId
-    if (typeof decoded !== 'string' && 'userId' in decoded) {
-      const decodedToken = decoded as jwt.JwtPayload;  // การแปลงประเภทเพื่อให้ TypeScript รู้จัก
+    if (typeof decoded !== "string" && "userId" in decoded) {
+      const decodedToken = decoded as jwt.JwtPayload;
 
-      // ตรวจสอบว่า userId ที่มาจาก token มีอยู่จริงในฐานข้อมูล
+      // ตรวจสอบว่า userId มีอยู่ในระบบ
       const user = await User.findById(decodedToken.userId);
       if (!user) {
         res.status(404).json({
           success: false,
-          message: 'User not found'
+          message: "User not found",
         });
         return;
       }
 
+      // ตรวจสอบว่าสินค้ามีอยู่ในฐานข้อมูลหรือไม่
+      const product = await Product.findById(productId);
+      if (!product) {
+        res.status(404).json({
+          success: false,
+          message: "Product not found",
+        });
+        return;
+      }
+
+      // ตรวจสอบว่าสินค้าหมดสต็อกหรือไม่
+      if (product.stock < quantity) {
+        res.status(400).json({
+          success: false,
+          message: "Stock not sufficient",
+        });
+        return;
+      }
+
+      // สร้างคำสั่งซื้อใหม่
       const newOrder = new Order({
+        user: user._id,
+        product: productId,
         quantity,
         supplier,
         location,
-        userId: decodedToken.userId, // เก็บ userId ที่มาจาก token
+        status: "pending",
+        orderDate: new Date(),
       });
 
+      // บันทึกคำสั่งซื้อในฐานข้อมูล
       await newOrder.save();
 
       res.status(201).json({
-        message: 'ใบสั่งซื้อสินค้าถูกสร้างแล้ว',
+        success: true,
+        message: "Order created successfully",
         order: newOrder,
       });
-    } else {
-      res.status(401).json({
-        success: false,
-        message: 'Invalid token'
-      });
     }
-  } catch (err: unknown) {
-    console.error('Error creating order:', err);
-
-    // ตรวจสอบข้อผิดพลาดจากการตรวจสอบ token
-    if (err instanceof jwt.JsonWebTokenError) {
-      res.status(401).json({ message: 'Token หมดอายุหรือไม่ถูกต้อง' });
-    } else if (err instanceof Error) {
-      res.status(500).json({ message: `เกิดข้อผิดพลาดในการสร้างใบสั่งซื้อ: ${err.message}` });
-    } else {
-      res.status(500).json({ message: 'เกิดข้อผิดพลาดในการสร้างใบสั่งซื้อ' });
-    }
+  } catch (error) {
+    res.status(401).json({ message: "Invalid or expired token" });
   }
 };

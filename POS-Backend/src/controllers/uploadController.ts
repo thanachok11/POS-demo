@@ -4,6 +4,8 @@ import Product from '../models/Product'; // นำเข้า model Product
 import Stock from '../models/Stock'; // นำเข้า model Stock
 import jwt from 'jsonwebtoken'; // นำเข้า jwt สำหรับการตรวจสอบ token
 import User from '../models/User'; // นำเข้า model User
+import dotenv from "dotenv";
+dotenv.config();
 
 // ฟังก์ชันสำหรับการตรวจสอบ JWT Token
 const verifyToken = (token: string) => {
@@ -90,14 +92,20 @@ export const addProductWithStock = async (req: Request, res: Response): Promise<
           const newStock = new Stock({
             productId: newProduct._id,
             userId: decoded.userId, // เชื่อมกับผู้ใช้
-            quantity: quantity|| 5, // ถ้าไม่ได้ใส่มา ให้เป็น 0
+            quantity: quantity || 5,
             supplier,
             location,
             threshold: threshold || 5, // ค่าขั้นต่ำเริ่มต้นที่ 5
             barcode,
-            status: quantity > 0 ? 'In Stock' : 'Out of Stock', // กำหนดสถานะอัตโนมัติ
+            status:
+              quantity === 0
+                ? "Out of Stock"
+                : quantity < (threshold || 5)
+                  ? "Low Stock"
+                  : "In Stock", // เพิ่มเงื่อนไข Low Stock
             lastRestocked: quantity > 0 ? new Date() : undefined,
           });
+
 
           await newStock.save();
 

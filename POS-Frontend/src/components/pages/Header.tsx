@@ -147,7 +147,7 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
           <li onClick={() => handleMenuClick("/setting/store", "ตั้งค่าร้านค้า")}>
             <FontAwesomeIcon icon={faCog} className="icon" /> <span className="menu-text">ตั้งค่าร้านค้า</span>
           </li>
-          <li onClick={() => handleMenuClick("/manufacturer", "ผู้ตลิต")}>
+          <li onClick={() => handleMenuClick("/suppliers", "ผู้ตลิต")}>
             <FontAwesomeIcon icon={faHandshake} className="icon" /> <span className="menu-text">ผู้ผลิต</span>
           </li>
         </ul>

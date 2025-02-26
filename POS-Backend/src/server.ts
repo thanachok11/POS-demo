@@ -8,7 +8,7 @@ import bodyParser from "body-parser";
 import Stock from "./routes/stockRoutes";
 import orderRoutes from './routes/orderRoutes';
 import testRoute from './routes/testRoutes';
-
+import Supplier from "./routes/supplierRoutes";
 import cors from "cors";
 
 
@@ -35,14 +35,13 @@ app.use(bodyParser.json()); // ลบได้
 // เปิดใช้งาน CORS
 // หรือระบุเฉพาะ Frontend ของคุณ
 app.use('/api/test', testRoute);
-
 app.use("/api/products", productRoutes);
 app.use("/api/products/barcode", productRoutes);
 app.post("/api/product/upload", uploadRoutes);
 app.use("/api/auth", authRoutes);  // ใช้เพียงเส้นทางนี้
 app.use("/api/stocks", Stock);
 app.use('/api/orders', orderRoutes);
-
+app.use('/api/suppliers',Supplier)
 // เริ่มเซิร์ฟเวอร์
 app.listen(PORT,'0.0.0.0', () => {
   console.log(`Server running on http://localhost:${PORT}`);
