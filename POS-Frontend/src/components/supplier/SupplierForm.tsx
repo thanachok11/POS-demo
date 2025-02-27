@@ -6,14 +6,14 @@ import React from "react";
 
 interface Supplier {
     id?: number;
-    name: string;
-    phone: string;
+    companyName: string;
+    phoneNumber: string;
     email: string;
     address: string;
     country: string;
-    state?: string;
+    stateOrProvince: string;
     district?: string;
-    subdistrict?: string;
+    subDistrict: string;
     postalCode?: string;
 }
 
@@ -25,14 +25,14 @@ interface SupplierFormProps {
 
 const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }) => {
     const [formData, setFormData] = useState<Supplier>({
-        name: supplier?.name || "",
-        phone: supplier?.phone || "",
+        companyName: supplier?.companyName || "",
+        phoneNumber: supplier?.phoneNumber || "",
         email: supplier?.email || "",
         address: supplier?.address || "",
         country: supplier?.country || "",
-        state: supplier?.state || "",
+        stateOrProvince: supplier?.stateOrProvince || "",
         district: supplier?.district || "",
-        subdistrict: supplier?.subdistrict || "",
+        subDistrict: supplier?.subDistrict || "",
         postalCode: supplier?.postalCode || "",
     });
 
@@ -71,8 +71,8 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }
     }, [formData.country]);
 
     useEffect(() => {
-        if (formData.state) {
-            const selectedState = states.find((s: any) => s.name_th === formData.state);
+        if (formData.stateOrProvince) {
+            const selectedState = states.find((s: any) => s.name_th === formData.stateOrProvince);
             if (!selectedState) return;
 
             const fetchDistricts = async () => {
@@ -85,7 +85,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }
             };
             fetchDistricts();
         }
-    }, [formData.state, states]);
+    }, [formData.stateOrProvince, states]);
 
     useEffect(() => {
         if (formData.district) {
@@ -105,8 +105,8 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }
     }, [formData.district, districts]);
 
     useEffect(() => {
-        if (formData.subdistrict) {
-            const selectedSubdistrict = subdistricts.find((s: any) => s.name_th === formData.subdistrict);
+        if (formData.subDistrict) {
+            const selectedSubdistrict = subdistricts.find((s: any) => s.name_th === formData.subDistrict);
             if (selectedSubdistrict) {
                 setFormData((prevData) => ({
                     ...prevData,
@@ -114,7 +114,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }
                 }));
             }
         }
-    }, [formData.subdistrict, subdistricts]);
+    }, [formData.subDistrict, subdistricts]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -137,14 +137,14 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }
 
             // รีเซ็ตฟอร์ม
             setFormData({
-                name: "",
-                phone: "",
+                companyName: "",
+                phoneNumber: "",
                 email: "",
                 address: "",
                 country: "",
-                state: "",
+                stateOrProvince: "",
                 district: "",
-                subdistrict: "",
+                subDistrict: "",
                 postalCode: "",
             });
 
@@ -170,7 +170,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }
                     type="text"
                     name="name"
                     placeholder="ชื่อบริษัท"
-                    value={formData.name}
+                    value={formData.companyName}
                     onChange={handleChange}
                     required
                     className="supplier-input"
@@ -179,7 +179,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }
                     type="text"
                     name="phone"
                     placeholder="เบอร์โทรศัพท์"
-                    value={formData.phone}
+                    value={formData.phoneNumber}
                     onChange={handleChange}
                     required
                     className="supplier-input"
@@ -219,7 +219,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }
                 {formData.country === "Thailand" && (
                     <select
                         name="state"
-                        value={formData.state}
+                        value={formData.stateOrProvince}
                         onChange={handleChange}
                         required
                         className="supplier-select"
@@ -231,7 +231,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }
                     </select>
                 )}
 
-                {formData.state && (
+                {formData.stateOrProvince && (
                     <select
                         name="district"
                         value={formData.district}
@@ -249,7 +249,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }
                 {formData.district && (
                     <select
                         name="subdistrict"
-                        value={formData.subdistrict}
+                        value={formData.subDistrict}
                         onChange={handleChange}
                         required
                         className="supplier-select"

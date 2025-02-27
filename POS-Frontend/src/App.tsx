@@ -31,6 +31,7 @@ const App: React.FC = () => {
             <Route path="/suppliers" element={<SupplierList />} />
             {/* หน้า Add Product และ Add Stock รวมกันในหน้าเดียว */}
             <Route path="/add-product" element={<AddProductForm />} />
+            <Route path="/add-supplier" element={<SupplierForm />} />
             <Route path="/shop" element={<ProductList />} />
             <Route path="/stocks" element={<StockPage />} />
             <Route path="/stock/:id" element={<StockDetailPage />} />

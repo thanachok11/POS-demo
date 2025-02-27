@@ -6,14 +6,14 @@ import React from "react";
 
 interface Supplier {
     id: number;
-    name: string;
-    phone: string;
+    companyName: string;
+    phoneNumber: string;
     email: string;
     address: string;
     country: string;
-    state?: string;
+    stateOrProvince: string;
     district?: string;
-    subdistrict?: string;
+    subDistrict: string;
     postalCode?: string;
 }
 
@@ -104,11 +104,11 @@ const SupplierList = () => {
                     {suppliers.length > 0 ? (
                         suppliers.map((supplier, index) => (
                             <tr key={supplier.id || `supplier-${index}`}>
-                                <td>{supplier.name}</td>
-                                <td>{supplier.phone}</td>
+                                <td>{supplier.companyName}</td>
+                                <td>{supplier.phoneNumber}</td>
                                 <td>{supplier.email}</td>
                                 <td>
-                                    {supplier.address}, {supplier.subdistrict}, {supplier.district}, {supplier.state}, {supplier.country} {supplier.postalCode}
+                                    {supplier.address}, {supplier.subDistrict}, {supplier.district}, {supplier.stateOrProvince}, {supplier.country} {supplier.postalCode}
                                 </td>
                                 <td>
                                     <button className="edit-btn" onClick={() => handleOpenModal(supplier)}>แก้ไข</button>

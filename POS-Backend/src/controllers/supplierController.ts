@@ -65,6 +65,8 @@ export const getSuppliers = async (req: Request, res: Response): Promise<void> =
         return;
     }
 };
+
+
 export const addSuppliers = async (req: Request, res: Response): Promise<void> => {
     // ดึง token จาก headers (Authorization header)
     const token = req.headers['authorization']?.split(' ')[1];
@@ -81,12 +83,19 @@ export const addSuppliers = async (req: Request, res: Response): Promise<void> =
         // ตรวจสอบ token และดึง userId
         const decoded = verifyToken(token);
 
+        // ตรวจสอบว่า decoded เป็น object และมี property userId หรือไม่
         if (typeof decoded !== 'string' && 'userId' in decoded) {
-            const userId = decoded.userId; // ดึง userId จาก token ที่ decode แล้ว
+            const user = await User.findById(decoded.userId);
+            if (!user) {
+                res.status(404).json({
+                    success: false,
+                    message: 'User not found'
+                });
+                return;
+            }
 
             // ดึงข้อมูลจาก body
             const { companyName, phoneNumber, address, country, stateOrProvince, district, subDistrict, postalCode, email } = req.body;
-
             // ตรวจสอบว่ามีข้อมูลทั้งหมดหรือไม่
             if (!companyName || !phoneNumber || !address || !country || !stateOrProvince || !district || !subDistrict || !postalCode || !email) {
                 res.status(400).json({
@@ -107,7 +116,7 @@ export const addSuppliers = async (req: Request, res: Response): Promise<void> =
                 subDistrict,
                 postalCode,
                 email,
-                userId // แนบ userId กับ supplier
+                userId: decoded.userId, // เก็บ userId ที่มาจาก token
             });
 
             // บันทึกข้อมูลในฐานข้อมูล
