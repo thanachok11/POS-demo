@@ -60,6 +60,7 @@ export const createOrder = async (orderData: any) => {
   });
   return response.data;
 };
+
 export const placeOrder = async (orderData: any) => {
   return await axios.post(`${API_BASE_URL}/checkout`, orderData);
 };

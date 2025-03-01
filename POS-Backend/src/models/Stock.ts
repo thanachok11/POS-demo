@@ -1,16 +1,14 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { IProduct } from './Product';
-import { IUser } from './User'; // นำเข้า IUser สำหรับการอ้างอิง userId
 
 // Interface สำหรับ Stock
 export interface IStock extends Document {
   productId: mongoose.Types.ObjectId; // อ้างอิงไปยัง Product
   userId: mongoose.Types.ObjectId; // อ้างอิงไปยัง User
   quantity: number; // จำนวนสินค้าคงเหลือ
-  supplierId: mongoose.Schema.Types.ObjectId; // เชื่อมกับ Supplier
+  supplier: string; // เชื่อมกับ Supplier
   location?: string; // ตำแหน่งจัดเก็บ
   threshold?: number; // ค่าขั้นต่ำที่ต้องมีในสต็อก
-  status: 'In Stock' | 'Out of Stock' | 'Low Stock'; // สถานะของสินค้า
+  status: 'สินค้าพร้อมขาย' | 'สินค้าหมด' | 'สินค้าเหลือน้อย'; // สถานะของสินค้า
   lastRestocked?: Date; // วันที่เติมสต็อกล่าสุด
   barcode?: string; // รหัสบาร์โค้ดของสินค้า
   createdAt: Date;
@@ -23,13 +21,13 @@ const StockSchema: Schema = new Schema(
     productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true }, // เชื่อมโยงกับ Product
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // เพิ่ม userId ที่อ้างอิงกับ User
     quantity: { type: Number, required: true, default: 0 }, // จำนวนสินค้าคงเหลือ
-    supplierId: { type: Schema.Types.ObjectId, ref: "Supplier", required: true },
+    supplier: { type: String },
     location: { type: String }, // ที่จัดเก็บสินค้า
     threshold: { type: Number, default: 5 }, // จำนวนขั้นต่ำ
     status: {
       type: String,
-      enum: ['In Stock', 'Out of Stock', 'Low Stock'],
-      default: 'In Stock',
+      enum: ['สินค้าพร้อมขาย', 'สินค้าหมด', 'สินค้าเหลือน้อย'],
+      default: 'พร้อมขาย',
     },
     lastRestocked: { type: Date },
     barcode: { type: String, unique: true }, // รหัสบาร์โค้ดของสินค้า
@@ -40,11 +38,11 @@ const StockSchema: Schema = new Schema(
 // ฟังก์ชันในการอัพเดตสถานะของสต็อก
 StockSchema.methods.updateStatus = async function () {
   if (this.quantity <= 0) {
-    this.status = 'Out of Stock';
+    this.status = 'สินค้าหมด';
   } else if (this.quantity <= this.threshold) {
-    this.status = 'Low Stock';
+    this.status = 'สินค้าเหลือน้อย';
   } else {
-    this.status = 'In Stock';
+    this.status = 'สินค้าพร้อมขาย';
   }
   await this.save();
 };

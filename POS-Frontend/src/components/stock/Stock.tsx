@@ -78,9 +78,9 @@ const StockPage: React.FC = () => {
   };
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "In Stock":
+      case "สินค้าพร้อมขาย":
         return "✅";
-      case "Out of Stock":
+      case "สินค้าหมด":
         return "❌";
       default:
         return "⚠️";
@@ -164,7 +164,7 @@ const StockPage: React.FC = () => {
               })
             ) : (
               <tr>
-                <td colSpan={10} className="no-data">🔍 ไม่พบข้อมูลที่ค้นหา</td>
+                <td colSpan={10} className="no-data">🔍 ไม่พบข้อมูลสินค้า</td>
               </tr>
             )}
 

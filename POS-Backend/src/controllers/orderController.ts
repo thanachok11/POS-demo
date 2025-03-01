@@ -75,7 +75,7 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
         quantity,
         supplier,
         location,
-        status: "pending",
+        status: "รอการชำระเงิน",
         orderDate: new Date(),
       });
 

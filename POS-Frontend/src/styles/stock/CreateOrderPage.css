@@ -1,4 +1,6 @@
-.create-order-container {
+/* Container หลักของการสร้างใบสั่งซื้อ */
+.create-order-container-suppliers {
+    width: 100%;
     max-width: 800px;
     margin: 20px auto;
     padding: 20px;
@@ -7,64 +9,104 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.create-order-header {
+/* Header ของหน้า */
+.create-order-header-suppliers {
     text-align: center;
+    font-size: 2rem;
     color: #333;
-    font-size: 24px;
     margin-bottom: 20px;
 }
 
-.create-order-form {
-    display: grid;
-    grid-template-columns: 1fr;
+/* กล่องข้อความสถานะการโหลด */
+.loading-message-suppliers {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #007bff;
+}
+
+/* ข้อความข้อผิดพลาด */
+.error-message-suppliers {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #ff4d4d;
+}
+
+/* ฟอร์มการสร้างใบสั่งซื้อ */
+.create-order-form-suppliers {
+    display: flex;
+    flex-direction: column;
     gap: 15px;
 }
 
-.form-group {
+/* กลุ่มของฟอร์ม */
+.form-group-suppliers {
     display: flex;
     flex-direction: column;
+    gap: 5px;
 }
 
-.form-label {
-    font-size: 16px;
+/* Label ของฟอร์ม */
+.form-label-suppliers {
+    font-size: 1rem;
     color: #555;
 }
 
-.form-input {
+/* Input ของฟอร์ม */
+.form-input-suppliers {
     padding: 10px;
-    border: 1px solid #ddd;
+    font-size: 1rem;
+    border: 1px solid #ccc;
     border-radius: 4px;
-    font-size: 16px;
-    width: 100%;
-}
-
-.form-input:focus {
-    border-color: #007bff;
     outline: none;
+    transition: border 0.3s;
 }
 
-.submit-btn {
+.form-input-suppliers:focus {
+    border-color: #007bff;
+}
+
+/* ปุ่ม submit */
+.submit-btn-suppliers {
     padding: 12px;
-    background-color: #007bff;
-    color: white;
-    font-size: 16px;
+    background-color: #28a745;
+    color: #fff;
+    font-size: 1rem;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s;
 }
 
-.submit-btn:hover {
-    background-color: #0056b3;
+.submit-btn-suppliers:hover {
+    background-color: #218838;
 }
 
-.message {
+/* ข้อความจากการตอบกลับ */
+.message-suppliers {
     text-align: center;
-    font-size: 18px;
+    font-size: 1rem;
+    color: #28a745;
     margin-top: 20px;
-    color: green;
+}
+.search-container-suppliers {
+    margin-bottom: 20px;
 }
 
-.message.error {
-    color: red;
+.search-input-suppliers {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+}
+
+.product-details-suppliers table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.product-details-suppliers th,
+.product-details-suppliers td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
 }

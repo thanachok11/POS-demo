@@ -12,9 +12,9 @@ interface Supplier {
     address: string;
     country: string;
     stateOrProvince: string;
-    district?: string;
+    district: string;
     subDistrict: string;
-    postalCode?: string;
+    postalCode: string;
 }
 
 interface SupplierFormProps {
@@ -168,22 +168,24 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }
             <form onSubmit={handleSubmit} className="supplier-form">
                 <input
                     type="text"
-                    name="name"
+                    name="companyName" // ต้องตรงกับ key ใน formData
                     placeholder="ชื่อบริษัท"
                     value={formData.companyName}
                     onChange={handleChange}
                     required
                     className="supplier-input"
                 />
+
                 <input
                     type="text"
-                    name="phone"
+                    name="phoneNumber" // แก้ให้ตรงกับ formData
                     placeholder="เบอร์โทรศัพท์"
                     value={formData.phoneNumber}
                     onChange={handleChange}
                     required
                     className="supplier-input"
                 />
+
                 <input
                     type="email"
                     name="email"
@@ -218,7 +220,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }
 
                 {formData.country === "Thailand" && (
                     <select
-                        name="state"
+                        name="stateOrProvince"
                         value={formData.stateOrProvince}
                         onChange={handleChange}
                         required
@@ -248,7 +250,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }
 
                 {formData.district && (
                     <select
-                        name="subdistrict"
+                        name="subDistrict"
                         value={formData.subDistrict}
                         onChange={handleChange}
                         required

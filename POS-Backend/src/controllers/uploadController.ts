@@ -99,10 +99,10 @@ export const addProductWithStock = async (req: Request, res: Response): Promise<
             barcode,
             status:
               quantity === 0
-                ? "Out of Stock"
+                ? "สินค้าหมด"
                 : quantity < (threshold || 5)
-                  ? "Low Stock"
-                  : "In Stock", // เพิ่มเงื่อนไข Low Stock
+                  ? "สินค้าเหลือน้อย"
+                  : "สินค้าพร้อมขาย", // เพิ่มเงื่อนไข Low Stock
             lastRestocked: quantity > 0 ? new Date() : undefined,
           });
 

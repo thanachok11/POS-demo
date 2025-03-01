@@ -51,3 +51,19 @@ export const deleteSupplier = async (id: number, token: string | null) => {
         throw new Error(error.response?.data?.message || "Error deleting supplier");
     }
 };
+
+// ดึงสินค้าจากซัพพลายเออร์
+export const getProductsBySupplier = async (supplierId: string, token: string | null) => {
+    try {
+        if (!token) throw new Error("Unauthorized: No token provided");
+
+        const response = await axios.get(`${API_BASE_URL}/products?supplierId=${supplierId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        return response.data; // คืนค่าผลลัพธ์จาก API
+    } catch (error: any) {
+        console.error("Error fetching products by supplier:", error);
+        throw new Error(error.response?.data?.message || "Error fetching products by supplier");
+    }
+};
