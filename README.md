@@ -44,6 +44,9 @@ Welcome to the POS (Point of Sale) Backend System! This is a full-featured backe
 - **Product Management**: Add, update, delete, and retrieve product details.
 - **Barcode Lookup**: Search products by barcode.
 - **Product Details**: View detailed product information including name, description, price, category, stock quantity, and barcode.
+- **Add New Suppliers**: From to add new
+suppliers for according to customer needs
+For example, customers want to sell shirts, there will be suppliers, which are various brands that customers have contracted with.
 
 ## Table of Contents
 
