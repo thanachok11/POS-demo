@@ -9,6 +9,9 @@ Welcome to the POS (Point of Sale) Frontend System! This is a user interface (UI
 - **Barcode Lookup**: Search for products using barcode input or image scanning.
 - **Responsive UI**: Fully responsive design for mobile and desktop users.
 - **Add New Product**: Form to add new products with details like name, price, description, category, barcode, and stock quantity.
+- **Add New Suppliers**: From to add new
+suppliers for according to customer needs
+For example, customers want to sell shirts, there will be suppliers, which are various brands that customers have contracted with.
 
 1. Clone this repository:
 ```bash
