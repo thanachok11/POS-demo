@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getSupplierData, deleteSupplier } from "../../api/utils/supplierApi.ts";
 import "../../styles/supplier/SupplierList.css";
+
 import SupplierForm from "../../components/supplier/SupplierForm.tsx";
 import React from "react";
 
@@ -12,9 +13,9 @@ interface Supplier {
     address: string;
     country: string;
     stateOrProvince: string;
-    district?: string;
+    district: string;
     subDistrict: string;
-    postalCode?: string;
+    postalCode: string;
 }
 
 const SupplierList = () => {

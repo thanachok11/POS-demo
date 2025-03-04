@@ -163,7 +163,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }
 
     return (
         <div className="supplier-form-container">
-            <h2 className="supplier-form-title">เพิ่มซัพพลายเออร์</h2>
+            <h2 className="supplier-form-title"> {supplier ? "แก้ไขซัพพลายเออร์" : "เพิ่มซัพพลายเออร์"}</h2>
             {message && <p className="supplier-form-message">{message}</p>}
             <form onSubmit={handleSubmit} className="supplier-form">
                 <input

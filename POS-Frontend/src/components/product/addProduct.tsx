@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faCheckCircle
+
+} from "@fortawesome/free-solid-svg-icons";
+
 
 import { uploadProduct } from "../../api/product/productApi.ts"; // Ensure this import is correct
 import '../../styles/product/AddProductForm.css';
@@ -334,9 +340,15 @@ const AddProductForm = () => {
 
       {showSuccessPopup && (
         <div className="success-popup">
-          <span className="success-icon">✔️</span>
+         <div className="success-popup-content">
+
+          <span className="success-icon">
+           <FontAwesomeIcon icon={faCheckCircle} />
+
+          </span>
           <p>สินค้าเพิ่มสำเร็จ!</p>
         </div>
+      </div>
       )}
     </div>
   );

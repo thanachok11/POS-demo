@@ -5,13 +5,13 @@
 }
 
 .app-container.sidebar-open .main-content {
-  margin-left: 240px;
+  margin-left: 200px;
   transition: margin-left 0.5s ease-in-out;
   /* เลื่อนเมื่อเปิด sidebar */
 }
 
 .app-container.sidebar-closed .main-content {
-  margin-left: 0;
+  margin-left: 20px;
   /* เมื่อลบ sidebar ออก เลื่อนกลับไปที่ 0 */
   transition: margin-left 0.5s ease-in-out;
   /* เลื่อนกลับเมื่อปิด sidebar */
