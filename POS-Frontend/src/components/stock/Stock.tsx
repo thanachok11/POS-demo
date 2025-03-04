@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { getStockData } from "../../api/stock/stock.ts"; // ✅ นำเข้า API
+import { getStockData } from "../../api/stock/stock.ts";
 import { getProducts } from "../../api/product/productApi.ts";
-import { Link } from "react-router-dom"; // เพิ่มการใช้งาน Link จาก react-router-dom
-import "../../styles/stock/StockPage.css"; // ✅ เพิ่มไฟล์สไตล์ (สร้างใหม่)
-
+import { Link, useNavigate } from "react-router-dom"; // เพิ่ม useNavigate
+import "../../styles/stock/StockPage.css";
 interface StockItem {
   barcode: string;
   name: string;
@@ -18,11 +17,12 @@ interface StockItem {
 
 const StockPage: React.FC = () => {
   const [stockData, setStockData] = useState<StockItem[]>([]);
-  const [products, setProducts] = useState<any[]>([]); // ใช้ any ชั่วคราว
+  const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
+  const navigate = useNavigate(); // ใช้สำหรับเปลี่ยนหน้า
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,18 +34,13 @@ const StockPage: React.FC = () => {
       }
 
       try {
-        // ดึงข้อมูล stock
         const stock = await getStockData(token);
-        console.log("stock data: ", stock); // log ดูข้อมูลสินค้า
-
         setStockData(stock);
 
-        // ดึงข้อมูลสินค้า
-        const productData = await getProducts();  // เรียกใช้ฟังก์ชันจาก productApi.ts
-        console.log("Product data: ", productData); // log ดูข้อมูลสินค้า
-
+        const productData = await getProducts();
         if (productData.success && Array.isArray(productData.data)) {
-          setProducts(productData.data);  // ใช้ productData.data แทน
+          setProducts(productData.data);
+          console.log(productData.data);
         } else {
           setError("ไม่พบข้อมูลสินค้า");
         }
@@ -57,13 +52,10 @@ const StockPage: React.FC = () => {
     fetchData();
   }, []);
 
-  // ฟังก์ชันสำหรับการหาข้อมูลสินค้า
   const getProductDetails = (barcode: string) => {
     return products.find((product) => product.barcode === barcode);
   };
 
-
-  // ฟังก์ชันแปลงวันที่และเวลา
   const formatDateTime = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = {
       day: "2-digit",
@@ -76,6 +68,7 @@ const StockPage: React.FC = () => {
     };
     return new Date(dateString).toLocaleString("th-TH", options);
   };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "สินค้าพร้อมขาย":
@@ -86,6 +79,7 @@ const StockPage: React.FC = () => {
         return "⚠️";
     }
   };
+
   const filteredStock = stockData.filter((item) => {
     const product = getProductDetails(item.barcode);
     const searchText = searchQuery.toLowerCase();
@@ -98,13 +92,18 @@ const StockPage: React.FC = () => {
     );
   });
 
+  // ฟังก์ชันเมื่อคลิกที่แถว
+  const handleRowClick = (barcode: string) => {
+    navigate(`/products/barcode/${barcode}`); // ไปยังหน้ารายละเอียดสินค้า
+  };
+
   return (
     <div className="stock-container">
       <h2 className="stock-header">📦 จัดการสต็อกสินค้า</h2>
 
       {loading && <p className="loadingStock">⏳ Loading...</p>}
       {error && <p className="error-message">{error}</p>}
-      {/* ช่องค้นหาสินค้า */}
+
       <div className="search-container">
         <input
           type="text"
@@ -115,10 +114,10 @@ const StockPage: React.FC = () => {
         />
       </div>
 
-      {/* ปุ่มไปยังหน้าเพิ่มสินค้า */}
       <Link to="/add-product">
         <button className="add-product-button">เพิ่มสินค้า</button>
       </Link>
+
       {!loading && !error && (
         <table className="stock-table">
           <thead>
@@ -140,7 +139,11 @@ const StockPage: React.FC = () => {
               filteredStock.map((item, index) => {
                 const product = getProductDetails(item.barcode);
                 return (
-                  <tr key={item.barcode}>
+                  <tr
+                    key={item.barcode}
+                    className="clickable-row"
+                    onClick={() => handleRowClick(item.barcode)} // กดแล้วไปหน้ารายละเอียด
+                  >
                     <td className="stock-cell">{index + 1}</td>
                     <td className="stock-cell">{product ? product.name : "ไม่พบสินค้า"}</td>
                     <td className="stock-cell">
@@ -167,7 +170,6 @@ const StockPage: React.FC = () => {
                 <td colSpan={10} className="no-data">🔍 ไม่พบข้อมูลสินค้า</td>
               </tr>
             )}
-
           </tbody>
         </table>
       )}

@@ -33,6 +33,7 @@ export const getProductByBarcode = async (req: Request, res: Response, next: Nex
 };
 
 
+
 export const getProducts = async (req: Request, res: Response): Promise<void> =>  {
   const token = req.header('Authorization')?.split(' ')[1]; // ดึง token จาก header
 

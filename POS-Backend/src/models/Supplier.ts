@@ -26,7 +26,7 @@ const SupplierSchema = new Schema<ISupplier>(
         district: { type: String, required: true }, // อำเภอ/เขต
         subDistrict: { type: String, required: true }, // ตำบล/แขวง
         postalCode: { type: String, required: true }, // รหัสไปรษณีย์
-        email: { type: String, required: true, unique: true }, // อีเมล
+        email: { type: String, required: true }, // อีเมล
     },
     { timestamps: true }
 );

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { addSupplier } from "../../api/utils/supplierApi.ts";
+import { updateSupplier } from "../../api/utils/supplierApi.ts"; // เพิ่ม import
+
 import axios from "axios";
 import "../../styles/supplier/SupplierForm.css";
 import React from "react";
@@ -132,29 +134,22 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }
                 return;
             }
 
-            await addSupplier(formData, token);
-            setMessage("✅ เพิ่มซัพพลายเออร์สำเร็จ!");
+            if (supplier?.id) {
+                // ถ้าเป็นการแก้ไข
+                await updateSupplier(supplier.id, formData, token);
+                setMessage("✅ แก้ไขซัพพลายเออร์สำเร็จ!");
+            } else {
+                // ถ้าเป็นการเพิ่มใหม่
+                await addSupplier(formData, token);
+                setMessage("✅ เพิ่มซัพพลายเออร์สำเร็จ!");
+            }
 
-            // รีเซ็ตฟอร์ม
-            setFormData({
-                companyName: "",
-                phoneNumber: "",
-                email: "",
-                address: "",
-                country: "",
-                stateOrProvince: "",
-                district: "",
-                subDistrict: "",
-                postalCode: "",
-            });
-
-            // ปิด Modal และอัปเดตข้อมูล
             setTimeout(() => {
                 onSave();
                 onClose();
             }, 1000);
         } catch (error) {
-            setMessage("❌ เกิดข้อผิดพลาดในการเพิ่มซัพพลายเออร์");
+            setMessage("❌ เกิดข้อผิดพลาดในการบันทึกซัพพลายเออร์");
             console.error(error);
         } finally {
             setLoading(false);

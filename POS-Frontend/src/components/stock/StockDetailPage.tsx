@@ -1,48 +1,80 @@
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { fetchStockData } from "../../api/stock/stock.ts";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { getStockData } from "../../api/stock/stock.ts";
+import { getProductByBarcode } from "../../api/product/productApi.ts";
 import "../../styles/stock/StockDetailPage.css";
 
-const StockDetailPage: React.FC = () => {
-    const { id } = useParams(); // รับ productId จาก URL
-    const [stockItem, setStockItem] = useState<any>(null);
+const StockDetail: React.FC = () => {
+    const { barcode } = useParams<{ barcode: string }>();
+    const navigate = useNavigate();
+
+    const [product, setProduct] = useState<any>(null);
+    const [stock, setStock] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
+            if (!barcode) {
+                setError("❌ No barcode provided");
+                setLoading(false);
+                return;
+            }
+
+            const token = localStorage.getItem("token");
+            if (!token) {
+                setError("❌ No token found");
+                setLoading(false);
+                return;
+            }
+
             try {
-                const stockList = await fetchStockData();
-                const foundItem = stockList.find((item) => item.productId === id);
-                if (foundItem) {
-                    setStockItem(foundItem);
+                // เรียก API สองตัวพร้อมกัน
+                const [productData, stockData] = await Promise.all([
+                    getProductByBarcode(barcode),
+                    getStockData(token)
+                ]);
+
+                // ตรวจสอบผลลัพธ์จาก API
+                if (productData) {
+                    setProduct(productData);
+                    // ค้นหาสต็อกที่ตรงกับบาร์โค้ดของสินค้า
+                    const stockItem = stockData?.find((item: any) => item.barcode === barcode);
+                    setStock(stockItem || { quantity: "ไม่พบข้อมูลสต็อก" });
                 } else {
-                    setError("ไม่พบสินค้าในสต็อก");
+                    setError("❌ ไม่พบสินค้าที่มีบาร์โค้ดนี้");
                 }
             } catch (err) {
-                setError("เกิดข้อผิดพลาดในการโหลดข้อมูล");
+                setError("❌ เกิดข้อผิดพลาดในการโหลดข้อมูล");
             } finally {
                 setLoading(false);
             }
         };
 
         fetchData();
-    }, [id]);
+    }, [barcode]);
 
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div className="error-text">{error}</div>;
+    if (loading) return <p className="loading-stockDetail">⏳ กำลังโหลด...</p>;
+    if (error) return <p className="error-message-stockDetail">{error}</p>;
 
     return (
         <div className="stock-detail-container">
-            <h2>รายละเอียดสินค้า</h2>
-            <p><strong>ชื่อสินค้า:</strong> {stockItem?.name}</p>
-            <p><strong>จำนวน:</strong> {stockItem?.quantity}</p>
-            <p><strong>ซัพพลายเออร์:</strong> {stockItem?.supplier}</p>
-            <p><strong>ที่เก็บ:</strong> {stockItem?.location}</p>
-            <p><strong>สถานะ:</strong> {stockItem?.status}</p>
-            <p><strong>อัปเดตล่าสุด:</strong> {stockItem?.updatedAt}</p>
+            <h2 className="stock-detail-header">📦 รายละเอียดสินค้า</h2>
+            {product ? (
+                <div className="stock-detail-card">
+                    <img src={product.imageUrl} alt={product.name} className="product-image-stockDetail" />
+                    <h3 className="product-name-stockDetail">{product.name}</h3>
+                    <p className="product-info-stockDetail"><strong>บาร์โค้ด:</strong> {product.barcode || "ไม่ระบุ"}</p>
+                    <p className="product-info-stockDetail"><strong>หมวดหมู่:</strong> {product.category}</p>
+                    <p className="product-info-stockDetail"><strong>ราคา:</strong> {product.price} บาท</p>
+                    <p className="product-info-stockDetail"><strong>สต็อกคงเหลือ:</strong> {stock?.quantity || "ไม่พบข้อมูล"}</p>
+                    <button className="back-button-stockDetail" onClick={() => navigate(-1)}>⬅️ กลับ</button>
+                </div>
+            ) : (
+                <p className="error-message-stockDetail">❌ ไม่พบข้อมูลสินค้าสำหรับบาร์โค้ดนี้</p>
+            )}
         </div>
     );
 };
 
-export default StockDetailPage;
+export default StockDetail;

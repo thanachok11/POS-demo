@@ -28,14 +28,17 @@ export const getProducts = async () => {
 
 // ฟังก์ชันเพื่อดึงสินค้าโดยใช้ barcode
 export const getProductByBarcode = async (barcode: string) => {
+  console.log("Fetching product with barcode:", barcode); // Log the barcode
   try {
     const response = await axios.get(`${API_BASE_URL}/products/barcode/${barcode}`);
+    console.log("API response:", response.data); // Log the full response data
     return response.data;
   } catch (error) {
     console.error("Error fetching product by barcode:", error);
     throw error;
   }
 };
+
 
 // ฟังก์ชันสำหรับอัปโหลดสินค้าใหม่ (จากตัวอย่างก่อนหน้า)
 export const uploadProduct = async (formData: FormData, token: string | null) => {

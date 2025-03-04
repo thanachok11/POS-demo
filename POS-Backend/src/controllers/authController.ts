@@ -89,7 +89,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         profile_img:user.profile_img,       // role ของผู้ใช้
       },
       process.env.JWT_SECRET as string,
-      { expiresIn: '1h' }
+      { expiresIn: '3h' }
     );
 
     res.status(200).json({ message: 'Login successful', token });

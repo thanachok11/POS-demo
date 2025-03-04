@@ -1,23 +1,23 @@
 import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Homepage from "./components/pages/Homepage.tsx"; // หน้าแรก
-import Header from "./components/pages/Header.tsx"; // ใช้ Header ที่คุณสร้างขึ้น
+import Homepage from "./components/pages/Homepage.tsx";
+import Header from "./components/pages/Header.tsx";
 import Dashboard from './components/pages/Dashboard.tsx';
 import AddProductForm from './components/product/AddProduct.tsx';
 import ProductList from "./components/product/ProductList.tsx";
 import StockPage from "./components/stock/Stock.tsx";
-import StockDetailPage from "./components/stock/StockDetailPage.tsx";
+import StockDetailPage from "./components/stock/StockDetailPage.tsx";  // ✅ ใช้แค่ StockDetailPage
 import CreateOrder from "./components/stock/CreateOrderPage.tsx";
 import SupplierForm from "./components/supplier/SupplierForm.tsx";
 import SupplierList from "./components/supplier/SupplierList.tsx";
-import Test from "./components/supplier/test.tsx"
-import "./App.css";  // นำเข้าการตั้งค่าของ CSS
+
+import "./App.css";
 
 const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen); // เปลี่ยนสถานะของ Sidebar
+    setIsSidebarOpen(!isSidebarOpen);
   };
 
   return (
@@ -29,12 +29,10 @@ const App: React.FC = () => {
             <Route path="/" element={<Homepage />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/suppliers" element={<SupplierList />} />
-            {/* หน้า Add Product และ Add Stock รวมกันในหน้าเดียว */}
             <Route path="/add-product" element={<AddProductForm />} />
-            <Route path="/add-supplier" element={<SupplierForm />} />
             <Route path="/shop" element={<ProductList />} />
             <Route path="/stocks" element={<StockPage />} />
-            <Route path="/stock/:id" element={<StockDetailPage />} />
+            <Route path="/products/barcode/:barcode" element={<StockDetailPage />} /> {/* ✅ รับ barcode เป็น dynamic parameter */}
             <Route path="/createOrder" element={<CreateOrder />} />
           </Routes>
         </div>

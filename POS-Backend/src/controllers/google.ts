@@ -55,7 +55,7 @@ export const googleLogin = async (req: Request, res: Response): Promise<void> =>
         profile_img: user.profile_img,       // role ของผู้ใช้
       },
       process.env.JWT_SECRET as string,
-      { expiresIn: '1h' }
+      { expiresIn: '3h' }
     );
 
     res.json({ token, user });
@@ -120,7 +120,7 @@ export const googleRegister = async (req: Request, res: Response): Promise<void>
     const token = jwt.sign(
       { id: user._id, email: user.email },
       process.env.JWT_SECRET || 'yourSecretKey',
-      { expiresIn: '1h' }
+      { expiresIn: '3h' }
     );
 
     res.json({ token, user });

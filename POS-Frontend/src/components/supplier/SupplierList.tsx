@@ -61,7 +61,7 @@ const SupplierList = () => {
         if (!window.confirm("คุณต้องการลบซัพพลายเออร์นี้ใช่หรือไม่?")) return;
         const token = localStorage.getItem("token");
         try {
-            await deleteSupplier(id,token);
+            await deleteSupplier(id, token);
             setSuppliers((prev) => prev.filter(supplier => supplier.id !== id));
         } catch (err) {
             console.error("Error deleting supplier:", err);
@@ -84,46 +84,45 @@ const SupplierList = () => {
 
     return (
         <div className="supplier-list-container">
-            {loading && <p className="loading">⏳ Loading...</p>}
-            <h2 className="supplier-list-title">รายชื่อซัพพลายเออร์</h2>
+            {loading && <p className="supplier-list-loading">⏳ กำลังโหลด...</p>}
+            <h2 className="supplier-list-title">📋รายชื่อซัพพลายเออร์</h2>
             <button className="add-supplier-btn" onClick={() => handleOpenModal()}>
                 ➕ เพิ่มซัพพลายเออร์
             </button>
-            {error && <p className="error-message">{error}</p>}
+            {error && <p className="supplier-list-error">{error}</p>}
 
             <table className="supplier-table">
-                <thead>
-                    <tr>
-                        <th>ชื่อ</th>
-                        <th>เบอร์โทร</th>
-                        <th>อีเมล</th>
-                        <th>ที่อยู่</th>
-                        <th>จัดการ</th>
+                <thead className="supplier-table-head">
+                    <tr className="supplier-table-row">
+                        <th className="supplier-table-header">ชื่อ</th>
+                        <th className="supplier-table-header">เบอร์โทร</th>
+                        <th className="supplier-table-header">อีเมล</th>
+                        <th className="supplier-table-header">ที่อยู่</th>
+                        <th className="supplier-table-header">จัดการ</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody className="supplier-table-body">
                     {suppliers.length > 0 ? (
                         suppliers.map((supplier, index) => (
-                            <tr key={supplier.id || `supplier-${index}`}>
-                                <td>{supplier.companyName}</td>
-                                <td>{supplier.phoneNumber}</td>
-                                <td>{supplier.email}</td>
-                                <td>
+                            <tr key={supplier.id || `supplier-${index}`} className="supplier-table-row">
+                                <td className="supplier-table-data">{supplier.companyName}</td>
+                                <td className="supplier-table-data">{supplier.phoneNumber}</td>
+                                <td className="supplier-table-data">{supplier.email}</td>
+                                <td className="supplier-table-data">
                                     {supplier.address}, {supplier.subDistrict}, {supplier.district}, {supplier.stateOrProvince}, {supplier.country} {supplier.postalCode}
                                 </td>
-                                <td>
+                                <td className="supplier-table-data">
                                     <button className="edit-btn" onClick={() => handleOpenModal(supplier)}>แก้ไข</button>
                                     <button className="delete-btn" onClick={() => handleDelete(supplier.id)}>ลบ</button>
                                 </td>
                             </tr>
                         ))
                     ) : (
-                        <tr>
-                            <td colSpan={5} style={{ textAlign: "center" }}>❌ ไม่พบซัพพลายเออร์</td>
+                        <tr className="supplier-table-row">
+                            <td colSpan={5} className="supplier-table-no-data">❌ ไม่พบซัพพลายเออร์</td>
                         </tr>
                     )}
                 </tbody>
-
             </table>
 
             {modalOpen && (

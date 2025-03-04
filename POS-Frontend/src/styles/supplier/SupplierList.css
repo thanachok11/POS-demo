@@ -14,9 +14,9 @@
 /* หัวข้อ */
 .supplier-list-title {
     font-size: 24px;
-        text-align: center;
-        color: #6c5ce7;
-        margin-bottom: 20px;
+    text-align: center;
+    color: #6c5ce7;
+    margin-bottom: 20px;
 }
 
 /* ปุ่มเพิ่มซัพพลายเออร์ */
@@ -87,12 +87,15 @@
 .delete-btn:hover {
     background: #b71c1c;
 }
-.loading{
+
+/* Loading state */
+.supplier-list-loading {
     text-align: center;
     font-size: 1.2rem;
     color: #9e39e0;
 }
-/* แก้ไข Modal ให้เป็นแนวนอน */
+
+/* Modal styles */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -106,7 +109,7 @@
     z-index: 1000;
 }
 
-/* Modal เป็นแนวนอน */
+/* Modal container */
 .modal-container {
     display: flex;
     flex-direction: row;
