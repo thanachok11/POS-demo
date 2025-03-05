@@ -1,6 +1,7 @@
 .app-container {
   display: flex;
   transition: margin-left 0.3s ease-in-out;
+  background-color: #f4f4f4;
   /* ทำให้การเลื่อนราบรื่น */
 }
 
@@ -11,7 +12,8 @@
 }
 
 .app-container.sidebar-closed .main-content {
-  margin-left: 0;
+  margin-left: 10px;
+  margin-top: 10px;
   /* เมื่อลบ sidebar ออก เลื่อนกลับไปที่ 0 */
   transition: margin-left 0.5s ease-in-out;
   /* เลื่อนกลับเมื่อปิด sidebar */

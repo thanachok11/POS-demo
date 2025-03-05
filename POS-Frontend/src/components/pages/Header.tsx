@@ -69,6 +69,19 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
       }
     }
   }, []);
+  useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (!event.target.closest(".item-dropdown")) {
+      setOpenDropdown(null);
+    }
+  };
+
+  document.addEventListener("click", handleClickOutside);
+  return () => {
+    document.removeEventListener("click", handleClickOutside);
+  };
+}, []);
+
   const handleMenuClick = (path: string, menuName: string) => {
     setActiveMenu(menuName);
     navigate(path);
@@ -93,13 +106,19 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
       </button>
       {/* Sidebar */}
       <aside className={`sidebar ${isSidebarOpen ? "open" : "closed"}`}>
-        <span className="sidebar-logo-text">{user?.nameStore || "POS ระบบจัดการสินค้า"}</span>
+        {/* ส่วนแสดงชื่อร้าน */}
+        <div className="sidebar-header">
+          <span className="sidebar-logo-text">{user?.nameStore || "EAZYPOS"}</span>
+        </div>
+
+        {/* เมนู */}
         <ul className="navLinks">
-          
           <li className="item-dropdown" onClick={() => toggleDropdown("management")}>
-            <FontAwesomeIcon icon={faHome} className="icon" /> <span className="menu-text">หน้าหลัก</span>
+            <FontAwesomeIcon icon={faHome} className="icon" /> 
+            <span className="menu-text">หน้าหลัก</span>
             <FontAwesomeIcon icon={faCaretDown} className={`dropdown-icon ${openDropdown === "management" ? "open" : ""}`} />
           </li>
+
           <ul className={`item-details ${openDropdown === "management" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
             <li onClick={() => handleMenuClick("/shop", "ซื้อสินค้า")}>
               <FontAwesomeIcon icon={faShoppingCart} className="icon" /> <span className="dropdown-text">ซื้อสินค้า</span>
