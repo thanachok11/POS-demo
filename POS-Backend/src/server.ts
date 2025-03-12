@@ -10,6 +10,7 @@ import orderRoutes from './routes/orderRoutes';
 import testRoute from './routes/testRoutes';
 import Supplier from "./routes/supplierRoutes";
 import employeeRouter from './routes/employeeRouter'; // เชื่อมต่อ router ของพนักงาน
+import createPayment from './routes/paymentRouter';
 import cors from "cors";
 
 
@@ -44,6 +45,7 @@ app.use("/api/stocks", Stock);
 app.use('/api/orders', orderRoutes);
 app.use('/api/suppliers',Supplier)
 app.use('/api/employee', employeeRouter);
+app.use('/api/payment', createPayment);
 
 // เริ่มเซิร์ฟเวอร์
 app.listen(PORT,'0.0.0.0', () => {

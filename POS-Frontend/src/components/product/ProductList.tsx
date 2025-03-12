@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { getProducts } from "../../api/product/productApi.ts";
 import { updateStockByBarcode, getStockByBarcode } from "../../api/stock/stock.ts";
+import { createPayment } from "../../api/payment/paymentApi.ts"; // นำเข้า API ชำระเงิน
+
 import Checkout from "../product/Checkout.tsx"; // นำเข้า Checkout Modal
 import "../../styles/product/ProductList.css";
 import { jwtDecode } from "jwt-decode";
@@ -43,12 +45,12 @@ const ProductList: React.FC = () => {
     }
   }, []);
 
-useEffect(() => {
+  useEffect(() => {
     const fetchProducts = async () => {
       try {
         const productData = await getProducts();  // เรียกใช้ฟังก์ชันจาก productApi.ts
         console.log("Product data: ", productData); // log ดูข้อมูลสินค้า
-        
+
         if (productData.success && Array.isArray(productData.data)) {
           setProducts(productData.data);  // ใช้ productData.data แทน
         } else {
@@ -57,7 +59,7 @@ useEffect(() => {
       } catch (error) {
         setErrorMessage("เกิดข้อผิดพลาดในการดึงข้อมูลสินค้า");
         console.error(error);
-      } 
+      }
     };
 
     fetchProducts();
@@ -103,20 +105,51 @@ useEffect(() => {
   };
 
   const checkout = async () => {
-    // ทำการลดจำนวนสินค้าที่อยู่ใน stock
-    for (const item of cart) {
-      // เรียกใช้ฟังก์ชัน updateStockByBarcode เพื่อลดจำนวน stock
-      try {
-        const updatedStock = await updateStockByBarcode(item.barcode, item.quantity);
-        if (!updatedStock.success) {
-          setErrorMessage(`ไม่สามารถอัปเดตสต็อกของ ${item.name}`);
-          return;
-        }
-      } catch (error) {
-        setErrorMessage(`เกิดข้อผิดพลาดในการอัปเดตสต็อกของ ${item.name}`);
-        console.error(error);
+    if (!user) {
+      setErrorMessage("กรุณาเข้าสู่ระบบก่อนทำการชำระเงิน");
+      return;
+    }
+
+    const validPaymentMethods = ["เงินสด", "โอนเงิน", "บัตรเครดิต", "QR Code"] as const;
+    const selectedPaymentMethod: string = "เงินสด"; // ค่าเริ่มต้น หรือดึงค่าจาก Modal
+
+    if (!validPaymentMethods.includes(selectedPaymentMethod as any)) {
+      setErrorMessage("วิธีการชำระเงินไม่ถูกต้อง");
+      return;
+    }
+
+    // ✅ ใช้ Type Assertion
+    const paymentData = {
+      orderId: new Date().getTime().toString(),
+      customerName: user.username,
+      paymentMethod: selectedPaymentMethod as "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code", // ✅ ใช้ Type Assertion
+      amount: getTotalPrice(),
+    };
+
+    try {
+      const paymentResponse = await createPayment(paymentData);
+      if (!paymentResponse.success) {
+        setErrorMessage(paymentResponse.message);
         return;
       }
+      // 🛍️ ลดจำนวนสินค้าในสต็อก
+      for (const item of cart) {
+        try {
+          const updatedStock = await updateStockByBarcode(item.barcode, item.quantity);
+          if (!updatedStock.success) {
+            setErrorMessage(`ไม่สามารถอัปเดตสต็อกของ ${item.name}`);
+            return;
+          }
+        } catch (error) {
+          setErrorMessage(`เกิดข้อผิดพลาดในการอัปเดตสต็อกของ ${item.name}`);
+          console.error(error);
+          return;
+        }
+      }
+    } catch (error) {
+      setErrorMessage("เกิดข้อผิดพลาดในการบันทึกข้อมูลชำระเงิน");
+      console.error(error);
+      return;
     }
 
     // หากไม่มีข้อผิดพลาดในการอัปเดต stock ให้เคลียร์ตะกร้าและซ่อนตะกร้า
@@ -130,8 +163,33 @@ useEffect(() => {
 
 
   const handleConfirmPayment = (method: string) => {
-    setShowCheckout(false); // ปิด Modal หลังชำระเงิน
-    setCart([]); // ล้างตะกร้าหลังชำระเงิน
+    const validPaymentMethods = ["เงินสด", "โอนเงิน", "บัตรเครดิต", "QR Code"] as const;
+
+    if (!validPaymentMethods.includes(method as any)) {
+      setErrorMessage("วิธีการชำระเงินไม่ถูกต้อง");
+      return;
+    }
+
+    const paymentData = {
+      orderId: new Date().getTime().toString(),
+      customerName: user?.username || "ลูกค้า",
+      paymentMethod: method as "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code", // ✅ แก้ปัญหา TypeScript Type Mismatch
+      amount: getTotalPrice(),
+    };
+
+    createPayment(paymentData)
+      .then((response) => {
+        if (!response.success) {
+          setErrorMessage(response.message);
+          return;
+        }
+        setShowCheckout(false); // ปิด Modal หลังจากชำระเงินเสร็จ
+        setCart([]); // ล้างตะกร้า
+      })
+      .catch((error) => {
+        setErrorMessage("เกิดข้อผิดพลาดในการบันทึกข้อมูลชำระเงิน");
+        console.error(error);
+      });
   };
 
   // คำนวณยอดรวมทั้งหมดในตะกร้า

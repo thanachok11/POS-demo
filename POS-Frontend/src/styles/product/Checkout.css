@@ -39,6 +39,23 @@
 .checkout-items {
     margin-top: 10px;
     font-size: 16px;
+    font-weight: bold;
+}
+
+.item-name {
+    font-weight: bold;
+    color: #333;
+}
+
+.item-price {
+    color: #ff6600;
+    margin-left: 10px;
+    text-align: center;
+}
+
+.item-quantity {
+    color: #007bff;
+    margin-left: 10px;
 }
 
 .checkout-total {
@@ -106,16 +123,20 @@
     width: 100%;
 }
 
-.checkout-btn {
+.checkout-confirm-btn {
+    margin-top: 10px;
     padding: 15px;
     font-size: 18px;
     width: 100%;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    color: white;
+    color: rgb(255, 255, 255);
+    background-color: #007bff;
 }
-
+.checkout-confirm-btn:hover {
+    background-color: #0056b3;
+}
 .checkout-payment-buttons {
     display: flex;
     justify-content: space-between;
@@ -140,7 +161,28 @@
     border-radius: 5px;
     cursor: pointer;
     color: white;
+    transition: background-color 0.3s, transform 0.2s;
 }
+
+.checkout-cash-btn:hover {
+    background: #21867a;
+    /* Darker shade of green for hover */
+    transform: scale(1.05);
+    /* Slightly enlarge the button on hover */
+}
+
+.checkout-cash-btn:active {
+    background: #1c6c65;
+    /* Even darker green when clicked */
+}
+
+.checkout-cash-btn:disabled {
+    background: #c6c6c6;
+    /* Grey background when disabled */
+    cursor: not-allowed;
+    /* Change cursor to not-allowed */
+}
+
 
 .checkout-qr-btn {
     background: #e76f51;
@@ -150,7 +192,28 @@
     border-radius: 5px;
     cursor: pointer;
     color: white;
+    transition: background-color 0.3s, transform 0.2s;
 }
+
+.checkout-qr-btn:hover {
+    background: #d0573f;
+    /* Darker shade of orange for hover */
+    transform: scale(1.05);
+    /* Slightly enlarge the button on hover */
+}
+
+.checkout-qr-btn:active {
+    background: #b0432f;
+    /* Even darker orange when clicked */
+}
+
+.checkout-qr-btn:disabled {
+    background: #c6c6c6;
+    /* Grey background when disabled */
+    cursor: not-allowed;
+    /* Change cursor to not-allowed */
+}
+
 
 .checkout-credit-btn {
     background: #f4a261;
@@ -160,6 +223,55 @@
     border-radius: 5px;
     cursor: pointer;
     color: white;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.checkout-credit-btn:hover {
+    background: #d78f4e;
+    /* Darker shade of orange for hover */
+    transform: scale(1.05);
+    /* Slightly enlarge the button on hover */
+}
+
+.checkout-credit-btn:active {
+    background: #c17c3e;
+    /* Even darker orange when clicked */
+}
+
+.checkout-credit-btn:disabled {
+    background: #c6c6c6;
+    /* Grey background when disabled */
+    cursor: not-allowed;
+    /* Change cursor to not-allowed */
+}
+.checkout-bank-btn {
+    background-color: #007bff;
+    color: #fff;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.checkout-bank-btn:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+.checkout-bank-btn:active {
+    background-color: #004085;
+}
+
+.checkout-bank-btn:disabled {
+    background-color: #c6c6c6;
+    cursor: not-allowed;
+}
+.checkout-bank-btn:disabled {
+    background-color: #c6c6c6;
+    cursor: not-allowed;
 }
 
 /* 🚀 ปรับปุ่มปิด */
@@ -208,6 +320,7 @@
     align-items: center;
     z-index: 1100;
 }
+
 /* ไอคอนติ๊กถูก */
 .payment-popup-icon {
     font-size: 50px;
@@ -215,6 +328,7 @@
     /* สีเขียว */
     animation: bounceIn 0.5s ease-in-out;
 }
+
 .payment-popup-content {
     background-color: white;
     padding: 20px;
@@ -248,6 +362,30 @@
 
 .payment-popup-close-btn:hover {
     background-color: #45a049;
+}
+.bank-transfer-info {
+    padding: 20px;
+    background-color: #f8f8f8;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+.bank-text {
+    font-size: 16px;
+    color: #333;
+    margin: 10px 0;
+}
+
+.bank-text p {
+    font-size: 14px;
+    color: #555;
+}
+.bank-transfer-info h3 {
+    font-size: 18px;
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: 10px;
 }
 @keyframes fadeIn {
     from {
