@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createOrder } from "../../api/product/productApi.ts"; // import API ที่ใช้
-import { getSupplierData, getProductsBySupplier } from "../../api/utils/supplierApi.ts"; // import API สำหรับ suppliers
+import { getSupplierData, getProductsBySupplier } from "../../api/suppliers/supplierApi.ts"; // import API สำหรับ suppliers
 import '../../styles/stock/CreateOrderPage.css';
 
 const CreateOrderPage: React.FC = () => {

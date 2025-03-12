@@ -5,7 +5,6 @@ import  {googleLogin,googleRegister}  from "../controllers/google";  // นำ�
 const router = Router();
 // แสดงผู้ใช้ทั้งหมด
 router.get("/users", showAllUsers);
-
 // ใช้ verifyGoogleTokenMiddleware ในเส้นทางนี้
 router.post("/google-login", googleLogin);
 router.post("/google-register", googleRegister);

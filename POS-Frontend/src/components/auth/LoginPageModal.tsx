@@ -31,9 +31,15 @@ const Login: React.FC<LoginProps> = ({ isVisible, onClose }) => {
       localStorage.setItem("token", data.token);
       localStorage.setItem("userEmail", email);
 
+      // เช็ค role และทำการเปลี่ยนเส้นทางตาม role
+      if (data.role === "employee") {
+        navigate("/employee-dashboard"); // เปลี่ยนเส้นทางไปหน้าพนักงาน
+      } else {
+        navigate("/"); // ถ้าไม่ใช่พนักงานไปหน้าหลัก
+      }
+
       setSuccessMessage("เข้าสู่ระบบสำเร็จ!");
       setTimeout(() => {
-        navigate("/");
         window.location.reload();
       }, 1000);
     } catch (err: any) {
@@ -54,9 +60,15 @@ const Login: React.FC<LoginProps> = ({ isVisible, onClose }) => {
       localStorage.setItem("token", data.token);
       localStorage.setItem("userEmail", response.credential || "");
 
+      // เช็ค role และทำการเปลี่ยนเส้นทางตาม role
+      if (data.role === "employee") {
+        navigate("/employee-dashboard"); // เปลี่ยนเส้นทางไปหน้าพนักงาน
+      } else {
+        navigate("/"); // ถ้าไม่ใช่พนักงานไปหน้าหลัก
+      }
+
       setSuccessMessage("เข้าสู่ระบบสำเร็จ!");
       setTimeout(() => {
-        navigate("/dashboard");
         window.location.reload();
       }, 1000);
     } catch (err: any) {

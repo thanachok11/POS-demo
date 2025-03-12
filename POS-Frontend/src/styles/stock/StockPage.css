@@ -3,6 +3,7 @@
     width: 90%;
     max-width: 1200px;
     margin: 20px auto;
+    margin-left: 80px;
     margin-top: 70px;
     background-color: #ffffff;
     padding: 20px;
@@ -38,7 +39,7 @@
 
 .add-product-button {
     padding: 10px 20px;
-    background-color: #6c5ce7;
+    background-color: #2a9d8f;
     color: white;
     border: none;
     border-radius: 4px;

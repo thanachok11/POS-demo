@@ -115,7 +115,7 @@ const StockPage: React.FC = () => {
       </div>
 
       <Link to="/add-product">
-        <button className="add-product-button">เพิ่มสินค้า</button>
+        <button className="add-product-button">➕ เพิ่มสินค้า</button>
       </Link>
 
       {!loading && !error && (

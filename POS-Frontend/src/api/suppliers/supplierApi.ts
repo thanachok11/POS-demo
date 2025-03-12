@@ -67,6 +67,21 @@ export const getProductsBySupplier = async (supplierId: string, token: string | 
         throw new Error(error.response?.data?.message || "Error fetching products by supplier");
     }
 };
+// ดึงข้อมูลซัพพลายเออร์ตาม ID
+export const getSupplierById = async (id: string, token: string | null) => {
+    try {
+        if (!token) throw new Error("Unauthorized: No token provided");
+
+        const response = await axios.get(`${API_BASE_URL}/suppliers/${id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        return response.data; // คืนค่าข้อมูลซัพพลายเออร์ตาม ID
+    } catch (error: any) {
+        console.error("Error fetching supplier by ID:", error);
+        throw new Error(error.response?.data?.message || "Error fetching supplier by ID");
+    }
+};
 
 // อัปเดตซัพพลายเออร์
 export const updateSupplier = async (id: number, supplierData: any, token: string) => {

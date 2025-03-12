@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { getSupplierData, deleteSupplier } from "../../api/utils/supplierApi.ts";
+import { getSupplierData, deleteSupplier } from "../../api/suppliers/supplierApi.ts";
 import "../../styles/supplier/SupplierList.css";
 
-import SupplierForm from "../../components/supplier/SupplierForm.tsx";
+import SupplierForm from "./SupplierForm.tsx";
 import React from "react";
 
 interface Supplier {

@@ -180,7 +180,7 @@ useEffect(() => {
 
       {/* ตะกร้าสินค้า */}
       <div className={`cart ${cart.length > 0 ? "show-cart" : "hidden-cart"}`}>
-        <h2>ตะกร้าสินค้า</h2>
+        <h2 className="cart-title ">ตะกร้าสินค้า</h2>
         <div className="cart-items">
           {cart.map((item) => (
             <div key={item.barcode} className="cart-item">

@@ -65,6 +65,53 @@ export const getSuppliers = async (req: Request, res: Response): Promise<void> =
         return;
     }
 };
+export const getSupplierById = async (req: Request, res: Response): Promise<void> => {
+    const token = req.headers['authorization']?.split(' ')[1];
+
+    if (!token) {
+        res.status(401).json({
+            success: false,
+            message: 'Unauthorized, no token provided'
+        });
+        return;
+    }
+
+    try {
+        const decoded = verifyToken(token);
+
+        if (typeof decoded !== 'string' && 'userId' in decoded) {
+            const userId = decoded.userId;
+            const { id } = req.params; // รับ supplierId จาก URL params
+
+            // ค้นหาซัพพลายเออร์ที่ตรงกับ id และเป็นของ userId ที่ล็อกอินอยู่
+            const supplier = await Supplier.findOne({ _id: id, userId });
+
+            if (!supplier) {
+                res.status(404).json({
+                    success: false,
+                    message: 'Supplier not found'
+                });
+                return;
+            }
+
+            res.status(200).json({
+                success: true,
+                data: supplier
+            });
+        } else {
+            res.status(401).json({
+                success: false,
+                message: 'Invalid token'
+            });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+};
 
 
 export const addSuppliers = async (req: Request, res: Response): Promise<void> => {

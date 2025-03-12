@@ -9,6 +9,7 @@ import Stock from "./routes/stockRoutes";
 import orderRoutes from './routes/orderRoutes';
 import testRoute from './routes/testRoutes';
 import Supplier from "./routes/supplierRoutes";
+import employeeRouter from './routes/employeeRouter'; // เชื่อมต่อ router ของพนักงาน
 import cors from "cors";
 
 
@@ -42,6 +43,8 @@ app.use("/api/auth", authRoutes);  // ใช้เพียงเส้นทา
 app.use("/api/stocks", Stock);
 app.use('/api/orders', orderRoutes);
 app.use('/api/suppliers',Supplier)
+app.use('/api/employee', employeeRouter);
+
 // เริ่มเซิร์ฟเวอร์
 app.listen(PORT,'0.0.0.0', () => {
   console.log(`Server running on http://localhost:${PORT}`);

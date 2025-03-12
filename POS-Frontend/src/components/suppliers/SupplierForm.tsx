@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { addSupplier } from "../../api/utils/supplierApi.ts";
-import { updateSupplier } from "../../api/utils/supplierApi.ts"; // เพิ่ม import
+import { addSupplier } from "../../api/suppliers/supplierApi.ts";
+import { updateSupplier } from "../../api/suppliers/supplierApi.ts"; // เพิ่ม import
 
 import axios from "axios";
 import "../../styles/supplier/SupplierForm.css";

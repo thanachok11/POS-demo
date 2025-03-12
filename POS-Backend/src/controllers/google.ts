@@ -109,7 +109,7 @@ export const googleRegister = async (req: Request, res: Response): Promise<void>
       firstName,
       lastName,
       profile_img: picture,
-      role: 'user',
+      role: 'admin',
       username,
       nameStore: 'My Store',
     });

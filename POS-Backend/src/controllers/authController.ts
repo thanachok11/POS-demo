@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/User";
+import Employee from '../models/Employee';
 
 // ฟังก์ชันสำหรับการดึงข้อมูลผู้ใช้ทั้งหมด
 export const showAllUsers = async (req: Request, res: Response): Promise<void> => {
@@ -38,7 +39,6 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // กำหนดค่า role เป็น 'user' โดยอัตโนมัติ
     const newUser = new User({
       email,
       password: hashedPassword,
@@ -46,7 +46,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       firstName,
       lastName,
       nameStore,
-      role: 'user', // เพิ่ม role ที่เป็น 'user' โดยอัตโนมัติ
+      role: 'admin',
       profile_img: 'https://res.cloudinary.com/dboau6axv/image/upload/v1735641179/qa9dfyxn8spwm0nwtako.jpg', // กำหนด profile_img
     });
 
@@ -63,36 +63,78 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    // ค้นหาผู้ใช้ในฐานข้อมูลทั้งผู้ใช้และพนักงาน
+    let user = await User.findOne({ email });
+    let employee = await Employee.findOne({ email });
 
-    if (!user) {
+    // ตรวจสอบว่าเจอผู้ใช้หรือพนักงาน
+    if (!user && !employee) {
       res.status(400).json({ message: 'ไม่พบผู้ใช้นี้ในระบบ' });
       return;
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    // ถ้าพบผู้ใช้ปกติ
+    if (user) {
+      const isMatch = await bcrypt.compare(password, user.password);
 
-    if (!isMatch) {
-      res.status(400).json({ message: 'รหัสผ่านไม่ถูกต้อง' });
+      if (!isMatch) {
+        res.status(400).json({ message: 'รหัสผ่านไม่ถูกต้อง' });
+        return;
+      }
+
+      // สร้าง token สำหรับผู้ใช้ปกติ
+      const token = jwt.sign(
+        {
+          userId: user._id,
+          email: user.email,
+          firstname: user.firstName,
+          lastname: user.lastName,
+          username: user.username,
+          role: user.role,
+          nameStore: user.nameStore,
+          profile_img: user.profile_img,
+        },
+        process.env.JWT_SECRET as string,
+        { expiresIn: '3h' }
+      );
+
+      // ถ้าเป็น admin ให้ส่ง response พร้อม token
+      if (user.role === 'admin') {
+        res.status(200).json({ message: 'Login successful as admin', token, role: 'admin' });
+      } else {
+        // ถ้าเป็น user ปกติ
+        res.status(200).json({ message: 'Login successful', token, role: 'user' });
+      }
       return;
     }
 
-    // สร้าง token และเพิ่มข้อมูลหลายค่า
-    const token = jwt.sign(
-      {
-        
-        userId: user._id,           // user id
-        email: user.email,       // user email
-        username: user.username, // username ของผู้ใช้
-        role: user.role,  
-        nameStore: user.nameStore, // เพิ่ม nameStore ของผู้ใช้
-        profile_img:user.profile_img,       // role ของผู้ใช้
-      },
-      process.env.JWT_SECRET as string,
-      { expiresIn: '3h' }
-    );
+    // ถ้าพบพนักงาน
+    if (employee) {
+      const isMatch = await bcrypt.compare(password, employee.password);
 
-    res.status(200).json({ message: 'Login successful', token });
+      if (!isMatch) {
+        res.status(400).json({ message: 'รหัสผ่านไม่ถูกต้อง' });
+        return;
+      }
+
+      // สร้าง token สำหรับพนักงาน
+      const token = jwt.sign(
+        {
+          userId: employee._id,
+          email: employee.email,
+          name: employee.name,
+          position: employee.position,
+          status: employee.status,
+          profile_img: employee.profile_img,
+        },
+        process.env.JWT_SECRET as string,
+        { expiresIn: '3h' }
+      );
+
+      // ส่ง response สำหรับพนักงาน
+      res.status(200).json({ message: 'เข้าสู่ระบบสำเร็จ', token, role: 'employee' });
+      return;
+    }
   } catch (error) {
     res.status(500).json({ message: 'เข้าสู่ระบบไม่สำเร็จ', error });
   }
@@ -127,3 +169,41 @@ export const updateUserRole = async (req: Request, res: Response): Promise<void>
     res.status(500).json({ message: 'Failed to update user role', error });
   }
 };
+export const loginEmployee = async (req: Request, res: Response): Promise<void> => {
+  const { email, password } = req.body;
+
+  try {
+    const employee = await Employee.findOne({ email });
+
+    if (!employee) {
+      res.status(400).json({ message: 'ไม่พบพนักงานนี้ในระบบ' });
+      return;
+    }
+
+    const isMatch = await bcrypt.compare(password, employee.password);
+
+    if (!isMatch) {
+      res.status(400).json({ message: 'รหัสผ่านไม่ถูกต้อง' });
+      return;
+    }
+
+    // สร้าง JWT Token พร้อมข้อมูลเพิ่มเติม
+    const token = jwt.sign(
+      {
+        userId: employee._id,     // ไอดีของพนักงาน
+        email: employee.email,    // อีเมลของพนักงาน
+        name: employee.name, // ชื่อผู้ใช้
+        position: employee.position,
+        status: employee.status,      // บทบาทของพนักงาน
+        profile_img: employee.profile_img, // รูปโปรไฟล์พนักงาน
+      },
+      process.env.JWT_SECRET as string,
+      { expiresIn: '3h' }
+    );
+
+    res.status(200).json({ message: 'เข้าสู่ระบบสำเร็จ', token });
+  } catch (error) {
+    res.status(500).json({ message: 'เข้าสู่ระบบล้มเหลว', error });
+  }
+};
+

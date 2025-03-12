@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { uploadProduct } from "../../api/product/productApi.ts"; // Ensure this import is correct
 import '../../styles/product/AddProductForm.css';
-import { getSupplierData } from "../../api/utils/supplierApi.ts"; // Import your API function
+import { getSupplierData } from "../../api/suppliers/supplierApi.ts"; // Import your API function
 
 const AddProductForm = () => {
   const [suppliers, setSuppliers] = useState<{companyName: string }[]>([]); // Update the type to be an array of objects
@@ -334,8 +334,11 @@ const AddProductForm = () => {
 
       {showSuccessPopup && (
         <div className="success-popup">
+         <div className="success-popup-content">
+
           <span className="success-icon">✔️</span>
-          <p>สินค้าเพิ่มสำเร็จ!</p>
+          <p className='success-popup-title'>สินค้าเพิ่มสำเร็จ!</p>
+        </div>
         </div>
       )}
     </div>

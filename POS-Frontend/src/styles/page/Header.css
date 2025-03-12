@@ -259,7 +259,7 @@
     left: 0;
     top: 0;
     width: 230px;
-    height: 600px;
+    height: 100%;
     margin-top: 80px;
     transition: width 0.3s ease-in-out;
     background: linear-gradient(135deg, #5e768b, #456686);

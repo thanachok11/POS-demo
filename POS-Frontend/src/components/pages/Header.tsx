@@ -37,6 +37,7 @@ interface NavbarProps {
 
 const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
   const [user, setUser] = useState<{
+    name:string;
     username: string;
     email: string;
     role: string;
@@ -58,6 +59,7 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
       try {
         const decoded: any = jwtDecode(token);
         setUser({
+          name : decoded.name,
           username: decoded.username,
           email: decoded.email,
           role: decoded.role,
@@ -90,7 +92,7 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
     setOpenDropdown(openDropdown === menu ? null : menu);
   };
   const handleUserSettings = () => {
-    navigate("/settings"); 
+    navigate("/settingProfile"); 
   };
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -203,7 +205,7 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
                   <div className="user-info">
                     <img src={user.profileImg} alt="User" className="avatar" />
                     <div className="user-details">
-                      <span className="username">{user.username}</span>
+                      <span className="username">{user?.username || user?.name}</span>
                       <span className="status-online">🟢 กำลังออนไลน์</span>
                     </div>
                     <FontAwesomeIcon icon={faCaretDown} className="icon caret-icon" />

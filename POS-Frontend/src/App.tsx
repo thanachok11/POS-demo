@@ -8,9 +8,10 @@ import ProductList from "./components/product/ProductList.tsx";
 import StockPage from "./components/stock/Stock.tsx";
 import StockDetailPage from "./components/stock/StockDetailPage.tsx";  // ✅ ใช้แค่ StockDetailPage
 import CreateOrder from "./components/stock/CreateOrderPage.tsx";
-import SupplierForm from "./components/supplier/SupplierForm.tsx";
-import SupplierList from "./components/supplier/SupplierList.tsx";
-
+import SupplierForm from "./components/suppliers/SupplierForm.tsx";
+import SupplierList from "./components/suppliers/SupplierList.tsx";
+import UserSettings from "./components/pages/UserSettings.tsx";
+import AddEmployee from "./components/setting/addEmployee.tsx";
 import "./App.css";
 
 const App: React.FC = () => {
@@ -30,6 +31,9 @@ const App: React.FC = () => {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/suppliers" element={<SupplierList />} />
             <Route path="/add-product" element={<AddProductForm />} />
+            <Route path="settingProfile"  element={<UserSettings />} />
+            <Route path="addEmployee"  element={<AddEmployee />} />
+
             <Route path="/shop" element={<ProductList />} />
             <Route path="/stocks" element={<StockPage />} />
             <Route path="/products/barcode/:barcode" element={<StockDetailPage />} /> {/* ✅ รับ barcode เป็น dynamic parameter */}
