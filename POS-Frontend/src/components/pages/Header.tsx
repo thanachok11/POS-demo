@@ -17,7 +17,6 @@ import {
   faFileInvoice,
   faExchangeAlt,
   faBarcode,
-  faMoneyBillWave,
   faHandshake,
   faScroll,
   faExclamationTriangle,
@@ -164,13 +163,19 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
               <FontAwesomeIcon icon={faClipboardList} className="icon" /> <span className="dropdown-text">รายงานสินค้าคงเหลือ</span>
             </li>
           </ul>
-          {/* เมนูหลัก */}
-          <li onClick={() => handleMenuClick("/setting/store", "ตั้งค่าร้านค้า")}>
-            <FontAwesomeIcon icon={faCog} className="icon" /> <span className="menu-text">ตั้งค่าร้านค้า</span>
+          <li className="item-dropdown" onClick={() => toggleDropdown("setting")}>
+            <FontAwesomeIcon icon={faCog} className="icon" /> <span className="menu-text">เกี่ยวกับร้านค้า</span>
+            <FontAwesomeIcon icon={faCaretDown} className={`dropdown-icon ${openDropdown === "setting" ? "open" : ""}`} />
           </li>
-          <li onClick={() => handleMenuClick("/suppliers", "ผู้ตลิต")}>
-            <FontAwesomeIcon icon={faHandshake} className="icon" /> <span className="menu-text">ผู้ผลิต</span>
-          </li>
+          <ul className={`item-details ${openDropdown === "setting" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
+            <li onClick={() => handleMenuClick("/setting/employee", "ตั้งค่าพนักงาน")}>
+              <FontAwesomeIcon icon={faUserPlus} className="icon" /> <span className="dropdown-text">พนักงาน</span>
+            </li>
+            <li onClick={() => handleMenuClick("/suppliers", "ผู้ตลิต")}>
+              <FontAwesomeIcon icon={faHandshake} className="icon" /> <span className="menu-text">ผู้ผลิต</span>
+            </li>
+          </ul>
+
         </ul>
       </aside>
 

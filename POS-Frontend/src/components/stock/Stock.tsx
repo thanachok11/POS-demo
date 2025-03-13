@@ -107,7 +107,7 @@ const StockPage: React.FC = () => {
       <div className="search-container">
         <input
           type="text"
-          placeholder="ค้นหาสินค้า..."
+          placeholder="🔍 ค้นหาสินค้า..."
           className="search-input"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}

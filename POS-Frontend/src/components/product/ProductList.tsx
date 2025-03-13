@@ -28,6 +28,7 @@ const ProductList: React.FC = () => {
   const [currentQuantity, setCurrentQuantity] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [lowStockMessages, setLowStockMessages] = useState<Map<string, string>>(new Map());
+  const [searchProduct, setSearchProduct] = useState("");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -118,12 +119,18 @@ const ProductList: React.FC = () => {
       return;
     }
 
-    // ✅ ใช้ Type Assertion
     const paymentData = {
-      orderId: new Date().getTime().toString(),
-      customerName: user.username,
-      paymentMethod: selectedPaymentMethod as "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code", // ✅ ใช้ Type Assertion
+      saleId: new Date().getTime().toString(),
+      employeeName: user.username,
+      paymentMethod: selectedPaymentMethod as "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code",
       amount: getTotalPrice(),
+      items: cart.map(item => ({
+        barcode: item.barcode,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        subtotal: item.price * item.quantity,
+      }))
     };
 
     try {
@@ -132,6 +139,7 @@ const ProductList: React.FC = () => {
         setErrorMessage(paymentResponse.message);
         return;
       }
+
       // 🛍️ ลดจำนวนสินค้าในสต็อก
       for (const item of cart) {
         try {
@@ -146,22 +154,23 @@ const ProductList: React.FC = () => {
           return;
         }
       }
+
+      // เคลียร์ตะกร้าและซ่อนตะกร้า
+      setCart([]);
+      setShowCart(false);
+      setTimeout(() => {
+        setShowCart(false); // ซ่อนตะกร้าหลังจากข้อความหายไป
+      }, 3000); // เวลา 3 วินาที
     } catch (error) {
       setErrorMessage("เกิดข้อผิดพลาดในการบันทึกข้อมูลชำระเงิน");
       console.error(error);
       return;
     }
-
-    // หากไม่มีข้อผิดพลาดในการอัปเดต stock ให้เคลียร์ตะกร้าและซ่อนตะกร้า
-    setCart([]);
-    setShowCart(false);
-    setTimeout(() => {
-      setShowCart(false); // ซ่อนตะกร้าหลังจากข้อความหายไป
-    }, 3000); // เวลา 3 วินาที
   };
 
 
 
+  // ฟังก์ชันที่ใช้ในการยืนยันการชำระเงินจาก Modal
   const handleConfirmPayment = (method: string) => {
     const validPaymentMethods = ["เงินสด", "โอนเงิน", "บัตรเครดิต", "QR Code"] as const;
 
@@ -171,10 +180,17 @@ const ProductList: React.FC = () => {
     }
 
     const paymentData = {
-      orderId: new Date().getTime().toString(),
-      customerName: user?.username || "ลูกค้า",
-      paymentMethod: method as "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code", // ✅ แก้ปัญหา TypeScript Type Mismatch
+      saleId: new Date().getTime().toString(),
+      employeeName: user?.username || "ลูกค้า",
+      paymentMethod: method as "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code",
       amount: getTotalPrice(),
+      items: cart.map(item => ({
+        barcode: item.barcode,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        subtotal: item.price * item.quantity,
+      }))
     };
 
     createPayment(paymentData)
@@ -222,6 +238,17 @@ const ProductList: React.FC = () => {
 
   return (
     <div className="product-page">
+      <div className="search-grid">
+        <div className="searchproduct-container">
+          <input
+            type="text"
+            placeholder="🔍 ค้นหาสินค้า..."
+            className="searchproduct-input"
+            value={searchProduct}
+            onChange={(e) => setSearchProduct(e.target.value)}
+          />
+        </div>
+      </div>
       <div className="product-list-container">
         {errorMessage && <p className="error-message">{errorMessage}</p>}
 

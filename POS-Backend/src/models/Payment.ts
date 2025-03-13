@@ -2,18 +2,19 @@ import mongoose, { Schema, Document } from "mongoose";
 
 // 1. สร้าง Interface สำหรับ TypeScript
 export interface IPayment extends Document {
-    orderId: string; // รหัสคำสั่งซื้อ
-    customerName: string; // ชื่อลูกค้า
+    saleId: string; // รหัสคำสั่งซื้อ
+    employeeName: string; // ชื่อลูกค้า
     paymentMethod: "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code";
     amount: number; // ยอดเงินที่ชำระ
     status: "รอดำเนินการ" | "สำเร็จ" | "ล้มเหลว";
+    changeAmount:  number; // ยอดเงินทอน,
     createdAt: Date;
 }
 
 // 2. กำหนด Schema
 const PaymentSchema = new Schema<IPayment>({
-    orderId: { type: String, required: true },
-    customerName: { type: String, required: true },
+    saleId: { type: String, required: true },
+    employeeName: { type: String, required: true },
     paymentMethod: {
         type: String,
         enum: ["เงินสด", "โอนเงิน", "บัตรเครดิต", "QR Code"],
@@ -25,6 +26,7 @@ const PaymentSchema = new Schema<IPayment>({
         enum: ["รอดำเนินการ", "สำเร็จ", "ล้มเหลว"],
         default: "รอดำเนินการ",
     },
+    changeAmount: { type: Number, default: 0 },
     createdAt: { type: Date, default: Date.now },
 });
 
