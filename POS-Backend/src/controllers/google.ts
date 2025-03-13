@@ -47,12 +47,14 @@ export const googleLogin = async (req: Request, res: Response): Promise<void> =>
     // สร้าง JWT Token ใหม่
     const token = jwt.sign(
       {
-        userId: user._id,           // user id
-        email: user.email,       // user email
-        username: user.username, // username ของผู้ใช้
+        userId: user._id,          
+        email: user.email,  
+        firstname: user.firstName,
+        lastname: user.lastName,     
+        username: user.username, 
         role: user.role,
-        nameStore: user.nameStore, // เพิ่ม nameStore ของผู้ใช้
-        profile_img: user.profile_img,       // role ของผู้ใช้
+        nameStore: user.nameStore,
+        profile_img: user.profile_img,      
       },
       process.env.JWT_SECRET as string,
       { expiresIn: '3h' }
@@ -118,7 +120,8 @@ export const googleRegister = async (req: Request, res: Response): Promise<void>
 
     // สร้าง JWT Token
     const token = jwt.sign(
-      { id: user._id, email: user.email },
+      { id: user._id,
+        email: user.email },
       process.env.JWT_SECRET || 'yourSecretKey',
       { expiresIn: '3h' }
     );
