@@ -1,10 +1,43 @@
+.searchproduct-container {
+  width: 100%;
+  padding: 10px;
+  background: #f8f8f8;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.5);
+  position: relative;
+  /* ให้เป็นส่วนหนึ่งของคอนเทนต์ ไม่ขึ้นไปทับ Navbar */
+  margin-top: -35px;
+  border: 1px solid #f7f7f7;
+  border-radius: 5px;
+}
+
+.search-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.searchproduct-input {
+  padding: 10px 35px;
+  font-size: 16px;
+  width: 50%;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  outline: none;
+}
+.searchproduct-input:focus {
+  border-color: #6c5ce7;
+}
 .product-page {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
   padding: 20px;
   background-color: #ffffff;
+  margin-top: 60px;
+  /* Adjust this value if needed, depending on the height of your search bar */
 }
+
+/* Adjusting layout of other elements */
 .product-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -20,10 +53,11 @@
   grid-column: 1;
   grid-row: 2;
 }
+
 .product-card {
   background: #ffffff;
   border-radius: 8px;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.5);  
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.5);
   padding: 8px;
   text-align: center;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -45,12 +79,13 @@
   color: #ff5733;
   margin-top: 5px;
 }
+
 /* ✅ สไตล์สำหรับรายการสินค้า ✅ */
 .product-list-container {
   width: 100%;
   max-width: 900px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
 }
 
@@ -68,6 +103,7 @@
   margin-bottom: 10px;
   text-align: center;
 }
+
 /* ✅ ตะกร้าสินค้า ✅ */
 .cart {
   position: fixed;
@@ -89,6 +125,7 @@
 .show-cart {
   transform: translateX(0);
 }
+
 .cart-items {
   max-height: 300px;
   overflow-y: auto;
@@ -134,23 +171,23 @@
 
 .edit-quantity-btn {
   background-color: #ffb84d;
-    /* สีพื้นหลังแบบเหลืองทอง */
-    border: 1px solid #f1a800;
-    /* ขอบที่เข้มขึ้นเล็กน้อย */
-    padding: 10px 15px;
-    /* เพิ่มพื้นที่ภายในเพื่อให้ปุ่มใหญ่ขึ้น */
-    margin-left: 10px;
-    border-radius: 5px;
-    /* มุมปุ่มโค้งมนเล็กน้อย */
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    color: #333;
-    /* ตัวอักษรสีเข้ม เพื่อให้อ่านง่าย */
-    display: inline-block;
-    position: relative;
-    text-align: center;
-    transition: background-color 0.3s ease, transform 1s ease;
+  /* สีพื้นหลังแบบเหลืองทอง */
+  border: 1px solid #f1a800;
+  /* ขอบที่เข้มขึ้นเล็กน้อย */
+  padding: 10px 15px;
+  /* เพิ่มพื้นที่ภายในเพื่อให้ปุ่มใหญ่ขึ้น */
+  margin-left: 10px;
+  border-radius: 5px;
+  /* มุมปุ่มโค้งมนเล็กน้อย */
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  /* ตัวอักษรสีเข้ม เพื่อให้อ่านง่าย */
+  display: inline-block;
+  position: relative;
+  text-align: center;
+  transition: background-color 0.3s ease, transform 1s ease;
 }
 
 .edit-quantity-btn:hover {

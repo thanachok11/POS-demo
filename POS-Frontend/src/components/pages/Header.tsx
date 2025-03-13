@@ -21,7 +21,7 @@ import {
   faScroll,
   faExclamationTriangle,
   faClipboardList,
- 
+
 } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
@@ -36,7 +36,7 @@ interface NavbarProps {
 
 const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
   const [user, setUser] = useState<{
-    name:string;
+    name: string;
     username: string;
     email: string;
     role: string;
@@ -58,7 +58,7 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
       try {
         const decoded: any = jwtDecode(token);
         setUser({
-          name : decoded.name,
+          name: decoded.name,
           username: decoded.username,
           email: decoded.email,
           role: decoded.role,
@@ -71,17 +71,17 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
     }
   }, []);
   useEffect(() => {
-  const handleClickOutside = (event) => {
-    if (!event.target.closest(".item-dropdown")) {
-      setOpenDropdown(null);
-    }
-  };
+    const handleClickOutside = (event) => {
+      if (!event.target.closest(".item-dropdown")) {
+        setOpenDropdown(null);
+      }
+    };
 
-  document.addEventListener("click", handleClickOutside);
-  return () => {
-    document.removeEventListener("click", handleClickOutside);
-  };
-}, []);
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
 
   const handleMenuClick = (path: string, menuName: string) => {
     setActiveMenu(menuName);
@@ -91,7 +91,7 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
     setOpenDropdown(openDropdown === menu ? null : menu);
   };
   const handleUserSettings = () => {
-    navigate("/settingProfile"); 
+    navigate("/settingProfile");
   };
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -115,7 +115,7 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
         {/* เมนู */}
         <ul className="navLinks">
           <li className="item-dropdown" onClick={() => toggleDropdown("management")}>
-            <FontAwesomeIcon icon={faHome} className="icon" /> 
+            <FontAwesomeIcon icon={faHome} className="icon" />
             <span className="menu-text">หน้าหลัก</span>
             <FontAwesomeIcon icon={faCaretDown} className={`dropdown-icon ${openDropdown === "management" ? "open" : ""}`} />
           </li>
@@ -123,6 +123,18 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
           <ul className={`item-details ${openDropdown === "management" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
             <li onClick={() => handleMenuClick("/shop", "ซื้อสินค้า")}>
               <FontAwesomeIcon icon={faShoppingCart} className="icon" /> <span className="dropdown-text">ซื้อสินค้า</span>
+            </li>
+          </ul>
+          <li className="item-dropdown" onClick={() => toggleDropdown("reports")}>
+            <FontAwesomeIcon icon={faChartLine} className="icon" /> <span className="menu-text">รายงาน</span>
+            <FontAwesomeIcon icon={faCaretDown} className={`dropdown-icon ${openDropdown === "reports" ? "open" : ""}`} />
+          </li>
+          <ul className={`item-details ${openDropdown === "reports" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
+            <li onClick={() => handleMenuClick("/reports/sales", "รายงานยอดขาย")}>
+              <FontAwesomeIcon icon={faFileInvoice} className="icon" /> <span className="dropdown-text">รายงานยอดขาย</span>
+            </li>
+            <li onClick={() => handleMenuClick("/reports/stock", "รายงานสินค้าคงเหลือ")}>
+              <FontAwesomeIcon icon={faClipboardList} className="icon" /> <span className="dropdown-text">รายงานสินค้าคงเหลือ</span>
             </li>
           </ul>
           {/* เมนู: จัดการสินค้า */}
@@ -151,18 +163,6 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
             </li>
           </ul>
           {/* เมนู: รายงาน */}
-          <li className="item-dropdown" onClick={() => toggleDropdown("reports")}>
-            <FontAwesomeIcon icon={faChartLine} className="icon" /> <span className="menu-text">รายงาน</span>
-            <FontAwesomeIcon icon={faCaretDown} className={`dropdown-icon ${openDropdown === "reports" ? "open" : ""}`} />
-          </li>
-          <ul className={`item-details ${openDropdown === "reports" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
-            <li onClick={() => handleMenuClick("/reports/sales", "รายงานยอดขาย")}>
-              <FontAwesomeIcon icon={faFileInvoice} className="icon" /> <span className="dropdown-text">รายงานยอดขาย</span>
-            </li>
-            <li onClick={() => handleMenuClick("/reports/stock", "รายงานสินค้าคงเหลือ")}>
-              <FontAwesomeIcon icon={faClipboardList} className="icon" /> <span className="dropdown-text">รายงานสินค้าคงเหลือ</span>
-            </li>
-          </ul>
           <li className="item-dropdown" onClick={() => toggleDropdown("setting")}>
             <FontAwesomeIcon icon={faCog} className="icon" /> <span className="menu-text">เกี่ยวกับร้านค้า</span>
             <FontAwesomeIcon icon={faCaretDown} className={`dropdown-icon ${openDropdown === "setting" ? "open" : ""}`} />
@@ -219,12 +219,16 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
                   {userdropdown && (
                     <div className="dropdown-menu">
                       <p className="user-role">👤 Role: {user.role}</p>
-
                       {/* เมนูตั้งค่าผู้ใช้ */}
-                      <button onClick={handleUserSettings} className="settings-button">
+                      <button
+                        onClick={() => {
+                          handleUserSettings();
+                          handleMenuClick("/settingProfile", "ตั้งค่าผู้ใช้");
+                        }}
+                        className="settings-button"
+                      >
                         <FontAwesomeIcon icon={faCog} className="icon settings-icon" /> ตั้งค่าผู้ใช้
                       </button>
-
                       {/* ปุ่มออกจากระบบ */}
                       <button onClick={handleLogout} className="logout-button">
                         <FontAwesomeIcon icon={faSignOutAlt} className="icon logout-icon" /> ออกจากระบบ

@@ -235,7 +235,9 @@ const ProductList: React.FC = () => {
     setShowNumberPad(false); // Close the number pad
   };
 
-
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(searchProduct.toLowerCase())
+  );
   return (
     <div className="product-page">
       <div className="search-grid">
@@ -253,7 +255,7 @@ const ProductList: React.FC = () => {
         {errorMessage && <p className="error-message">{errorMessage}</p>}
 
         <div className="product-grid">
-          {products.map((product) => (
+          {filteredProducts.map((product) => (
             <div key={product.barcode} className="product-card" onClick={() => addToCart(product)}>
               <img src={product.imageUrl} alt={product.name} className="product-image" />
               <h2>{product.name}</h2>
