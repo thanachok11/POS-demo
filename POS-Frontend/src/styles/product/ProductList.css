@@ -258,3 +258,97 @@
   margin-top: 10px;
   text-align: center;
 }
+
+
+.numpad-product {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  z-index: 1000;
+}
+
+.numpad-product-display {
+  margin-bottom: 10px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.numpad-product-error {
+  color: red;
+  font-weight: bold;
+}
+
+.numpad-product-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.numpad-product-btn {
+  padding: 15px;
+  font-size: 20px;
+  border: none;
+  background: #007bff;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.numpad-product-btn:hover {
+  background: #0056b3;
+}
+
+.numpad-product-set,
+.numpad-product-clear {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px;
+  font-size: 18px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.numpad-product-set {
+  background: #28a745;
+  color: white;
+}
+
+.numpad-product-set:hover {
+  background: #218838;
+}
+
+.numpad-product-clear {
+  background: #dc3545;
+  color: white;
+}
+
+.numpad-product-clear:hover {
+  background: #c82333;
+}
+.numpad-product-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.numpad-product-clear-one {
+  grid-column: span 3;
+  padding: 15px;
+  font-size: 20px;
+  background: #ff9800;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.numpad-product-clear-one:hover {
+  background: #e68900;
+}

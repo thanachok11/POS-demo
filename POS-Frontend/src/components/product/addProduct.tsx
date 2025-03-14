@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
 import { uploadProduct } from "../../api/product/productApi.ts"; // Ensure this import is correct
 import '../../styles/product/AddProductForm.css';
 import { getSupplierData } from "../../api/suppliers/supplierApi.ts"; // Import your API function
@@ -332,13 +333,13 @@ const AddProductForm = () => {
       </form>
       {message && <p className="error-message">{message}</p>}
 
+{/* Popup */}
       {showSuccessPopup && (
-        <div className="success-popup">
-         <div className="success-popup-content">
-
-          <span className="success-icon">✔️</span>
-          <p className='success-popup-title'>สินค้าเพิ่มสำเร็จ!</p>
-        </div>
+        <div className="product-popup">
+          <div className="product-popup-content">
+            <FontAwesomeIcon icon={faCheckCircle} className="product-icon" />
+            <h3 className="product-popup-title">เพิ่มสินค้าใหม่สำเร็จ!!</h3>
+          </div>
         </div>
       )}
     </div>

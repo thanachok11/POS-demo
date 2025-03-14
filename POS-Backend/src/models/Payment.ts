@@ -7,7 +7,6 @@ export interface IPayment extends Document {
     paymentMethod: "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code";
     amount: number; // ยอดเงินที่ชำระ
     status: "รอดำเนินการ" | "สำเร็จ" | "ล้มเหลว";
-    changeAmount:  number; // ยอดเงินทอน,
     createdAt: Date;
 }
 
@@ -26,7 +25,6 @@ const PaymentSchema = new Schema<IPayment>({
         enum: ["รอดำเนินการ", "สำเร็จ", "ล้มเหลว"],
         default: "รอดำเนินการ",
     },
-    changeAmount: { type: Number, default: 0 },
     createdAt: { type: Date, default: Date.now },
 });
 

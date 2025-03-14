@@ -1,0 +1,151 @@
+/* AddEmployee.css */
+.employee-form-container {
+    max-width: 900px;
+    margin: 50px auto;
+    padding: 40px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.employee-form-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #6c5ce7;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.employee-form{
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: space-between;
+        width: 100%;
+}
+.employee-input,
+.employee-select {
+    flex: 1;
+    min-width: 250px;
+    /* กำหนดขนาดขั้นต่ำ */
+    padding: 12px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    transition: 0.3s;
+    background: #f9f9f9;
+}
+.employee-input:focus,
+.employee-select:focus {
+    outline: none;
+    border-color: #6c5ce7;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.AddEmployee-message {
+    text-align: center;
+    color: #d9534f;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.employee-button {
+    width: 100%;
+    max-width: 200px;
+    padding: 12px;
+    font-size: 18px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    align-self: center;
+}
+
+.employee-button:hover {
+    background: linear-gradient(135deg, #0056b3, #004099);
+}
+
+.employee-button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.AddEmployee-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1100;
+}
+.AddEmployee-icon {
+    font-size: 50px;
+    color: #4CAF50;
+    animation: bounceIn 0.5s ease-in-out;
+}
+
+.AddEmployee-popup-content {
+    background-color: white;
+    padding: 20px;
+    margin-bottom: 250px;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.AddEmployee-popup-title {
+    font-size: 1.5em;
+    margin-bottom: 15px;
+}
+.AddEmployee-popup.show {
+    display: block;
+}
+.AddEmployee-popup-close-btn{
+    display: block;
+    margin: 20px auto 0;
+    padding: 7px 15px;
+    margin-left: 180px;
+    font-size: 16px;
+    background: #d9534f;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+@keyframes popup-animation {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+
+
+@keyframes checkmark-animation {
+    0% {
+        opacity: 0;
+        transform: translateX(10px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}

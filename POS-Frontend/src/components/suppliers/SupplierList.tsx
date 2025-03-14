@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { getSupplierData, deleteSupplier } from "../../api/suppliers/supplierApi.ts";
 import "../../styles/supplier/SupplierList.css";
-
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUserTie, faSearch, faEnvelope, faBriefcase, faPlus } from "@fortawesome/free-solid-svg-icons";
 import SupplierForm from "./SupplierForm.tsx";
 import React from "react";
 
@@ -87,7 +88,7 @@ const SupplierList = () => {
             {loading && <p className="supplier-list-loading">⏳ กำลังโหลด...</p>}
             <h2 className="supplier-list-title">📋รายชื่อซัพพลายเออร์</h2>
             <button className="add-supplier-btn" onClick={() => handleOpenModal()}>
-                ➕ เพิ่มซัพพลายเออร์
+                <FontAwesomeIcon icon={faPlus} /> เพิ่มซัพพลายเออร์
             </button>
             {error && <p className="supplier-list-error">{error}</p>}
 

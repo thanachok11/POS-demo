@@ -223,6 +223,19 @@ const ProductList: React.FC = () => {
     }
   };
 
+const handleDeleteOne = () => {
+  setCurrentQuantity((prev) => {
+    const newValue = prev.toString().slice(0, -1); // ลบตัวสุดท้าย
+    if (newValue === "" || newValue === "0") {
+      setShowNumberPad(false); // ปิด numpad ถ้าค่ากลายเป็น 0
+      return 0;
+    }
+    return Number(newValue);
+  });
+};
+
+
+
   const handleSetQuantity = () => {
     // Save the selected quantity when the user presses "เลือก"
     setCart((prevCart) => {
@@ -314,34 +327,33 @@ const ProductList: React.FC = () => {
         />
       )}
 
-      {/* Number Pad for Quantity */}
-      {showNumberPad && (
-        <div className="number-pad">
-          <div className="number-pad-display">
-            {errorMessage ? (
-              <p className="error-message">{errorMessage}</p> // แสดงข้อความ error ถ้ามี
-            ) : (
-              <p>จำนวน: {currentQuantity}</p> // แสดงจำนวนที่ผู้ใช้ป้อน
-            )}
-          </div>
-          <div className="number-pad-buttons">
-            {["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].map((button) => (
-              <button key={button} onClick={() => handleQuantityChange(button)}>
-                {button}
-              </button>
-            ))}
-          </div>
-          <button onClick={handleSetQuantity} className="set-quantity-btn">
-            เลือก
-          </button>
-          <button
-            onClick={() => handleQuantityChange("ลบทั้งหมด")}
-            className="clear-all-btn"
-          >
-            ลบทั้งหมด
-          </button>
-        </div>
+{/* Number Pad for Quantity */}
+{showNumberPad && (
+  <div className="numpad-product">
+    <div className="numpad-product-display">
+      {errorMessage ? (
+        <p className="numpad-product-error">{errorMessage}</p> // แสดงข้อความ error ถ้ามี
+      ) : (
+        <p>จำนวน: {currentQuantity}</p> // แสดงจำนวนที่ผู้ใช้ป้อน
       )}
+    </div>
+    <div className="numpad-product-buttons">
+      {["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].map((button) => (
+        <button key={button} onClick={() => handleQuantityChange(button)} className="numpad-product-btn">
+          {button}
+        </button>
+      ))}
+      <button onClick={handleDeleteOne} className="numpad-product-clear-one">C</button>
+    </div>
+    <button onClick={handleSetQuantity} className="numpad-product-set">
+      เลือก
+    </button>
+    <button onClick={() => handleQuantityChange("ลบทั้งหมด")} className="numpad-product-clear">
+      ลบทั้งหมด
+    </button>
+  </div>
+)}
+
     </div>
   );
 };

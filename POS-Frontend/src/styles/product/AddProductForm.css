@@ -69,7 +69,7 @@
     background-color: #4834d4;
 }
 
-.success-popup {
+.product-popup {
     position: fixed;
     top: 0;
     left: 0;
@@ -82,12 +82,12 @@
     z-index: 1100;
 }
 
-.success-icon {
+.product-icon {
     font-size: 50px;
     color: #4CAF50;
     animation: bounceIn 0.5s ease-in-out;
 }
-.success-popup-content{
+.product-popup-content{
     background-color: white;
     padding: 20px;
     margin-bottom: 250px;
@@ -97,7 +97,7 @@
     width: 100%;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
-.success-popup-title {
+.product-popup-title {
     font-size: 1.5em;
     margin-bottom: 15px;
 }

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { getStockData } from "../../api/stock/stock.ts";
 import { getProducts } from "../../api/product/productApi.ts";
 import { Link, useNavigate } from "react-router-dom"; // เพิ่ม useNavigate
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUserTie, faSearch, faEnvelope, faBriefcase, faPlus } from "@fortawesome/free-solid-svg-icons";
 import "../../styles/stock/StockPage.css";
 interface StockItem {
   barcode: string;
@@ -115,7 +117,9 @@ const StockPage: React.FC = () => {
       </div>
 
       <Link to="/add-product">
-        <button className="add-product-button">➕ เพิ่มสินค้า</button>
+        <button className="add-product-button">
+          <FontAwesomeIcon icon={faPlus} /> เพิ่มสินค้า
+          </button>
       </Link>
 
       {!loading && !error && (

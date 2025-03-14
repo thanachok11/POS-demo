@@ -172,7 +172,7 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
               <FontAwesomeIcon icon={faUserPlus} className="icon" /> <span className="dropdown-text">พนักงาน</span>
             </li>
             <li onClick={() => handleMenuClick("/suppliers", "ผู้ตลิต")}>
-              <FontAwesomeIcon icon={faHandshake} className="icon" /> <span className="menu-text">ผู้ผลิต</span>
+              <FontAwesomeIcon icon={faHandshake} className="icon" /> <span className="dropdown-text">ผู้ผลิต</span>
             </li>
           </ul>
 
