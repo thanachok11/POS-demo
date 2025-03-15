@@ -60,3 +60,20 @@ export const createPayment = async (req: Request, res: Response): Promise<void> 
         res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการบันทึก", error });
     }
 };
+
+// ฟังก์ชันสำหรับดึงข้อมูลการชำระเงินทั้งหมด
+export const getAllPayments = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const payments = await Payment.find(); // ดึงข้อมูลการชำระเงินทั้งหมดจากฐานข้อมูล
+
+        if (!payments.length) {
+            res.status(404).json({ success: false, message: "ไม่พบข้อมูลการชำระเงิน" });
+            return;
+        }
+
+        res.status(200).json({ success: true, data: payments });
+    } catch (error) {
+        console.error("Error retrieving all payments:", error);
+        res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการดึงข้อมูลการชำระเงิน", error });
+    }
+};

@@ -8,10 +8,9 @@ import ProductList from "./components/product/ProductList.tsx";
 import StockPage from "./components/stock/Stock.tsx";
 import StockDetailPage from "./components/stock/StockDetailPage.tsx";  // ✅ ใช้แค่ StockDetailPage
 import CreateOrder from "./components/stock/CreateOrderPage.tsx";
-import SupplierForm from "./components/suppliers/SupplierForm.tsx";
 import SupplierList from "./components/suppliers/SupplierList.tsx";
 import UserSettings from "./components/pages/UserSettings.tsx";
-import AddEmployee from "./components/aboutStore/AddEmployee.tsx";
+import PaymentPage from "./components/payment/PaymentPage.tsx";
 import EmployeeList from "./components/aboutStore/EmployeePage.tsx";
 import "./App.css";
 
@@ -33,7 +32,7 @@ const App: React.FC = () => {
             <Route path="/suppliers" element={<SupplierList />} />
             <Route path="/add-product" element={<AddProductForm />} />
             <Route path="settingProfile"  element={<UserSettings />} />
-            <Route path="add-employee"  element={<AddEmployee />} />
+            <Route path="/reports/salehistory" element={<PaymentPage />} />
             <Route path="setting/employee" element={<EmployeeList />} />
             <Route path="/shop" element={<ProductList />} />
             <Route path="/stocks" element={<StockPage />} />

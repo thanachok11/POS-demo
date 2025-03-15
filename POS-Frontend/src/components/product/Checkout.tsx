@@ -58,16 +58,23 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfir
           <div className="checkout-items">
             {cart.map((item) => (
               <div key={item.barcode} className="checkout-item">
-                {item.name} ราคา {item.price} บาท x{item.quantity} รายการ
+                <span className="checkout-item-name">{item.name}</span> 
+                <span className="checkout-item-price">ราคา {item.price} บาท</span> 
+                <span className="checkout-item-quantity">x {item.quantity} รายการ</span>
               </div>
             ))}
           </div>
-          <div className="checkout-total">ยอดรวม: {totalPrice} ฿</div>
+
+          <div className="checkout-total">
+            <span className="checkout-total-label">ยอดรวม:</span> 
+            <span className="checkout-total-price">{totalPrice} ฿</span>
+          </div>
+
           {error && <p className="checkout-error">{error}</p>}
+
           {change !== null && change >= 0 && (
             <p className="checkout-change">จำนวนเงินถูกต้อง</p>
           )}
-
         </div>
         <div className="checkout-right">
           <button onClick={onClose} className="checkout-close-btn"><FontAwesomeIcon icon={faTimes} /></button>

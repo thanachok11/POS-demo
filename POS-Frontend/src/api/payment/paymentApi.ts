@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/payment"; // เปลี่ยน URL ตาม backend ของคุณ
+const API_URL = "http://localhost:5000/api"; // เปลี่ยน URL ตาม backend ของคุณ
 
 // ฟังก์ชันสำหรับบันทึกข้อมูลการชำระเงินและสร้างใบเสร็จ
 export const createPayment = async (paymentData: {
@@ -18,7 +18,7 @@ export const createPayment = async (paymentData: {
 }) => {
     try {
         // ส่งข้อมูลการชำระเงินและรายการสินค้าทั้งหมดไปที่ backend
-        const response = await axios.post(`${API_URL}/create`, paymentData);
+        const response = await axios.post(`${API_URL}/payment/create`, paymentData);
 
         if (response.data.success) {
             // เมื่อการชำระเงินและการสร้างใบเสร็จสำเร็จ ให้ส่งข้อมูลใบเสร็จกลับ
@@ -35,7 +35,7 @@ export const createPayment = async (paymentData: {
 // ดึงข้อมูลการชำระเงินของออเดอร์
 export const getPaymentByOrderId = async (orderId: string) => {
     try {
-        const response = await axios.get(`${API_URL}/order/${orderId}`);
+        const response = await axios.get(`${API_URL}/payment/order/${orderId}`);
         return response.data;
     } catch (error) {
         console.error("เกิดข้อผิดพลาดในการดึงข้อมูลการชำระเงิน:", error);
@@ -46,10 +46,32 @@ export const getPaymentByOrderId = async (orderId: string) => {
 // ดึงข้อมูลใบเสร็จ
 export const getReceiptByPaymentId = async (paymentId: string) => {
     try {
-        const response = await axios.get(`${API_URL}/receipt/${paymentId}`);
+        const response = await axios.get(`${API_URL}/payment/receipt/${paymentId}`);
         return response.data;
     } catch (error) {
         console.error("เกิดข้อผิดพลาดในการดึงข้อมูลใบเสร็จ:", error);
+        return { success: false, message: "ไม่พบข้อมูลใบเสร็จ" };
+    }
+};
+
+// ดึงข้อมูลการชำระเงินทั้งหมด
+export const getAllPayments = async () => {
+    try {
+        const response = await axios.get(`${API_URL}/payment/all`);
+        return response.data;
+    } catch (error) {
+        console.error("เกิดข้อผิดพลาดในการดึงข้อมูลการชำระเงินทั้งหมด:", error);
+        return { success: false, message: "ไม่พบข้อมูลการชำระเงิน" };
+    }
+};
+
+// ดึงข้อมูลใบเสร็จทั้งหมด
+export const getAllReceipts = async () => {
+    try {
+        const response = await axios.get(`${API_URL}/payment/receipts/all`);
+        return response.data;
+    } catch (error) {
+        console.error("เกิดข้อผิดพลาดในการดึงข้อมูลใบเสร็จทั้งหมด:", error);
         return { success: false, message: "ไม่พบข้อมูลใบเสร็จ" };
     }
 };

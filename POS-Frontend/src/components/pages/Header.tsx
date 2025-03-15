@@ -13,6 +13,8 @@ import {
   faBox,
   faChartLine,
   faCog,
+  faReceipt, 
+  faHistory,
   faCartPlus,
   faFileInvoice,
   faExchangeAlt,
@@ -136,7 +138,14 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
             <li onClick={() => handleMenuClick("/reports/stock", "รายงานสินค้าคงเหลือ")}>
               <FontAwesomeIcon icon={faClipboardList} className="icon" /> <span className="dropdown-text">รายงานสินค้าคงเหลือ</span>
             </li>
+            <li onClick={() => handleMenuClick("/reports/receipts", "ใบเสร็จ")}>
+              <FontAwesomeIcon icon={faReceipt} className="icon" /> <span className="dropdown-text">ใบเสร็จ</span>
+            </li>
+            <li onClick={() => handleMenuClick("/reports/salehistory", "ประวัติการขาย")}>
+              <FontAwesomeIcon icon={faHistory} className="icon" /> <span className="dropdown-text">ประวัติการขาย</span>
+            </li>
           </ul>
+
           {/* เมนู: จัดการสินค้า */}
           <li className="item-dropdown" onClick={() => toggleDropdown("products")}>
             <FontAwesomeIcon icon={faBox} className="icon" /> <span className="menu-text">จัดการสินค้า</span>

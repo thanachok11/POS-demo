@@ -233,8 +233,9 @@ const handleDeleteOne = () => {
     return Number(newValue);
   });
 };
-
-
+const clearCart = () => {
+  setCart([]); // เคลียร์สินค้าในตะกร้า
+};
 
   const handleSetQuantity = () => {
     // Save the selected quantity when the user presses "เลือก"
@@ -281,6 +282,8 @@ const handleDeleteOne = () => {
       {/* ตะกร้าสินค้า */}
       <div className={`cart ${cart.length > 0 ? "show-cart" : "hidden-cart"}`}>
         <h2 className="cart-title ">ตะกร้าสินค้า</h2>
+        <button onClick={clearCart} className="clear-cart-btn">เคลียตะกร้า</button>
+
         <div className="cart-items">
           {cart.map((item) => (
             <div key={item.barcode} className="cart-item">
@@ -329,7 +332,12 @@ const handleDeleteOne = () => {
 
 {/* Number Pad for Quantity */}
 {showNumberPad && (
+  <div className="numpad-overlay">
   <div className="numpad-product">
+<button onClick={() => setShowNumberPad(false)} className="numpad-product-close">
+  &times;
+</button>
+
     <div className="numpad-product-display">
       {errorMessage ? (
         <p className="numpad-product-error">{errorMessage}</p> // แสดงข้อความ error ถ้ามี
@@ -342,18 +350,19 @@ const handleDeleteOne = () => {
         <button key={button} onClick={() => handleQuantityChange(button)} className="numpad-product-btn">
           {button}
         </button>
+        
       ))}
-      <button onClick={handleDeleteOne} className="numpad-product-clear-one">C</button>
+    <button onClick={handleDeleteOne} className="numpad-product-clear-one">C</button>
+    <button onClick={() => handleQuantityChange("ลบทั้งหมด")} className="numpad-product-clear">
+      AC
+    </button>
     </div>
-    <button onClick={handleSetQuantity} className="numpad-product-set">
+        <button onClick={handleSetQuantity} className="numpad-product-set">
       เลือก
     </button>
-    <button onClick={() => handleQuantityChange("ลบทั้งหมด")} className="numpad-product-clear">
-      ลบทั้งหมด
-    </button>
+  </div>
   </div>
 )}
-
     </div>
   );
 };

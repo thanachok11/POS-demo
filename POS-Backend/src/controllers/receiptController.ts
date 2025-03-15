@@ -1,40 +1,6 @@
 import { Request, Response } from "express";
 import Receipt from "../models/Receipt";
 
-// 📌 ฟังก์ชันสร้างใบเสร็จใหม่
-export const createReceipt = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const { saleId, employeeName, items, totalPrice, paymentMethod, amountPaid } = req.body;
-
-        if (!saleId || !employeeName || !items || !totalPrice || !paymentMethod) {
-            res.status(400).json({ success: false, message: "ข้อมูลไม่ครบถ้วน" });
-            return;
-        }
-
-        // คำนวณเงินทอน (เฉพาะกรณีชำระเงินสด)
-        let changeAmount = 0;
-        if (paymentMethod === "เงินสด" && amountPaid) {
-            changeAmount = amountPaid - totalPrice;
-        }
-
-        const newReceipt = new Receipt({
-            saleId,
-            employeeName,
-            items,
-            totalPrice,
-            paymentMethod,
-            amountPaid,
-            changeAmount,
-        });
-
-        await newReceipt.save();
-
-        res.status(201).json({ success: true, message: "สร้างใบเสร็จสำเร็จ", receipt: newReceipt });
-    } catch (error) {
-        res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการสร้างใบเสร็จ", error });
-    }
-};
-
 // 📌 ฟังก์ชันดึงใบเสร็จทั้งหมด
 export const getAllReceipts = async (req: Request, res: Response): Promise<void> => {
     try {

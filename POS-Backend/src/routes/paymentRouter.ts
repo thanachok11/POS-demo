@@ -1,12 +1,9 @@
-// routes/orderRoutes.ts
-import { Router } from 'express';
-import {createPayment} from '../controllers/paymentController';
+import express from "express";
+import { createPayment, getAllPayments } from "../controllers/paymentController";
 
-const router = Router();
+const router = express.Router();
 
-// route สำหรับการสร้างใบสั่งซื้อ
-router.post('/create', createPayment);
-
-// route สำหรับดึงรายการใบสั่งซื้อทั้งหมด
+router.post("/create", createPayment); // บันทึกการชำระเงิน
+router.get("/all", getAllPayments); // ดึงข้อมูลการชำระเงินทั้งหมด
 
 export default router;

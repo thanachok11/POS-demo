@@ -1,0 +1,78 @@
+/* payment/PaymentPage.css */
+.payment-container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto;
+    margin-left: 80px;
+    margin-top: 70px;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.1);
+}
+
+.payment-title {
+    font-size: 24px;
+    text-align: center;
+    color: #6c5ce7;
+    margin-bottom: 20px;
+}
+
+.payment-loading,
+.payment-error {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #d9534f;
+}
+
+.payment-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.payment-table th,
+.payment-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+}
+
+.payment-table th {
+    background: #6c5ce7;
+    color: white;
+}
+
+.payment-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.payment-table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+.payment-no-data {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #888;
+    padding: 20px;
+}
+
+.payment-table td {
+    color: #333;
+}
+
+.payment-table td:last-child {
+    text-transform: capitalize;
+}
+
+.payment-error {
+    color: #e74c3c;
+    font-size: 1rem;
+}
+
+.payment-loading {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #9e39e0;
+}
