@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { getProducts } from "../../api/product/productApi.ts";
 import { updateStockByBarcode, getStockByBarcode } from "../../api/stock/stock.ts";
 import { createPayment } from "../../api/payment/paymentApi.ts"; // นำเข้า API ชำระเงิน
-
+import { getCategories } from "../../api/product/categoryApi.ts"; // Import API ดึงหมวดหมู่สินค้า
 import Checkout from "../product/Checkout.tsx"; // นำเข้า Checkout Modal
 import "../../styles/product/ProductList.css";
 import { jwtDecode } from "jwt-decode";
@@ -14,6 +14,7 @@ interface Product {
   name: string;
   price: number;
   quantity: number;
+  category: string;
   imageUrl: string;
 }
 
@@ -29,6 +30,8 @@ const ProductList: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [lowStockMessages, setLowStockMessages] = useState<Map<string, string>>(new Map());
   const [searchProduct, setSearchProduct] = useState("");
+  const [categories, setCategories] = useState<string[]>([]);
+  const [categoryFilter, setCategoryFilter] = useState<string>("");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -45,7 +48,22 @@ const ProductList: React.FC = () => {
       }
     }
   }, []);
+  useEffect(() => {
+  const fetchCategories = async () => {
+    try {
+      const categoryData = await getCategories();
+      if (categoryData.success && Array.isArray(categoryData.data)) {
+        setCategories(categoryData.data);
+      } else {
+        console.error("ไม่พบข้อมูลหมวดหมู่");
+      }
+    } catch (error) {
+      console.error("เกิดข้อผิดพลาดในการดึงหมวดหมู่:", error);
+    }
+  };
 
+  fetchCategories();
+  }, []);
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -82,30 +100,27 @@ const ProductList: React.FC = () => {
   };
 
 
-  const removeFromCart = (product: Product, barcode: string) => {
+const removeFromCart = (product: Product, barcode: string) => {
     setCart((prevCart) => {
-      const updatedCart = prevCart
-        .map((item) =>
-          item.barcode === barcode ? { ...item, quantity: item.quantity - 1 } : item
-        )
-        .filter((item) => item.quantity > 0); // ลบสินค้าออกถ้าจำนวนเป็น 0
+      const updatedCart = prevCart.filter(item => item.barcode !== barcode); // 🔥 ลบสินค้าทั้งหมดที่ตรงกับ barcode
 
       if (updatedCart.length === 0) {
         setShowCart(false); // ซ่อนตะกร้าเมื่อไม่มีสินค้า
       }
 
-      // Clear low stock message when item is removed from cart
+      // ลบข้อความแจ้งเตือน stock ต่ำเมื่อสินค้าถูกลบออกจากตะกร้า
       setLowStockMessages((prevMessages) => {
         const newMessages = new Map(prevMessages);
-        newMessages.delete(barcode); // Remove the low stock message when the item is removed
+        newMessages.delete(barcode);
         return newMessages;
       });
 
       return updatedCart;
     });
-  };
+};
 
-  const checkout = async () => {
+
+  const checkout = async (amountReceived: number) => {
     if (!user) {
       setErrorMessage("กรุณาเข้าสู่ระบบก่อนทำการชำระเงิน");
       return;
@@ -124,6 +139,8 @@ const ProductList: React.FC = () => {
       employeeName: user.username,
       paymentMethod: selectedPaymentMethod as "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code",
       amount: getTotalPrice(),
+      amountReceived, // ✅ เพิ่มจำนวนเงินที่ลูกค้าจ่าย
+      change: amountReceived - getTotalPrice(), // ✅ คำนวณเงินทอน
       items: cart.map(item => ({
         barcode: item.barcode,
         name: item.name,
@@ -159,7 +176,7 @@ const ProductList: React.FC = () => {
       setCart([]);
       setShowCart(false);
       setTimeout(() => {
-        setShowCart(false); // ซ่อนตะกร้าหลังจากข้อความหายไป
+        setShowCart(false);
       }, 3000); // เวลา 3 วินาที
     } catch (error) {
       setErrorMessage("เกิดข้อผิดพลาดในการบันทึกข้อมูลชำระเงิน");
@@ -169,9 +186,8 @@ const ProductList: React.FC = () => {
   };
 
 
-
-  // ฟังก์ชันที่ใช้ในการยืนยันการชำระเงินจาก Modal
-  const handleConfirmPayment = (method: string) => {
+// 📌 ฟังก์ชันยืนยันการชำระเงินจาก Modal
+const handleConfirmPayment = (method: string, amountReceived?: number) => {
     const validPaymentMethods = ["เงินสด", "โอนเงิน", "บัตรเครดิต", "QR Code"] as const;
 
     if (!validPaymentMethods.includes(method as any)) {
@@ -184,6 +200,8 @@ const ProductList: React.FC = () => {
       employeeName: user?.username || "ลูกค้า",
       paymentMethod: method as "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code",
       amount: getTotalPrice(),
+      amountReceived: amountReceived || getTotalPrice(), // ✅ ใช้ amountReceived หรือ totalPrice
+      change: amountReceived ? amountReceived - getTotalPrice() : 0, // ✅ คำนวณเงินทอน
       items: cart.map(item => ({
         barcode: item.barcode,
         name: item.name,
@@ -206,7 +224,8 @@ const ProductList: React.FC = () => {
         setErrorMessage("เกิดข้อผิดพลาดในการบันทึกข้อมูลชำระเงิน");
         console.error(error);
       });
-  };
+};
+
 
   // คำนวณยอดรวมทั้งหมดในตะกร้า
   const getTotalPrice = () => {
@@ -227,7 +246,6 @@ const handleDeleteOne = () => {
   setCurrentQuantity((prev) => {
     const newValue = prev.toString().slice(0, -1); // ลบตัวสุดท้าย
     if (newValue === "" || newValue === "0") {
-      setShowNumberPad(false); // ปิด numpad ถ้าค่ากลายเป็น 0
       return 0;
     }
     return Number(newValue);
@@ -237,21 +255,26 @@ const clearCart = () => {
   setCart([]); // เคลียร์สินค้าในตะกร้า
 };
 
-  const handleSetQuantity = () => {
-    // Save the selected quantity when the user presses "เลือก"
+const handleSetQuantity = () => {
     setCart((prevCart) => {
-      return prevCart.map((item) =>
-        item.barcode === selectedProductBarcode
-          ? { ...item, quantity: currentQuantity }
-          : item
-      );
+      return prevCart
+        .map((item) =>
+          item.barcode === selectedProductBarcode
+            ? { ...item, quantity: currentQuantity }
+            : item
+        )
+        .filter((item) => item.quantity > 0); // 🔥 ลบสินค้าที่มีจำนวนเป็น 0
     });
-    setShowNumberPad(false); // Close the number pad
-  };
 
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchProduct.toLowerCase())
-  );
+    setShowNumberPad(false); // ปิดแป้นตัวเลข
+};
+
+
+const filteredProducts = products.filter((product) =>
+  product.name.toLowerCase().includes(searchProduct.toLowerCase()) &&
+  (categoryFilter === "" || product.category === categoryFilter) // กรองสินค้าตามหมวดหมู่
+);
+
   return (
     <div className="product-page">
       <div className="search-grid">
@@ -263,7 +286,22 @@ const clearCart = () => {
             value={searchProduct}
             onChange={(e) => setSearchProduct(e.target.value)}
           />
-        </div>
+ 
+        <div className="category-filter-container">
+        <select
+          className="category-filter"
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+        >
+          <option value="">📦 ทุกหมวดหมู่</option>
+          {categories.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
+               </div>
+      </div>
       </div>
       <div className="product-list-container">
         {errorMessage && <p className="error-message">{errorMessage}</p>}

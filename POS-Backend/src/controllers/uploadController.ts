@@ -97,12 +97,7 @@ export const addProductWithStock = async (req: Request, res: Response): Promise<
             location,
             threshold: threshold || 5, // ค่าขั้นต่ำเริ่มต้นที่ 5
             barcode,
-            status:
-              quantity === 0
-                ? "สินค้าหมด"
-                : quantity < (threshold || 5)
-                  ? "สินค้าเหลือน้อย"
-                  : "สินค้าพร้อมขาย", // เพิ่มเงื่อนไข Low Stock
+            status: "สินค้าพร้อมขาย", // เพิ่มเงื่อนไข Low Stock
             lastRestocked: quantity > 0 ? new Date() : undefined,
           });
 

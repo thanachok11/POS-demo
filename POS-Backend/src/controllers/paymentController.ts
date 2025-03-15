@@ -5,7 +5,7 @@ import Receipt from "../models/Receipt"; // Import Receipt model
 // ฟังก์ชันสำหรับบันทึกข้อมูลการชำระเงิน
 export const createPayment = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { saleId, employeeName, paymentMethod, amount, items } = req.body;
+        const { saleId, employeeName, paymentMethod,amountReceived, amount, items } = req.body;
 
         if (!saleId || !employeeName || !paymentMethod || !amount || !items) {
             res.status(400).json({ success: false, message: "ข้อมูลไม่ครบถ้วน" });
@@ -17,6 +17,7 @@ export const createPayment = async (req: Request, res: Response): Promise<void> 
             saleId,
             employeeName,
             paymentMethod,
+            amountReceived,
             amount,
             status: "สำเร็จ",
         });
@@ -29,8 +30,8 @@ export const createPayment = async (req: Request, res: Response): Promise<void> 
 
         // คำนวณเงินทอน (สำหรับการชำระเงินแบบเงินสด)
         let changeAmount = 0;
-        if (paymentMethod === "เงินสด" && amount) {
-            changeAmount = amount - totalPrice;
+        if (paymentMethod === "เงินสด" && amountReceived) {
+            changeAmount = amountReceived - totalPrice;
         }
 
         // สร้างใบเสร็จ
@@ -40,7 +41,7 @@ export const createPayment = async (req: Request, res: Response): Promise<void> 
             items,
             totalPrice,
             paymentMethod,
-            amountPaid: amount,
+            amountPaid: amountReceived,
             changeAmount,
             timestamp: new Date(),
         });

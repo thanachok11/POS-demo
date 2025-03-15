@@ -7,6 +7,7 @@ export const createPayment = async (paymentData: {
     saleId: string;
     employeeName: string;
     paymentMethod: "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code";
+    amountReceived: number;
     amount: number;
     items: Array<{
         barcode: string;

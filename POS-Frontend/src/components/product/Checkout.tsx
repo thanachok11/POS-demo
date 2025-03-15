@@ -11,9 +11,10 @@ interface CheckoutProps {
   cart: { barcode: string; name: string; price: number; quantity: number }[];
   totalPrice: number;
   onClose: () => void;
-  onConfirmPayment: (method: string) => void;
-  checkout: () => Promise<void>;
+  onConfirmPayment: (method: string, amountReceived?: number) => void; // ✅ เพิ่ม amountReceived
+  checkout: (amountReceived: number) => Promise<void>; // ✅ checkout รับ amountReceived
 }
+
 
 const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfirmPayment, checkout }) => {
   const [showNumpad, setShowNumpad] = useState(false);
@@ -33,12 +34,17 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfir
     }
   };
 
-  const confirmCashPayment = async () => {
-    if (change !== null && change >= 0) {
-      await checkout(); // call checkout function
-      setPopupVisible(true); // Show the success popup
-    }
-  };
+const confirmCashPayment = async () => {
+  const cashAmount = parseFloat(cashInput);
+  
+  if (change !== null && change >= 0) {
+    await checkout(cashAmount); // ✅ ส่ง amountReceived ไป
+// call checkout function พร้อมส่ง amountReceived
+    onConfirmPayment("cash", cashAmount); // ✅ ส่ง amountReceived ไปด้วย
+    setPopupVisible(true); // Show the success popup
+  }
+};
+
 
   return (
     <div className="checkout-modal">

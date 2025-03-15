@@ -35,10 +35,8 @@ const StockDetail: React.FC = () => {
                     getStockData(token)
                 ]);
 
-                // ตรวจสอบผลลัพธ์จาก API
                 if (productData) {
                     setProduct(productData);
-                    // ค้นหาสต็อกที่ตรงกับบาร์โค้ดของสินค้า
                     const stockItem = stockData?.find((item: any) => item.barcode === barcode);
                     setStock(stockItem || { quantity: "ไม่พบข้อมูลสต็อก" });
                 } else {
@@ -68,7 +66,29 @@ const StockDetail: React.FC = () => {
                     <p className="product-info-stockDetail"><strong>หมวดหมู่:</strong> {product.category}</p>
                     <p className="product-info-stockDetail"><strong>ราคา:</strong> {product.price} บาท</p>
                     <p className="product-info-stockDetail"><strong>สต็อกคงเหลือ:</strong> {stock?.quantity || "ไม่พบข้อมูล"}</p>
-                    <button className="back-button-stockDetail" onClick={() => navigate(-1)}>⬅️ กลับ</button>
+
+                    {/* ปุ่มนำเข้าสินค้าใหม่ และแก้ไขสินค้า */}
+                    <div className="stock-detail-buttons">
+                        <button 
+                            className="back-button-stockDetail" 
+                            onClick={() => navigate(-1)}>
+                                ⬅️ กลับ
+                        </button>
+
+                        <button 
+                            className="import-button-stockDetail" 
+                            onClick={() => navigate(`/createOrder`)}
+                        >
+                            📥 นำเข้าสินค้าใหม่
+                        </button>
+                        <button 
+                            className="edit-button-stockDetail" 
+                            onClick={() => navigate(`/edit/${barcode}`)}
+                        >
+                            ✏️ แก้ไขสินค้า
+                        </button>
+                    </div>
+
                 </div>
             ) : (
                 <p className="error-message-stockDetail">❌ ไม่พบข้อมูลสินค้าสำหรับบาร์โค้ดนี้</p>

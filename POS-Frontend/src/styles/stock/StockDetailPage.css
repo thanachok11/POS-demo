@@ -56,9 +56,6 @@
 
 /* ปุ่มกลับ */
 .back-button-stockDetail {
-    margin-top: 20px;
-    padding: 10px 20px;
-    font-size: 16px;
     font-weight: bold;
     color: white;
     background: #007bff;
@@ -70,6 +67,44 @@
 
 .back-button-stockDetail:hover {
     background: #0056b3;
+}
+
+.stock-detail-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.import-button-stockDetail,
+.edit-button-stockDetail,
+.back-button-stockDetail {
+    padding: 10px 15px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.import-button-stockDetail {
+    background-color: #4CAF50;
+    /* สีเขียว */
+    color: white;
+}
+
+.import-button-stockDetail:hover {
+    background-color: #45a049;
+}
+
+.edit-button-stockDetail {
+    background-color: #FFA500;
+    /* สีส้ม */
+    color: white;
+}
+
+.edit-button-stockDetail:hover {
+    background-color: #e69500;
 }
 
 /* แสดงข้อความโหลดข้อมูล */

@@ -161,7 +161,7 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
             <li onClick={() => handleMenuClick("/transfer", "โอนสินค้า")}>
               <FontAwesomeIcon icon={faExchangeAlt} className="icon" /> <span className="dropdown-text">โอนสินค้า</span>
             </li>
-            <li onClick={() => handleMenuClick("/barcode", "บาร์โค้ด")}>
+            <li onClick={() => handleMenuClick("/products/scan", "บาร์โค้ด")}>
               <FontAwesomeIcon icon={faBarcode} className="icon" /> <span className="dropdown-text">บาร์โค้ด</span>
             </li>
             <li onClick={() => handleMenuClick("/debt", "ค้างชำระ")}>

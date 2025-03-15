@@ -1,0 +1,97 @@
+/* ตัว Container หลัก */
+.receipt-container {
+    width: 90%;
+        max-width: 1200px;
+        margin: 20px auto;
+        margin-left: 80px;
+        margin-top: 70px;
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* ชื่อหัวข้อ */
+.receipt-title {
+    font-size: 24px;
+    text-align: center;
+    color: #6c5ce7;
+    margin-bottom: 20px;
+}
+
+/* ข้อความขณะโหลดข้อมูล */
+.receipt-loading {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #888;
+}
+
+/* ข้อความ error */
+.receipt-error {
+    color: red;
+    font-size: 1.2rem;
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* ตารางใบเสร็จ */
+.receipt-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* หัวตาราง */
+.receipt-table th {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+    background: #6c5ce7;
+    color: white;
+}
+
+/* ข้อมูลในตาราง */
+.receipt-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+}
+
+/* แถวที่ไม่มีข้อมูล */
+.receipt-no-data {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #888;
+    padding: 20px;
+    background-color: #f9f9f9;
+}
+
+/* ลิงค์ "ดูรายละเอียด" */
+.view-detail {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.view-detail:hover {
+    text-decoration: underline;
+}
+
+/* สไตล์สำหรับแถว */
+.receipt-table tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* สำหรับการจัดการหากไม่มีข้อมูล */
+.receipt-table td,
+.receipt-table th {
+    text-align: center;
+}
+
+/* เพิ่มความสวยงามให้กับช่องข้อมูล */
+.receipt-table td {
+    font-size: 1rem;
+    color: #333;
+}

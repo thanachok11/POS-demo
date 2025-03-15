@@ -5,6 +5,7 @@ export interface IPayment extends Document {
     saleId: string; // รหัสคำสั่งซื้อ
     employeeName: string; // ชื่อลูกค้า
     paymentMethod: "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code";
+    amountReceived:string;
     amount: number; // ยอดเงินที่ชำระ
     status: "รอดำเนินการ" | "สำเร็จ" | "ล้มเหลว";
     createdAt: Date;
@@ -19,6 +20,7 @@ const PaymentSchema = new Schema<IPayment>({
         enum: ["เงินสด", "โอนเงิน", "บัตรเครดิต", "QR Code"],
         required: true,
     },
+    amountReceived: { type: String, required: true },
     amount: { type: Number, required: true },
     status: {
         type: String,
