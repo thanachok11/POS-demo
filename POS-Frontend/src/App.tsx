@@ -12,6 +12,8 @@ import CreateOrder from "./components/stock/CreateOrderPage.tsx";
 import SupplierList from "./components/suppliers/SupplierList.tsx";
 import UserSettings from "./components/pages/UserSettings.tsx";
 import ReceiptPage from "./components/receipt/ReceiptPage.tsx";
+import ReceiptDetail from "./components/receipt/ReceiptDetail.tsx";
+
 import SalePage from "./components/pages/Dashboard.tsx";
 import PaymentPage from "./components/payment/PaymentPage.tsx";
 import EmployeeList from "./components/aboutStore/EmployeePage.tsx";
@@ -42,6 +44,7 @@ const App: React.FC = () => {
             <Route path="/products/scan" element={<ScanBarcode />} />
             <Route path="/shop" element={<ProductList />} />
             <Route path="/stocks" element={<StockPage />} />
+            <Route path="/receipts/paymentId/:paymentId" element={<ReceiptDetail />} /> {/* ✅ รับ paymentId เป็น dynamic parameter */}
             <Route path="/products/barcode/:barcode" element={<StockDetailPage />} /> {/* ✅ รับ barcode เป็น dynamic parameter */}
             <Route path="/createOrder" element={<CreateOrder />} />
           </Routes>

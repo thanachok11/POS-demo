@@ -12,10 +12,10 @@ export const getAllReceipts = async (req: Request, res: Response): Promise<void>
 };
 
 // 📌 ฟังก์ชันดึงใบเสร็จตาม `saleId`
-export const getReceiptBySaleId = async (req: Request, res: Response): Promise<void> => {
+export const getReceiptByPaymentId = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { saleId } = req.params;
-        const receipt = await Receipt.findOne({ saleId });
+        const { paymentId } = req.params;
+        const receipt = await Receipt.findOne({ paymentId });
 
         if (!receipt) {
             res.status(404).json({ success: false, message: "ไม่พบใบเสร็จ" });
@@ -31,8 +31,8 @@ export const getReceiptBySaleId = async (req: Request, res: Response): Promise<v
 // 📌 ฟังก์ชันลบใบเสร็จตาม `saleId`
 export const deleteReceipt = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { saleId } = req.params;
-        const deletedReceipt = await Receipt.findOneAndDelete({ saleId });
+        const { paymentId } = req.params;
+        const deletedReceipt = await Receipt.findOneAndDelete({ paymentId });
 
         if (!deletedReceipt) {
             res.status(404).json({ success: false, message: "ไม่พบใบเสร็จ" });

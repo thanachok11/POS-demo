@@ -14,15 +14,17 @@ export const fetchReceipts = async () => {
 };
 
 // 📌 ดึงข้อมูลใบเสร็จตาม `saleId`
-export const fetchReceiptBySaleId = async (saleId: string) => {
+export async function fetchReceiptById(paymentId: string) {
   try {
-    const response = await axios.get(`${API_BASE_URL}/receipts/${saleId}`);
-    return response.data.success ? response.data.receipt : null;
+    const response = await fetch(`${API_BASE_URL}/receipts/paymentId/${paymentId}`);
+    if (!response.ok) {
+      throw new Error("ไม่สามารถดึงข้อมูลใบเสร็จได้");
+    }
+    return await response.json();
   } catch (error) {
-    console.error("Error fetching receipt:", error);
-    return null;
+    throw new Error(error instanceof Error ? error.message : "เกิดข้อผิดพลาด");
   }
-};
+}
 
 // 📌 ลบใบเสร็จตาม `saleId`
 export const deleteReceipt = async (saleId: string) => {

@@ -75,7 +75,7 @@ export default function ReceiptPage() {
                   <td>{receipt.totalPrice.toLocaleString()} บาท</td>
                   <td>{receipt.paymentMethod}</td>
                   <td>
-                    <a href={`/receipt/${receipt.paymentId}`} className="view-detail">
+                    <a href={`/receipts/paymentId/${receipt.paymentId}`} className="view-detail">
                       🔍 ดูรายละเอียด
                     </a>
                   </td>
