@@ -1,91 +1,102 @@
-/* POSDashboard.css */
+/* ตั้งค่าหลักสำหรับ container */
+.report-sale-container {
+    width: 90%;
+      max-width: 1200px;
+      margin: 20px auto;
+      margin-left: 80px;
+      margin-top: 70px;
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 40px rgba(0, 0, 0, 0.1);
+  /* สีพื้นหลังอ่อน */
+}
+.report-sale-title{
+      font-size: 24px;
+        text-align: center;
+        color: #6c5ce7;
+        margin-bottom: 20px;
+}
 
-/* General Styles */
-.dashboard-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background-color: #f4f4f4;
-    min-height: 100vh;
-    padding: 20px;
-    margin-top: 80px;
-  }
-  
-  .dashboard-header {
-    background-color: #4caf50;
-    color: white;
-    padding: 20px;
-    width: 100%;
-    text-align: center;
-    border-radius: 8px;
-    margin-bottom: 20px;
-  }
-  
-  .dashboard-header h1 {
-    margin: 0;
-    font-size: 2rem;
-  }
-  
-  .dashboard-main {
-    width: 100%;
-    max-width: 1200px;
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-  }
-  
-  .dashboard-overview {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .dashboard-overview h2 {
-    margin: 0;
-    font-size: 1.5rem;
-    color: #333;
-  }
-  
-  .dashboard-overview p {
-    margin: 5px 0;
+.report-sale-main {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ส่วนของภาพรวมยอดขาย */
+.report-sale-overview,
+.report-sale-product-info {
+  background-color: #ffffff;
+  padding: 15px;
+  border-radius: 6px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 15px;
+}
+
+.report-sale-overview h2,
+.report-sale-product-info h2 {
+  color: #6c5ce7;
+  /* ใช้สีหลักสำหรับหัวข้อ */
+  font-size: 1.4rem;
+  /* ลดขนาดฟอนต์ */
+  margin-bottom: 10px;
+}
+
+.report-sale-overview p,
+.report-sale-product-info p {
+  font-size: 1rem;
+  /* ลดขนาดฟอนต์ */
+  margin-bottom: 8px;
+  color: #333;
+  /* สีข้อความที่เข้ม */
+}
+
+/* ข้อมูลยอดขาย */
+.report-sale-chart {
+  width: 80%;
+  /* กำหนดความกว้างของกราฟ */
+  height: 300px;
+  /* กำหนดความสูงของกราฟ */
+  margin: 0 auto;
+  /* จัดให้กราฟอยู่กลาง */
+}
+.report-sale-chart h2 {
+  color: #6c5ce7;
+  /* ใช้สีหลักสำหรับหัวข้อกราฟ */
+  font-size: 1.4rem;
+  /* ลดขนาดฟอนต์ */
+  margin-bottom: 15px;
+}
+/* ส่วนของกราฟ */
+.chart-container {
+  width: 100%;
+  max-width: 700px;
+  /* ลดขนาดกราฟ */
+  margin: 0 auto;
+}
+
+/* สำหรับส่วนอื่นๆ */
+.report-sale-container p {
+  color: #555;
+}
+.report-sale-revenue{
+    background-color: #ffffff;
+      padding: 15px;
+      border-radius: 6px;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 15px;
+}
+.report-sale-revenue-title{
+  color: #6c5ce7;
+  /* ใช้สีหลักสำหรับหัวข้อ */
+  font-size: 1.4rem;
+  /* ลดขนาดฟอนต์ */
+  margin-bottom: 10px;
+}
+.report-sale-revenue-list{
     font-size: 1rem;
-    color: #555;
-  }
-  
-  .dashboard-chart {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-  
-  .dashboard-chart h2 {
-    margin: 0;
-    font-size: 1.5rem;
-    color: #333;
-    margin-bottom: 20px;
-  }
-  
-  .dashboard-chart canvas {
-    width: 100% !important;
-    height: 400px !important; /* Set chart height */
-  }
-  
-  @media (max-width: 768px) {
-    .dashboard-container {
-      padding: 10px;
-    }
-  
-    .dashboard-header h1 {
-      font-size: 1.5rem;
-    }
-  
-    .dashboard-overview h2, .dashboard-chart h2 {
-      font-size: 1.2rem;
-    }
-  }
-  
+      /* ลดขนาดฟอนต์ */
+      margin-bottom: 8px;
+      color: #333;
+      /* สีข้อความที่เข้ม */
+}

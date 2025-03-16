@@ -12,6 +12,7 @@ import CreateOrder from "./components/stock/CreateOrderPage.tsx";
 import SupplierList from "./components/suppliers/SupplierList.tsx";
 import UserSettings from "./components/pages/UserSettings.tsx";
 import ReceiptPage from "./components/receipt/ReceiptPage.tsx";
+import SalePage from "./components/pages/Dashboard.tsx";
 import PaymentPage from "./components/payment/PaymentPage.tsx";
 import EmployeeList from "./components/aboutStore/EmployeePage.tsx";
 import "./App.css";
@@ -37,6 +38,7 @@ const App: React.FC = () => {
             <Route path="/reports/salehistory" element={<PaymentPage />} />
             <Route path="setting/employee" element={<EmployeeList />} />
             <Route path="/reports/receipts" element={<ReceiptPage />} />
+            <Route path="/reports/sales" element={<SalePage />} />
             <Route path="/products/scan" element={<ScanBarcode />} />
             <Route path="/shop" element={<ProductList />} />
             <Route path="/stocks" element={<StockPage />} />
