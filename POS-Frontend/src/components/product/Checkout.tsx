@@ -21,7 +21,10 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfir
   const [cashInput, setCashInput] = useState("");
   const [change, setChange] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [popupVisible, setPopupVisible] = useState(false); // Show popup after payment
+  const [popupVisible, setPopupVisible] = useState(false);
+  const [showQR, setShowQR] = useState(false); // เปิด QR Code
+  const [showCredit, setShowCredit] = useState(false); // เปิด Modal บัตรเครดิต
+  const [selectedCard, setSelectedCard] = useState<string | null>(null); // เลือกประเภทบัตร
 
   const handleCashPayment = () => {
     const cashAmount = parseFloat(cashInput);
@@ -34,58 +37,73 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfir
     }
   };
 
-const confirmCashPayment = async () => {
-  const cashAmount = parseFloat(cashInput);
-  
-  if (change !== null && change >= 0) {
-    await checkout(cashAmount); // ✅ ส่ง amountReceived ไป
-// call checkout function พร้อมส่ง amountReceived
-    onConfirmPayment("cash", cashAmount); // ✅ ส่ง amountReceived ไปด้วย
-    setPopupVisible(true); // Show the success popup
-  }
-};
+  const confirmCashPayment = async () => {
+    const cashAmount = parseFloat(cashInput);
+    if (change !== null && change >= 0) {
+      await checkout(cashAmount);
+      onConfirmPayment("cash", cashAmount);
+      setPopupVisible(true);
+    }
+  };
 
+  const confirmQRPayment = async () => {
+    await checkout(totalPrice);
+    onConfirmPayment("qr");
+    setPopupVisible(true);
+  };
+
+  const confirmCreditPayment = async () => {
+    if (selectedCard) {
+      await checkout(totalPrice);
+      onConfirmPayment(`credit-${selectedCard}`);
+      setPopupVisible(true);
+    }
+  };
 
   return (
     <div className="checkout-modal">
       <div className="checkout-content">
+
+        {/* ด้านซ้าย: รายการสินค้า */}
         <div className="checkout-left">
-          <div className="checkout-payment-buttons">
-            <button className="checkout-cash-btn" onClick={() => setShowNumpad(true)}>
-              <FontAwesomeIcon icon={faMoneyBill} /> เงินสด
-            </button>
-            <button className="checkout-qr-btn" onClick={() => onConfirmPayment("qr")}>
-              <FontAwesomeIcon icon={faQrcode} /> QR Code
-            </button>
-            <button className="checkout-credit-btn" onClick={() => onConfirmPayment("credit")}>
-              <FontAwesomeIcon icon={faCreditCard} /> บัตรเครดิต
-            </button>
-          </div>
           <div className="checkout-items">
             {cart.map((item) => (
               <div key={item.barcode} className="checkout-item">
-                <span className="checkout-item-name">{item.name}</span> 
-                <span className="checkout-item-price">ราคา {item.price} บาท</span> 
+                <span className="checkout-item-name">{item.name}</span>
+                <span className="checkout-item-price">ราคา {item.price} บาท</span>
                 <span className="checkout-item-quantity">x {item.quantity} รายการ</span>
               </div>
             ))}
           </div>
 
           <div className="checkout-total">
-            <span className="checkout-total-label">ยอดรวม:</span> 
+            <span className="checkout-total-label">ยอดรวม:</span>
             <span className="checkout-total-price">{totalPrice} ฿</span>
           </div>
-
-          {error && <p className="checkout-error">{error}</p>}
-
           {change !== null && change >= 0 && (
             <p className="checkout-change">จำนวนเงินถูกต้อง</p>
           )}
         </div>
-        <div className="checkout-right">
-          <button onClick={onClose} className="checkout-close-btn"><FontAwesomeIcon icon={faTimes} /></button>
 
-          {!showNumpad ? (
+        {/* ด้านขวา: ปุ่มเลือกวิธีชำระเงิน */}
+        <div className="checkout-right">
+          <button onClick={onClose} className="checkout-close-btn">
+            <FontAwesomeIcon icon={faTimes} />
+          </button>
+
+          <div className="checkout-payment-buttons">
+            <button className="checkout-cash-btn" onClick={() => { setShowNumpad(true); setShowQR(false); setShowCredit(false); }}>
+              <FontAwesomeIcon icon={faMoneyBill} /> เงินสด
+            </button>
+            <button className="checkout-qr-btn" onClick={() => { setShowQR(true); setShowNumpad(false); setShowCredit(false); }}>
+              <FontAwesomeIcon icon={faQrcode} /> QR Code
+            </button>
+            <button className="checkout-credit-btn" onClick={() => { setShowCredit(true); setShowNumpad(false); setShowQR(false); }}>
+              <FontAwesomeIcon icon={faCreditCard} /> บัตรเครดิต
+            </button>
+          </div>
+
+          {!showNumpad ? !showQR && !showCredit && (
             <div>
               <h2 className="checkout-title">
                 <FontAwesomeIcon icon={faCartShopping} /> เลือกวิธีชำระเงิน
@@ -102,19 +120,58 @@ const confirmCashPayment = async () => {
                     {num}
                   </button>
                 ))}
-                <button className="numpad-btn clear-btn" onClick={() => setCashInput("")}>C</button>
-                <button className="numpad-btn confirm-btn" onClick={handleCashPayment}>ยืนยัน</button>
-
+                <button className="numpad-btn clear-btn" onClick={() => setCashInput("")}>
+                  C
+                </button>
+                <button className="numpad-btn confirm-btn" onClick={handleCashPayment}>
+                  ยืนยัน
+                </button>
               </div>
               <button onClick={confirmCashPayment} className="checkout-btn checkout-confirm-btn" disabled={change === null || change < 0}>
                 ยืนยันชำระเงิน
               </button>
             </div>
           )}
+
+          {/* QR Code Modal */}
+          {showQR && (
+            <div className="qr-modal">
+              <h3 className="qr-title">สแกน QR Code เพื่อชำระเงิน</h3>
+              <img
+                src="https://res.cloudinary.com/dboau6axv/image/upload/v1742099090/Qr_POS_oioty6.jpg"
+                alt="QR Code"
+                className="qr-code-image"
+              />
+              <button onClick={confirmQRPayment} className="qr-confirm-btn">
+                ยืนยันชำระเงิน
+              </button>
+            </div>
+          )}
+
+
+          {/* Credit Card Modal */}
+          {showCredit && (
+            <div className="credit-modal">
+              <h3 className="credit-title">เลือกประเภทบัตรเครดิต</h3>
+              <div className="credit-options">
+                {["Visa", "Mastercard", "JCB"].map((card) => (
+                  <button
+                    key={card}
+                    className={`credit-option ${selectedCard === card ? "selected" : ""}`}
+                    onClick={() => setSelectedCard(card)}
+                  >
+                    {card}
+                  </button>
+                ))}
+              </div>
+              <button onClick={confirmCreditPayment} className="credit-confirm-btn" disabled={!selectedCard}>
+                ยืนยันชำระเงิน
+              </button>
+            </div>
+          )}
         </div>
+        
       </div>
-
-
       {/* Popup for successful payment */}
       {popupVisible && (
         <div className="payment-popup">
@@ -132,7 +189,9 @@ const confirmCashPayment = async () => {
         </div>
       )}
     </div>
+    
   );
-};
+}
+
 
 export default Checkout;

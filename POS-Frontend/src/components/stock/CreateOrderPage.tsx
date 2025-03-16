@@ -152,15 +152,14 @@ const CreateOrderPage: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {products
-                                        .filter(product => product.id === productId)
-                                        .map((product) => (
-                                            <tr key={product.id}>
-                                                <td>{product.name}</td>
-                                                <td>{product.price}</td>
-                                                <td>{product.description}</td>
-                                            </tr>
-                                        ))}
+                                    {products.filter(product => product.id === productId).map((product) => (
+                                        <tr key={product.id}>
+                                            <td>{product.name}</td>
+                                            <td>{product.price}</td>
+                                            <td>{product.description}</td>
+                                        </tr>
+                                    ))}
+
                                 </tbody>
                             </table>
                         </div>

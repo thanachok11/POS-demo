@@ -1,112 +1,108 @@
-/* Container หลักของการสร้างใบสั่งซื้อ */
 .create-order-container-suppliers {
-    width: 100%;
-    max-width: 800px;
-    margin: 20px auto;
+    max-width: 600px;
+    margin: 40px auto;
     padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background: #f4f4f4;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Header ของหน้า */
 .create-order-header-suppliers {
     text-align: center;
-    font-size: 2rem;
-    color: #333;
+    color: #6c5ce7;
+    font-size: 24px;
     margin-bottom: 20px;
 }
 
-/* กล่องข้อความสถานะการโหลด */
-.loading-message-suppliers {
-    text-align: center;
-    font-size: 1.2rem;
-    color: #007bff;
-}
-
-/* ข้อความข้อผิดพลาด */
-.error-message-suppliers {
-    text-align: center;
-    font-size: 1.2rem;
-    color: #ff4d4d;
-}
-
-/* ฟอร์มการสร้างใบสั่งซื้อ */
-.create-order-form-suppliers {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-/* กลุ่มของฟอร์ม */
-.form-group-suppliers {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-/* Label ของฟอร์ม */
-.form-label-suppliers {
-    font-size: 1rem;
-    color: #555;
-}
-
-/* Input ของฟอร์ม */
-.form-input-suppliers {
-    padding: 10px;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    outline: none;
-    transition: border 0.3s;
-}
-
-.form-input-suppliers:focus {
-    border-color: #007bff;
-}
-
-/* ปุ่ม submit */
-.submit-btn-suppliers {
-    padding: 12px;
-    background-color: #28a745;
-    color: #fff;
-    font-size: 1rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.submit-btn-suppliers:hover {
-    background-color: #218838;
-}
-
-/* ข้อความจากการตอบกลับ */
+.loading-message-suppliers,
+.error-message-suppliers,
 .message-suppliers {
     text-align: center;
-    font-size: 1rem;
-    color: #28a745;
-    margin-top: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #d63031;
 }
+
 .search-container-suppliers {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .search-input-suppliers {
     width: 100%;
+    padding: 8px;
+    border: 2px solid #6c5ce7;
+    border-radius: 6px;
+    font-size: 16px;
+    transition: 0.3s;
+}
+
+.search-input-suppliers:focus {
+    outline: none;
+    border-color: #a29bfe;
+}
+
+.form-group-suppliers {
+    margin-bottom: 15px;
+}
+
+.form-label-suppliers {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+    color: #2d3436;
+}
+
+.form-input-suppliers {
+    width: 100%;
     padding: 10px;
-    margin-top: 5px;
+    border: 2px solid #6c5ce7;
+    border-radius: 6px;
+    font-size: 16px;
+    transition: 0.3s;
+}
+
+.form-input-suppliers:focus {
+    outline: none;
+    border-color: #a29bfe;
+}
+
+.product-details-suppliers {
+    margin-top: 20px;
 }
 
 .product-details-suppliers table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .product-details-suppliers th,
 .product-details-suppliers td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
+    border: 1px solid #dfe6e9;
+    padding: 10px;
+    text-align: center;
+}
+
+.product-details-suppliers th {
+    background: #6c5ce7;
+    color: white;
+}
+
+.submit-btn-suppliers {
+    width: 100%;
+    padding: 12px;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    background: #6c5ce7;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.submit-btn-suppliers:hover {
+    background: #a29bfe;
 }

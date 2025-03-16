@@ -29,6 +29,7 @@
 }
 
 .checkout-right {
+    margin-top: 20px;
     width: 50%;
     display: flex;
     flex-direction: column;
@@ -58,12 +59,12 @@
 
 .checkout-item-price {
     color: #666;
-    
+
 }
 
 .checkout-item-quantity {
     color: #999;
-    
+
 }
 
 .checkout-total {
@@ -170,9 +171,11 @@
     color: rgb(255, 255, 255);
     background-color: #007bff;
 }
+
 .checkout-confirm-btn:hover {
     background-color: #0056b3;
 }
+
 .checkout-payment-buttons {
     display: flex;
     justify-content: space-between;
@@ -280,6 +283,7 @@
     cursor: not-allowed;
     /* Change cursor to not-allowed */
 }
+
 .checkout-bank-btn {
     background-color: #007bff;
     color: #fff;
@@ -305,6 +309,7 @@
     background-color: #c6c6c6;
     cursor: not-allowed;
 }
+
 .checkout-bank-btn:disabled {
     background-color: #c6c6c6;
     cursor: not-allowed;
@@ -313,10 +318,10 @@
 /* 🚀 ปรับปุ่มปิด */
 .checkout-close-btn {
     display: block;
-    margin: 20px auto 0;
+    margin: 10px auto 0;
     padding: 7px 15px;
-    margin-top: -15px;
-    margin-left: 340px;
+    margin-top: -30px;
+    margin-left: 370px;
     font-size: 16px;
     background: #d9534f;
     color: white;
@@ -399,6 +404,7 @@
 .payment-popup-close-btn:hover {
     background-color: #45a049;
 }
+
 .bank-transfer-info {
     padding: 20px;
     background-color: #f8f8f8;
@@ -417,12 +423,100 @@
     font-size: 14px;
     color: #555;
 }
+
 .bank-transfer-info h3 {
     font-size: 18px;
     font-weight: bold;
     color: #007bff;
     margin-bottom: 10px;
 }
+
+.qr-code-image {
+    width: 300px;
+    height: 70%;
+    margin: 10px 0;
+    margin-left: 50px;
+    border: 1px solid #333;
+    border-radius: 30px;
+}
+
+.qr-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.qr-confirm-btn,
+.qr-close-btn {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.qr-confirm-btn {
+    background: #28a745;
+    color: white;
+}
+
+.qr-close-btn {
+    background: #dc3545;
+    color: white;
+}
+
+.credit-options {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.credit-option {
+    padding: 10px 15px;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+    background: white;
+    font-size: 16px;
+}
+.credit-title{
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.credit-option.selected {
+    border-color: #007bff;
+    background: #007bff;
+    color: white;
+}
+
+.credit-confirm-btn,
+.credit-close-btn {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.credit-confirm-btn {
+    background: #28a745;
+    color: white;
+}
+
+.credit-close-btn {
+    background: #dc3545;
+    color: white;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
