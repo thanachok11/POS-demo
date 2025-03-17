@@ -25,8 +25,19 @@ interface Receipt {
     timestamp: string;
 }
 
+const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString("th-TH", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+    });
+};
+
 export default function ReceiptDetail() {
-    const { paymentId } = useParams<{ paymentId?: string }>(); // อนุญาตให้ paymentId เป็น undefined
+    const { paymentId } = useParams<{ paymentId?: string }>();
     const [receipt, setReceipt] = useState<Receipt | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -41,8 +52,12 @@ export default function ReceiptDetail() {
         const getReceiptDetail = async () => {
             try {
                 const response = await fetchReceiptById(paymentId);
-                console.log(response);
-                setReceipt(response);
+                console.log("📌 API Response:", response);
+                if (response.success && response.receipt) {
+                    setReceipt(response.receipt);
+                } else {
+                    setError("ไม่พบข้อมูลใบเสร็จ");
+                }
             } catch (err) {
                 setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
             } finally {
@@ -53,55 +68,59 @@ export default function ReceiptDetail() {
         getReceiptDetail();
     }, [paymentId]);
 
+    const handlePrint = () => {
+        window.print();
+    };
+
     return (
         <div className="receipt-detail-container">
-            <h1 className="receipt-detail-title">🧾 รายละเอียดใบเสร็จ</h1>
+            <div className="receipt-detail-paper">
+                <h2 className="receipt-detail-title">ใบเสร็จรับเงิน</h2>
 
-            {loading && <p className="receipt-loading">กำลังโหลดข้อมูล...</p>}
-            {error && <p className="receipt-error">{error}</p>}
+                {loading && <p className="receipt-detail-loading">กำลังโหลดข้อมูล...</p>}
+                {error && <p className="receipt-detail-error">{error}</p>}
 
-            {!loading && !error && receipt && (
-                <div className="receipt-info">
-                    <p><strong>พนักงาน:</strong> {receipt.employeeName ?? "ไม่ระบุ"}</p>
-                    <p><strong>ยอดรวม:</strong> {receipt.totalPrice?.toLocaleString() ?? "0"} บาท</p>
-                    <p><strong>วิธีการชำระเงิน:</strong> {receipt.paymentMethod ?? "ไม่ระบุ"}</p>
-                    <p><strong>จำนวนเงินที่จ่าย:</strong> {receipt.amountPaid?.toLocaleString() ?? "0"} บาท</p>
-                    <p><strong>เงินทอน:</strong> {receipt.changeAmount?.toLocaleString() ?? "0"} บาท</p>
-                    <p><strong>วันที่:</strong> {receipt.timestamp ? new Date(receipt.timestamp).toLocaleString() : "ไม่ระบุ"}</p>
+                {!loading && !error && receipt && (
+                    <>
+                        <p><strong>วันที่:</strong> {formatDate(receipt.timestamp)}</p>
+                        <p><strong>พนักงาน:</strong> {receipt.employeeName ?? "ไม่ระบุ"}</p>
+                        <hr />
 
-
-                    <h2>🛒 รายการสินค้า</h2>
-                    <table className="receipt-item-table">
-                        <thead>
-                            <tr>
-                                <th>ลำดับ</th>
-                                <th>ชื่อสินค้า</th>
-                                <th>ราคา/หน่วย</th>
-                                <th>จำนวน</th>
-                                <th>ราคารวม</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {receipt?.items && receipt.items.length > 0 ? (
-                                receipt.items.map((item, index) => (
-                                    <tr key={item._id ?? index}>
-                                        <td>{index + 1}</td>
-                                        <td>{item.name ?? "ไม่ระบุ"}</td>
-                                        <td>{item.price?.toLocaleString() ?? "0"} บาท</td>
-                                        <td>{item.quantity ?? "0"}</td>
-                                        <td>{item.subtotal?.toLocaleString() ?? "0"} บาท</td>
-                                    </tr>
-                                ))
-                            ) : (
+                        <table className="receipt-detail-table">
+                            <thead>
                                 <tr>
-                                    <td colSpan={5}>ไม่มีรายการสินค้า</td>
+                                    <th>#</th>
+                                    <th>สินค้า</th>
+                                    <th>จำนวน</th>
+                                    <th>ราคา</th>
                                 </tr>
-                            )}
-                        </tbody>
+                            </thead>
+                            <tbody>
+                                {receipt.items.map((item, index) => (
+                                    <tr key={item._id}>
+                                        <td>{index + 1}</td>
+                                        <td>{item.name}</td>
+                                        <td>{item.quantity}</td>
+                                        <td>{item.subtotal.toLocaleString()} ฿</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
 
-                    </table>
-                </div>
-            )}
+                        <hr />
+                        <p><strong>รวมทั้งหมด:</strong> {receipt.totalPrice.toLocaleString()} ฿</p>
+                        <p><strong>วิธีชำระเงิน:</strong> {receipt.paymentMethod}</p>
+                        <p><strong>จำนวนเงินที่จ่าย:</strong> {receipt.amountPaid.toLocaleString()} ฿</p>
+                        <p><strong>เงินทอน:</strong> {receipt.changeAmount.toLocaleString()} ฿</p>
+                        <hr />
+
+                        <p className="receipt-detail-thankyou">🙏 ขอบคุณที่ใช้บริการ 🙏</p>
+                    </>
+                )}
+            </div>
+
+            {/* ปุ่มพิมพ์ใบเสร็จ */}
+            <button className="receipt-detail-print-button" onClick={handlePrint}>🖨️ พิมพ์ใบเสร็จ</button>
         </div>
     );
 }

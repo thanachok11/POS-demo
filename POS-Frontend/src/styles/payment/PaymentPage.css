@@ -1,15 +1,12 @@
 /* payment/PaymentPage.css */
 .payment-container {
-    width: 90%;
-    max-width: 1200px;
+    max-width: 900px;
     margin: 20px auto;
-    margin-left: 80px;
     margin-top: 70px;
-    background-color: #ffffff;
     padding: 20px;
+    background: #fff;
     border-radius: 8px;
-    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.1);
-}
+    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.1);}
 
 .payment-title {
     font-size: 24px;

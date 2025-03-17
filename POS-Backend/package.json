@@ -37,11 +37,8 @@
     "@types/express": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.10.5",
-<<<<<<< HEAD
     "@types/passport": "^1.0.17",
     "@types/passport-google-oauth20": "^2.0.16",
-=======
->>>>>>> 53da7cf0ae02369164b1eb52be70513e8700ef81
     "nodemon": "^3.1.9",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3"

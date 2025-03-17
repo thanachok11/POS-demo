@@ -1,11 +1,11 @@
 .report-container {
     display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 50px;
-        height: 100vh;
-        margin-top: -170px;
-        background-color: #ffffff;
+    align-items: center;
+    justify-content: space-between;
+    padding: 50px;
+    height: 100vh;
+    margin-top: -170px;
+    background-color: #ffffff;
 }
 
 .full-screen-image {
