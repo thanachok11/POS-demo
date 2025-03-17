@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import "../../styles/page/UserSettings.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser, faEnvelope, faSave, faStore, faUserShield, faCamera } from "@fortawesome/free-solid-svg-icons";
+import { faUser, faAt, faIdCard,faEnvelope, faSave, faStore, faUserShield, faCamera } from "@fortawesome/free-solid-svg-icons";
 import { jwtDecode } from "jwt-decode";
 
 interface User {
-  name:string;
+  name: string;
   username: string;
-  firstname:string;
+  firstname: string;
+  lastname:string;
   email: string;
   role: string;
   profileImg: string;
@@ -26,8 +27,9 @@ const UserSettings: React.FC = () => {
         const decoded: any = jwtDecode(token);
         const userData: User = {
           username: decoded.username,
-          name:decoded.name,
+          name: decoded.name,
           firstname: decoded.firstname,
+          lastname: decoded.lastname,
           email: decoded.email,
           role: decoded.role,
           nameStore: decodeURIComponent(decoded.nameStore), // รองรับภาษาไทย
@@ -97,21 +99,26 @@ const UserSettings: React.FC = () => {
               </label>
             </div>
             <div className="usersetting-profile-details">
-              <div className="usersetting-input-group">
-                <FontAwesomeIcon icon={faUser} className="usersetting-icon" />
-                <input type="text" name="username" value={editedUser?.username || editedUser?.name} onChange={handleInputChange} className="usersetting-input" />
-              </div>
-              <div className="usersetting-input-group">
-                <FontAwesomeIcon icon={faUser} className="usersetting-icon" />
-                <input type="text" name="firstname" value={editedUser?.firstname || ''} onChange={handleInputChange} className="usersetting-input" />
-              </div>
+            <div className="usersetting-input-group">
+              <FontAwesomeIcon icon={faUser} className="usersetting-icon" />
+              <input type="text" name="username" value={editedUser?.username || editedUser?.name} disabled className="usersetting-input usersetting-disabled" />
+            </div>
+            <div className="usersetting-input-group">
+              <FontAwesomeIcon icon={faIdCard} className="usersetting-icon" />
+              <input type="text" name="firstname" value={editedUser?.firstname || ''} onChange={handleInputChange} className="usersetting-input" />
+            </div>
+            <div className="usersetting-input-group">
+              <FontAwesomeIcon icon={faIdCard} className="usersetting-icon" />
+              <input type="text" name="lastname" value={editedUser?.lastname || ''} onChange={handleInputChange} className="usersetting-input" />
+            </div>
+
               <div className="usersetting-input-group">
                 <FontAwesomeIcon icon={faEnvelope} className="usersetting-icon" />
-                <input type="email" name="email" value={editedUser?.email || ''} onChange={handleInputChange} className="usersetting-input" />
+                <input type="email" name="email" value={editedUser?.email || ''} disabled className="usersetting-input usersetting-disabled" />
               </div>
               <div className="usersetting-input-group">
                 <FontAwesomeIcon icon={faUserShield} className="usersetting-icon" />
-                <input type="text" value={editedUser?.role || ''} disabled className="usersetting-input" />
+                <input type="text" value={editedUser?.role || ''} disabled className="usersetting-input usersetting-disabled" />
               </div>
               {user.nameStore && (
                 <div className="usersetting-input-group">

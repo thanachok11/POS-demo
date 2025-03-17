@@ -114,7 +114,11 @@
     margin-right: 10px;
 }
 
-.usersetting-input[disabled] {
+.usersetting-disabled {
     background-color: #f5f5f5;
-    color: #999;
+    cursor: not-allowed;
+}
+.usersetting-disabled:hover {
+    border-color: red;
+    background-color: #eaeaea;
 }

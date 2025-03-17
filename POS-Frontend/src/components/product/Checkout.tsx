@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "../../styles/product/Checkout.css"; // CSS สำหรับ Modal
+import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTimes, faCartShopping, faMoneyBill, faQrcode, faCreditCard, faCheckCircle
@@ -25,6 +26,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfir
   const [showQR, setShowQR] = useState(false); // เปิด QR Code
   const [showCredit, setShowCredit] = useState(false); // เปิด Modal บัตรเครดิต
   const [selectedCard, setSelectedCard] = useState<string | null>(null); // เลือกประเภทบัตร
+  const navigate = useNavigate();
 
   const handleCashPayment = () => {
     const cashAmount = parseFloat(cashInput);
@@ -59,7 +61,10 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfir
       setPopupVisible(true);
     }
   };
-
+  const handleClose = () => {
+    navigate("/reports/receipts");
+    onClose();
+  };
   return (
     <div className="checkout-modal">
       <div className="checkout-content">
