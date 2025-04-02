@@ -118,70 +118,70 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
         <ul className="navLinks">
           <li className="item-dropdown" onClick={() => toggleDropdown("management")}>
             <FontAwesomeIcon icon={faHome} className="icon" />
-            <span className="menu-text">หน้าหลัก</span>
+            <span className="menu-text-home">หน้าหลัก</span>
             <FontAwesomeIcon icon={faCaretDown} className={`dropdown-icon ${openDropdown === "management" ? "open" : ""}`} />
           </li>
 
           <ul className={`item-details ${openDropdown === "management" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
             <li onClick={() => handleMenuClick("/shop", "ซื้อสินค้า")}>
-              <FontAwesomeIcon icon={faShoppingCart} className="icon" /> <span className="dropdown-text">ซื้อสินค้า</span>
+              <FontAwesomeIcon icon={faShoppingCart} className="icon" /> <span className="dropdown-text-buy">ซื้อสินค้า</span>
             </li>
           </ul>
           <li className="item-dropdown" onClick={() => toggleDropdown("reports")}>
-            <FontAwesomeIcon icon={faChartLine} className="icon" /> <span className="menu-text">รายงาน</span>
+            <FontAwesomeIcon icon={faChartLine} className="icon" /> <span className="menu-text-dashboard">รายงาน</span>
             <FontAwesomeIcon icon={faCaretDown} className={`dropdown-icon ${openDropdown === "reports" ? "open" : ""}`} />
           </li>
           <ul className={`item-details ${openDropdown === "reports" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
             <li onClick={() => handleMenuClick("/reports/sales", "รายงานยอดขาย")}>
-              <FontAwesomeIcon icon={faFileInvoice} className="icon" /> <span className="dropdown-text">รายงานยอดขาย</span>
+              <FontAwesomeIcon icon={faFileInvoice} className="icon" /> <span className="dropdown-text-sale">รายงานยอดขาย</span>
             </li>
             <li onClick={() => handleMenuClick("/reports/stock", "รายงานสินค้าคงเหลือ")}>
-              <FontAwesomeIcon icon={faClipboardList} className="icon" /> <span className="dropdown-text">รายงานสินค้าคงเหลือ</span>
+              <FontAwesomeIcon icon={faClipboardList} className="icon" /> <span className="dropdown-text-stock">รายงานสินค้าคงเหลือ</span>
             </li>
             <li onClick={() => handleMenuClick("/reports/receipts", "ใบเสร็จ")}>
-              <FontAwesomeIcon icon={faReceipt} className="icon" /> <span className="dropdown-text">ใบเสร็จ</span>
+              <FontAwesomeIcon icon={faReceipt} className="icon" /> <span className="dropdown-text-receipt">ใบเสร็จ</span>
             </li>
             <li onClick={() => handleMenuClick("/reports/salehistory", "ประวัติการขาย")}>
-              <FontAwesomeIcon icon={faHistory} className="icon" /> <span className="dropdown-text">ประวัติการขาย</span>
+              <FontAwesomeIcon icon={faHistory} className="icon" /> <span className="dropdown-text-historysale">ประวัติการขาย</span>
             </li>
           </ul>
 
           {/* เมนู: จัดการสินค้า */}
           <li className="item-dropdown" onClick={() => toggleDropdown("products")}>
-            <FontAwesomeIcon icon={faBox} className="icon" /> <span className="menu-text">จัดการสินค้า</span>
+            <FontAwesomeIcon icon={faBox} className="icon" /> <span className="menu-text-product">จัดการสินค้า</span>
             <FontAwesomeIcon icon={faCaretDown} className={`dropdown-icon ${openDropdown === "products" ? "open" : ""}`} />
           </li>
           <ul className={`item-details ${openDropdown === "products" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
             <li onClick={() => handleMenuClick("/stocks", "สต็อกสินค้า")}>
-              <FontAwesomeIcon icon={faClipboardList} className="icon" /> <span className="dropdown-text">สต็อกสินค้า</span>
+              <FontAwesomeIcon icon={faClipboardList} className="icon" /> <span className="dropdown-text-stock">สต็อกสินค้า</span>
             </li>
             <li onClick={() => handleMenuClick("/createOrder", "นำเข้าสินค้าใหม่")}>
-              <FontAwesomeIcon icon={faCartPlus} className="icon" /> <span className="dropdown-text">นำเข้าสินค้าใหม่</span>
+              <FontAwesomeIcon icon={faCartPlus} className="icon" /> <span className="dropdown-text-buyproduct">นำเข้าสินค้าใหม่</span>
             </li>
             <li onClick={() => handleMenuClick("/transfer", "โอนสินค้า")}>
-              <FontAwesomeIcon icon={faExchangeAlt} className="icon" /> <span className="dropdown-text">โอนสินค้า</span>
+              <FontAwesomeIcon icon={faExchangeAlt} className="icon" /> <span className="dropdown-text-tranfer">โอนสินค้า</span>
             </li>
             <li onClick={() => handleMenuClick("/products/scan", "บาร์โค้ด")}>
-              <FontAwesomeIcon icon={faBarcode} className="icon" /> <span className="dropdown-text">บาร์โค้ด</span>
+              <FontAwesomeIcon icon={faBarcode} className="icon" /> <span className="dropdown-text-barcode">บาร์โค้ด</span>
             </li>
             <li onClick={() => handleMenuClick("/debt", "ค้างชำระ")}>
-              <FontAwesomeIcon icon={faScroll} className="icon" /> <span className="dropdown-text">ค้างชำระ</span>
+              <FontAwesomeIcon icon={faScroll} className="icon" /> <span className="dropdown-text-debt">ค้างชำระ</span>
             </li>
             <li onClick={() => handleMenuClick("/expired", "สินค้าเหลือน้อย/สินค้าหมด")}>
-              <FontAwesomeIcon icon={faExclamationTriangle} className="icon" /> <span className="dropdown-text">สินค้าเหลือน้อย</span>
+              <FontAwesomeIcon icon={faExclamationTriangle} className="icon" /> <span className="dropdown-text-expired">สินค้าเหลือน้อย</span>
             </li>
           </ul>
           {/* เมนู: รายงาน */}
           <li className="item-dropdown" onClick={() => toggleDropdown("setting")}>
-            <FontAwesomeIcon icon={faCog} className="icon" /> <span className="menu-text">เกี่ยวกับร้านค้า</span>
+            <FontAwesomeIcon icon={faCog} className="icon" /> <span className="menu-text-aboutstore">เกี่ยวกับร้านค้า</span>
             <FontAwesomeIcon icon={faCaretDown} className={`dropdown-icon ${openDropdown === "setting" ? "open" : ""}`} />
           </li>
           <ul className={`item-details ${openDropdown === "setting" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
             <li onClick={() => handleMenuClick("/setting/employee", "ตั้งค่าพนักงาน")}>
-              <FontAwesomeIcon icon={faUserPlus} className="icon" /> <span className="dropdown-text">พนักงาน</span>
+              <FontAwesomeIcon icon={faUserPlus} className="icon" /> <span className="dropdown-text-employee">พนักงาน</span>
             </li>
             <li onClick={() => handleMenuClick("/suppliers", "ผู้ตลิต")}>
-              <FontAwesomeIcon icon={faHandshake} className="icon" /> <span className="dropdown-text">ผู้ผลิต</span>
+              <FontAwesomeIcon icon={faHandshake} className="icon" /> <span className="dropdown-text-suppliers">ผู้ผลิต</span>
             </li>
           </ul>
 
@@ -248,10 +248,10 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
               </>
             ) : (
               <>
-                <button onClick={() => setIsLoginModalVisible(true)} className="auth-button">
+                <button onClick={() => setIsLoginModalVisible(true)} className="login-button" name="login">
                   <FontAwesomeIcon icon={faSignInAlt} className="icon" /> <span>เข้าสู่ระบบ</span>
                 </button>
-                <button onClick={() => setIsRegisterModalVisible(true)} className="auth-button">
+                <button onClick={() => setIsRegisterModalVisible(true)} className="register-button" name="register">
                   <FontAwesomeIcon icon={faUserPlus} className="icon" /> <span>สมัครสมาชิก</span>
                 </button>
               </>

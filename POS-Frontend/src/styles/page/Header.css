@@ -410,7 +410,7 @@
     }
 }
 
-.auth-button {
+.login-button {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -425,21 +425,36 @@
     transition: all 0.3s ease-in-out;
 }
 
-.auth-button .icon {
+.login-button .icon {
     font-size: 1.2rem;
 }
 
-.auth-button:hover {
+.login-button:hover {
     background-color: #2980b9;
 }
-
-.auth-button:last-child {
+.register-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     background-color: #2ecc71;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
 }
 
-.auth-button:last-child:hover {
+.register-button .icon {
+    font-size: 1.2rem;
+}
+
+.register-button:hover {
     background-color: #27ae60;
 }
+
 
 @media (max-width: 768px) {
     .auth-button {
