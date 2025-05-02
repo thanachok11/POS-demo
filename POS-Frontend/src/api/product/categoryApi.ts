@@ -12,3 +12,15 @@ export const getCategories = async () => {
     return { success: false, data: [], message: "ไม่สามารถดึงข้อมูลหมวดหมู่ได้" };
   }
 };
+export const getProductsByCategory = async (category: string, token: string) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/products/category/${category}`, {
+      headers: {
+        Authorization: `Bearer ${token}` // ✅ แนบ token ใน header
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    throw error.response?.data || { message: "Something went wrong" };
+  }
+};

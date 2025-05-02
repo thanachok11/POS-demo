@@ -270,16 +270,47 @@
     border-top-right-radius: 15px;
     border-bottom-right-radius: 15px;
     /* ทำให้สามารถเลื่อน scroll ได้ */
-    scrollbar-width: thin;
-    /* ปรับแต่ง scrollbar */
-    scrollbar-color: #aaa transparent;
-}
+    overflow-y: auto;
+    
+    /* Firefox scrollbar */
+        scrollbar-width: thin;
+        scrollbar-color: #aaa transparent;
+    }
+    
+    /* Chrome, Edge, Safari scrollbar */
+    .sidebar::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .sidebar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .sidebar::-webkit-scrollbar-thumb {
+        background-color: #bbb;
+        border-radius: 6px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+    }
+    
+    .sidebar::-webkit-scrollbar-thumb:hover {
+        background-color: #ccc;
+    }
 
 .sidebar.closed {
     width: 60px;
 }
 
-.sidebar.closed .navLinks span.menu-text {
+.sidebar.closed .navLinks span.menu-text-home {
+    display: none;
+}
+.sidebar.closed .navLinks span.menu-text-dashboard {
+    display: none;
+}
+.sidebar.closed .navLinks span.menu-text-product {
+    display: none;
+}
+.sidebar.closed .navLinks span.menu-text-aboutstore {
     display: none;
 }
 

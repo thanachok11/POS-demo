@@ -98,3 +98,51 @@ export const getAllProducts = async (req: Request, res: Response, next: NextFunc
   }
 };
 
+export const getProductsByCategory = async (req: Request, res: Response): Promise<void> => {
+  const token = req.header('Authorization')?.split(' ')[1]; // ดึง token จาก header
+
+  if (!token) {
+    res.status(401).json({
+      success: false,
+      message: 'Unauthorized, no token provided'
+    });
+    return;
+  }
+
+  try {
+    const decoded = verifyToken(token);
+
+    if (typeof decoded !== 'string' && 'userId' in decoded) {
+      const userId = decoded.userId;
+      const category = req.params.category;
+
+      // ค้นหาสินค้าตาม category + userId
+      const products = await Product.find({ userId, category });
+
+      if (products.length === 0) {
+        res.status(404).json({
+          success: false,
+          message: 'No products found for this category'
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        data: products
+      });
+    } else {
+      res.status(401).json({
+        success: false,
+        message: 'Invalid token'
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(403).json({
+      success: false,
+      message: 'Forbidden, invalid token'
+    });
+  }
+};
+

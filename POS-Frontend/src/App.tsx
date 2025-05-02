@@ -13,7 +13,7 @@ import SupplierList from "./components/suppliers/SupplierList.tsx";
 import UserSettings from "./components/pages/UserSettings.tsx";
 import ReceiptPage from "./components/receipt/ReceiptPage.tsx";
 import ReceiptDetail from "./components/receipt/ReceiptDetail.tsx";
-
+import Search from "./components/product/BarcodeSearch.tsx";
 import SalePage from "./components/pages/Dashboard.tsx";
 import PaymentPage from "./components/payment/PaymentPage.tsx";
 import EmployeeList from "./components/aboutStore/EmployeePage.tsx";
@@ -40,6 +40,7 @@ const App: React.FC = () => {
             <Route path="/reports/salehistory" element={<PaymentPage />} />
             <Route path="setting/employee" element={<EmployeeList />} />
             <Route path="/reports/receipts" element={<ReceiptPage />} />
+            <Route path="/products/search" element={<Search />} />
             <Route path="/reports/sales" element={<SalePage />} />
             <Route path="/products/scan" element={<ScanBarcode />} />
             <Route path="/shop" element={<ProductList />} />
