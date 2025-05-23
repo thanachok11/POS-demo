@@ -13,7 +13,10 @@ interface CheckoutProps {
   totalPrice: number;
   onClose: () => void;
   onConfirmPayment: (method: string, amountReceived?: number) => void; // ✅ เพิ่ม amountReceived
-  checkout: (amountReceived: number) => Promise<void>; // ✅ checkout รับ amountReceived
+  checkout: (
+    amountReceived: number,
+    selectedPaymentMethod: "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code"
+  ) => Promise<void>
 }
 
 
@@ -42,25 +45,24 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfir
   const confirmCashPayment = async () => {
     const cashAmount = parseFloat(cashInput);
     if (change !== null && change >= 0) {
-      await checkout(cashAmount);
-      onConfirmPayment("cash", cashAmount);
+      onConfirmPayment("เงินสด", cashAmount);
       setPopupVisible(true);
     }
   };
 
+
   const confirmQRPayment = async () => {
-    await checkout(totalPrice);
-    onConfirmPayment("qr");
+    onConfirmPayment("QR Code");
     setPopupVisible(true);
   };
 
   const confirmCreditPayment = async () => {
     if (selectedCard) {
-      await checkout(totalPrice);
-      onConfirmPayment(`credit-${selectedCard}`);
+      onConfirmPayment("บัตรเครดิต");
       setPopupVisible(true);
     }
   };
+
   const handleClose = () => {
     navigate("/reports/receipts");
     onClose();
@@ -175,26 +177,30 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfir
             </div>
           )}
         </div>
-        
+
       </div>
-      {/* Popup for successful payment */}
       {popupVisible && (
         <div className="payment-popup">
           <div className="payment-popup-content">
-            {/* ไอคอนติ๊กถูกพร้อมแอนิเมชัน */}
             <FontAwesomeIcon icon={faCheckCircle} className="payment-popup-icon" />
-
             <h3 className="payment-popup-title">ชำระเงินสำเร็จ!</h3>
             <p className="payment-popup-change">เงินทอน: {change} ฿</p>
 
-            <button onClick={onClose} className="payment-popup-close-btn">
+            <button
+              onClick={() => {
+                setPopupVisible(false);  // ✅ ซ่อน popup
+                onClose();               // ✅ ปิด Modal หลังจาก popup หายไป
+              }}
+              className="payment-popup-close-btn"
+            >
               ปิด
             </button>
           </div>
         </div>
       )}
+
     </div>
-    
+
   );
 }
 

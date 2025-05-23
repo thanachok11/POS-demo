@@ -22,6 +22,8 @@ const ProductList: React.FC = () => {
   const [user, setUser] = useState<{ userId: string; username: string; email: string } | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<Product[]>([]);
+  const [popupVisible, setPopupVisible] = useState(false);
+
   const [showCheckout, setShowCheckout] = useState<boolean>(false);
   const [showCart, setShowCart] = useState<boolean>(false);
   const [showNumberPad, setShowNumberPad] = useState<boolean>(false);
@@ -120,70 +122,68 @@ const removeFromCart = (product: Product, barcode: string) => {
 };
 
 
-  const checkout = async (amountReceived: number) => {
-    if (!user) {
-      setErrorMessage("กรุณาเข้าสู่ระบบก่อนทำการชำระเงิน");
+const checkout = async (amountReceived: number, selectedPaymentMethod: "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code") => {
+  if (!user) {
+    setErrorMessage("กรุณาเข้าสู่ระบบก่อนทำการชำระเงิน");
+    return;
+  }
+
+  const validPaymentMethods = ["เงินสด", "โอนเงิน", "บัตรเครดิต", "QR Code"] as const;
+
+  if (!validPaymentMethods.includes(selectedPaymentMethod)) {
+    setErrorMessage("วิธีการชำระเงินไม่ถูกต้อง");
+    return;
+  }
+
+  const paymentData = {
+    saleId: new Date().getTime().toString(),
+    employeeName: user.username,
+    paymentMethod: selectedPaymentMethod,
+    amount: getTotalPrice(),
+    amountReceived,
+    change: amountReceived - getTotalPrice(),
+    items: cart.map(item => ({
+      barcode: item.barcode,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+      subtotal: item.price * item.quantity,
+    }))
+  };
+
+  try {
+    const paymentResponse = await createPayment(paymentData);
+    if (!paymentResponse.success) {
+      setErrorMessage(paymentResponse.message);
       return;
     }
 
-    const validPaymentMethods = ["เงินสด", "โอนเงิน", "บัตรเครดิต", "QR Code"] as const;
-    const selectedPaymentMethod: string = "เงินสด"; // ค่าเริ่มต้น หรือดึงค่าจาก Modal
-
-    if (!validPaymentMethods.includes(selectedPaymentMethod as any)) {
-      setErrorMessage("วิธีการชำระเงินไม่ถูกต้อง");
-      return;
-    }
-
-    const paymentData = {
-      saleId: new Date().getTime().toString(),
-      employeeName: user.username,
-      paymentMethod: selectedPaymentMethod as "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code",
-      amount: getTotalPrice(),
-      amountReceived, // ✅ เพิ่มจำนวนเงินที่ลูกค้าจ่าย
-      change: amountReceived - getTotalPrice(), // ✅ คำนวณเงินทอน
-      items: cart.map(item => ({
-        barcode: item.barcode,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        subtotal: item.price * item.quantity,
-      }))
-    };
-
-    try {
-      const paymentResponse = await createPayment(paymentData);
-      if (!paymentResponse.success) {
-        setErrorMessage(paymentResponse.message);
-        return;
-      }
-
-      // 🛍️ ลดจำนวนสินค้าในสต็อก
-      for (const item of cart) {
-        try {
-          const updatedStock = await updateStockByBarcode(item.barcode, item.quantity);
-          if (!updatedStock.success) {
-            setErrorMessage(`ไม่สามารถอัปเดตสต็อกของ ${item.name}`);
-            return;
-          }
-        } catch (error) {
-          setErrorMessage(`เกิดข้อผิดพลาดในการอัปเดตสต็อกของ ${item.name}`);
-          console.error(error);
+    for (const item of cart) {
+      try {
+        const updatedStock = await updateStockByBarcode(item.barcode, item.quantity);
+        if (!updatedStock.success) {
+          setErrorMessage(`ไม่สามารถอัปเดตสต็อกของ ${item.name}`);
           return;
         }
+      } catch (error) {
+        setErrorMessage(`เกิดข้อผิดพลาดในการอัปเดตสต็อกของ ${item.name}`);
+        console.error(error);
+        return;
       }
-
-      // เคลียร์ตะกร้าและซ่อนตะกร้า
-      setCart([]);
-      setShowCart(false);
-      setTimeout(() => {
-        setShowCart(false);
-      }, 3000); // เวลา 3 วินาที
-    } catch (error) {
-      setErrorMessage("เกิดข้อผิดพลาดในการบันทึกข้อมูลชำระเงิน");
-      console.error(error);
-      return;
     }
-  };
+
+    setCart([]);
+    setShowCart(false);
+    setTimeout(() => {
+      setShowCart(false);
+    }, 3000);
+  } catch (error) {
+    setErrorMessage("เกิดข้อผิดพลาดในการบันทึกข้อมูลชำระเงิน");
+    console.error(error);
+    return;
+  }
+};
+
 
 
 // 📌 ฟังก์ชันยืนยันการชำระเงินจาก Modal
@@ -211,19 +211,21 @@ const handleConfirmPayment = (method: string, amountReceived?: number) => {
       }))
     };
 
-    createPayment(paymentData)
-      .then((response) => {
-        if (!response.success) {
-          setErrorMessage(response.message);
-          return;
-        }
-        setShowCheckout(false); // ปิด Modal หลังจากชำระเงินเสร็จ
-        setCart([]); // ล้างตะกร้า
-      })
-      .catch((error) => {
-        setErrorMessage("เกิดข้อผิดพลาดในการบันทึกข้อมูลชำระเงิน");
-        console.error(error);
-      });
+  createPayment(paymentData)
+    .then((response) => {
+      if (!response.success) {
+        setErrorMessage(response.message);
+        return;
+      }
+
+      setCart([]);              // ล้างตะกร้า
+      setPopupVisible(true);    // ✅ แสดง popup สำเร็จ
+    })
+    .catch((error) => {
+      setErrorMessage("เกิดข้อผิดพลาดในการบันทึกข้อมูลชำระเงิน");
+      console.error(error);
+    });
+
 };
 
 
@@ -240,6 +242,9 @@ const handleConfirmPayment = (method: string, amountReceived?: number) => {
       // ถ้ามีค่าปัจจุบันอยู่แล้ว (currentQuantity), ต่อเลขใหม่เข้าไป
       setCurrentQuantity((prev) => Number(prev.toString() + value));
     }
+  };
+  const handleCloseCheckout = () => {
+    setShowCheckout(false); // ✅ ปิด Modal ที่นี่
   };
 
 const handleDeleteOne = () => {
@@ -362,7 +367,7 @@ const filteredProducts = products.filter((product) =>
         <Checkout
           cart={cart}
           totalPrice={getTotalPrice()} // Pass the total price here
-          onClose={() => setShowCheckout(false)}
+          onClose={handleCloseCheckout} // ✅ ปล่อยให้ Modal จัดการ
           onConfirmPayment={handleConfirmPayment}
           checkout={checkout} // ส่งฟังก์ชัน checkout ไปให้ Modal
         />
