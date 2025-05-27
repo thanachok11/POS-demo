@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import Order from "../models/order";
-import User  from "../models/User";
-import Product  from "../models/Product";
+import User from "../models/User";
+import Product from "../models/Product";
 import dotenv from "dotenv";
 dotenv.config();
 

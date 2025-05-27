@@ -1,16 +1,15 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
+import { faCheckCircle,faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import "../../styles/aboutStore/AddEmployee.css";
 
 // Interface for employee data
 interface EmployeeData {
   email: string;
-  name: string;
+  username: string;
   phoneNumber: string;
   password: string;
-  username: string;
   firstName: string;
   lastName: string;
   position: string;
@@ -35,12 +34,12 @@ const AddEmployee = ({
   isSuccess,
   setIsSuccess,
 }: AddEmployeeProps) => {
+  const [popupType, setPopupType] = useState<"success" | "error">("success");
   const [employee, setEmployee] = useState<EmployeeData>({
     email: '',
-    name: '',
+    username: '',
     phoneNumber: '',
     password: '',
-    username: '',
     firstName: '',
     lastName: '',
     position: '',
@@ -58,11 +57,15 @@ const AddEmployee = ({
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        setMessage('No token found. Please log in first.');
+        setMessage('ไม่พบ Token กรุณาเข้าสู่ระบบอีกครั้ง');
+        setPopupType("error");
+        setIsSuccess(false);
+        setShowPopup(true);
         return;
       }
 
-      setLoading(true); // Start loading
+      setLoading(true);
+
       const response = await axios.post(
         'http://localhost:5000/api/employee/register',
         employee,
@@ -71,13 +74,21 @@ const AddEmployee = ({
 
       if (response.status === 201) {
         setIsSuccess(true);
-        setShowPopup(true);
+        setMessage('พนักงานถูกเพิ่มเรียบร้อยแล้ว!');
+        setPopupType("success");
+      } else {
+        setIsSuccess(false);
+        setMessage('เกิดข้อผิดพลาดในการเพิ่มพนักงาน');
+        setPopupType("error");
       }
     } catch (error) {
       console.error('Error adding employee:', error);
-      setMessage('Failed to add employee');
+      setIsSuccess(false);
+      setMessage('ไม่สามารถเพิ่มพนักงานได้');
+      setPopupType("error");
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
+      setShowPopup(true);
     }
   };
 
@@ -88,9 +99,9 @@ const AddEmployee = ({
       <form onSubmit={handleSubmit} className="employee-form">
         <input
           type="text"
-          name="name"
+          name="username"
           placeholder="ชื่อพนักงาน"
-          value={employee.name}
+          value={employee.username}
           onChange={handleChange}
           required
           className="employee-input"
@@ -131,6 +142,15 @@ const AddEmployee = ({
           onChange={handleChange}
           required
           className="employee-input"
+        />          
+        <input
+          type="password"
+          name="password"
+          placeholder="รหัสผ่าน"
+          value={employee.password}
+          onChange={handleChange}
+          required
+          className="employee-input"
         />
 
         <input
@@ -149,17 +169,28 @@ const AddEmployee = ({
       </form>
 
       {/* Popup */}
+      {/* Popup */}
       {showPopup && (
-        <div className="AddEmployee-popup">
-          <div className="AddEmployee-popup-content">
-            <FontAwesomeIcon icon={faCheckCircle} className="AddEmployee-icon" />
-            <h3 className="AddEmployee-popup-title">พนักงานถูกเพิ่มเรียบร้อยแล้ว!</h3>
-            <button onClick={() => setShowPopup(false)} className="AddEmployee-popup-close-btn">
+        <div className={`AddEmployee-popup ${popupType}`}>
+          <div className={`AddEmployee-popup-content ${isSuccess ? 'success' : 'error'}`}>
+            <FontAwesomeIcon
+              icon={isSuccess ? faCheckCircle : faTimesCircle}
+              className={`AddEmployee-icon ${isSuccess ? 'success' : 'error'}`}
+            />
+            <h3 className="AddEmployee-popup-title">{message}</h3>
+            <button
+              onClick={() => {
+                setShowPopup(false);
+                if (isSuccess && popupType === "success") closeModal();
+              }}
+              className="AddEmployee-popup-close-btn"
+            >
               ปิด
             </button>
           </div>
         </div>
       )}
+
     </div>
   );
 };

@@ -5,7 +5,7 @@ import Receipt from "../models/Receipt"; // Import Receipt model
 // ฟังก์ชันสำหรับบันทึกข้อมูลการชำระเงิน
 export const createPayment = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { saleId, employeeName, paymentMethod,amountReceived, amount, items } = req.body;
+        const { saleId, employeeName, paymentMethod, amountReceived, amount, items } = req.body;
 
         if (!saleId || !employeeName || !paymentMethod || !amount || !items) {
             res.status(400).json({ success: false, message: "ข้อมูลไม่ครบถ้วน" });

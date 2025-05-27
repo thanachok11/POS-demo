@@ -20,7 +20,7 @@ export const showAllUsers = async (req: Request, res: Response): Promise<void> =
 
 // ฟังก์ชันสำหรับการลงทะเบียน
 export const register = async (req: Request, res: Response): Promise<void> => {
-  const { email, password, username, firstName, lastName,nameStore } = req.body;
+  const { email, password, username, firstName, lastName, nameStore } = req.body;
 
   try {
     const existingUser = await User.findOne({ $or: [{ email }, { username }] });
@@ -63,26 +63,22 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body;
 
   try {
-    // ค้นหาผู้ใช้ในฐานข้อมูลทั้งผู้ใช้และพนักงาน
-    let user = await User.findOne({ email });
-    let employee = await Employee.findOne({ email });
+    const user = await User.findOne({ email });
+    const employee = await Employee.findOne({ email });
 
-    // ตรวจสอบว่าเจอผู้ใช้หรือพนักงาน
     if (!user && !employee) {
       res.status(400).json({ message: 'ไม่พบผู้ใช้นี้ในระบบ' });
       return;
     }
 
-    // ถ้าพบผู้ใช้ปกติ
+    // 🧑‍💼 ถ้าเป็นผู้ดูแลระบบ (admin หรือ user)
     if (user) {
       const isMatch = await bcrypt.compare(password, user.password);
-
       if (!isMatch) {
         res.status(400).json({ message: 'รหัสผ่านไม่ถูกต้อง' });
         return;
       }
 
-      // สร้าง token สำหรับผู้ใช้ปกติ
       const token = jwt.sign(
         {
           userId: user._id,
@@ -98,40 +94,38 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         { expiresIn: '3h' }
       );
 
-      // ถ้าเป็น admin ให้ส่ง response พร้อม token
-      if (user.role === 'admin') {
-        res.status(200).json({ message: 'Login successful as admin', token, role: 'admin' });
-      } else {
-        // ถ้าเป็น user ปกติ
-        res.status(200).json({ message: 'Login successful', token, role: 'user' });
-      }
+      res.status(200).json({
+        message: user.role === 'admin' ? 'Login successful as admin' : 'Login successful',
+        token,
+        role: user.role,
+      });
       return;
     }
 
-    // ถ้าพบพนักงาน
+    // 👨‍🍳 ถ้าเป็นพนักงาน
     if (employee) {
       const isMatch = await bcrypt.compare(password, employee.password);
-
       if (!isMatch) {
         res.status(400).json({ message: 'รหัสผ่านไม่ถูกต้อง' });
         return;
       }
 
-      // สร้าง token สำหรับพนักงาน
+      // 💡 ต้องแนบ adminId เข้าไปใน token ด้วย
       const token = jwt.sign(
         {
           userId: employee._id,
           email: employee.email,
-          name: employee.name,
+          name: employee.username,
           position: employee.position,
           status: employee.status,
           profile_img: employee.profile_img,
+          role: 'employee',
+          adminId: employee.adminId, // สำคัญ! เพื่อให้ใช้ใน getProducts ได้
         },
         process.env.JWT_SECRET as string,
         { expiresIn: '3h' }
       );
 
-      // ส่ง response สำหรับพนักงาน
       res.status(200).json({ message: 'เข้าสู่ระบบสำเร็จ', token, role: 'employee' });
       return;
     }
@@ -139,6 +133,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ message: 'เข้าสู่ระบบไม่สำเร็จ', error });
   }
 };
+
 
 // ฟังก์ชันสำหรับการแก้ไข role ของผู้ใช้
 export const updateUserRole = async (req: Request, res: Response): Promise<void> => {
@@ -148,8 +143,8 @@ export const updateUserRole = async (req: Request, res: Response): Promise<void>
   try {
     // ตรวจสอบว่าเป็น admin หรือไม่
     if (role !== 'admin') {
-       res.status(403).json({ message: 'Permission denied. Only admin can change roles.' });
-        return;
+      res.status(403).json({ message: 'Permission denied. Only admin can change roles.' });
+      return;
     }
 
     // ค้นหาผู้ใช้ที่ต้องการเปลี่ยน role
@@ -192,7 +187,7 @@ export const loginEmployee = async (req: Request, res: Response): Promise<void> 
       {
         userId: employee._id,     // ไอดีของพนักงาน
         email: employee.email,    // อีเมลของพนักงาน
-        name: employee.name, // ชื่อผู้ใช้
+        name: employee.username, // ชื่อผู้ใช้
         position: employee.position,
         status: employee.status,      // บทบาทของพนักงาน
         profile_img: employee.profile_img, // รูปโปรไฟล์พนักงาน

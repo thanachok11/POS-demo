@@ -45,7 +45,7 @@ app.post("/api/product/upload", uploadRoutes);
 app.use("/api/auth", authRoutes);  // ใช้เพียงเส้นทางนี้
 app.use("/api/stocks", Stock);
 app.use('/api/orders', orderRoutes);
-app.use('/api/suppliers',Supplier)
+app.use('/api/suppliers', Supplier)
 app.use('/api/employee', employeeRouter);
 app.use('/api/payment', createPayment);
 app.use("/api/receipts/paymentId", receiptRoutes);
@@ -53,6 +53,6 @@ app.use("/api/receipts", receiptRoutes);
 
 
 // เริ่มเซิร์ฟเวอร์
-app.listen(PORT,'0.0.0.0', () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

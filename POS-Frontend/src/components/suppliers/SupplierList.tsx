@@ -113,9 +113,12 @@ const SupplierList = () => {
                                     {supplier.address}, {supplier.subDistrict}, {supplier.district}, {supplier.stateOrProvince}, {supplier.country} {supplier.postalCode}
                                 </td>
                                 <td className="supplier-table-data">
-                                    <button className="edit-btn" onClick={() => handleOpenModal(supplier)}>แก้ไข</button>
-                                    <button className="delete-btn" onClick={() => handleDelete(supplier.id)}>ลบ</button>
+                                    <div className="action-buttons">
+                                        <button className="edit-btn" onClick={() => handleOpenModal(supplier)}>แก้ไข</button>
+                                        <button className="delete-btn" onClick={() => handleDelete(supplier.id)}>ลบ</button>
+                                    </div>
                                 </td>
+
                             </tr>
                         ))
                     ) : (

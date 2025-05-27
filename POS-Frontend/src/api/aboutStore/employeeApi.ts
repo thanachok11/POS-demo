@@ -18,10 +18,9 @@ export const getEmployeesByManager = async (token: string) => {
 };
 export const addEmployee = async (employee: {
   email: string;
-  name: string;
+  username: string;
   phoneNumber: string;
   password: string;
-  username: string;
   firstName: string;
   lastName: string;
   position: string;
@@ -46,10 +45,9 @@ export const addEmployee = async (employee: {
 
 export const updateEmployee = async (employeeId: string, updatedEmployeeData: {
   email?: string;
-  name?: string;
+  username?: string;
   phoneNumber?: string;
   password?: string;
-  username?: string;
   firstName?: string;
   lastName?: string;
   position?: string;

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import Product from '../models/Product';
 import jwt from 'jsonwebtoken'; // นำเข้า jwt สำหรับการตรวจสอบ token
 import User from '../models/User'; // นำเข้า model User
+import Employee from '../models/Employee'; // แก้ path ตามโฟลเดอร์ของคุณ
 
 const verifyToken = (token: string) => {
   try {
@@ -34,57 +35,80 @@ export const getProductByBarcode = async (req: Request, res: Response, next: Nex
 
 
 
-export const getProducts = async (req: Request, res: Response): Promise<void> =>  {
-  const token = req.header('Authorization')?.split(' ')[1]; // ดึง token จาก header
+export const getProducts = async (req: Request, res: Response): Promise<void> => {
+  const token = req.header('Authorization')?.split(' ')[1];
 
   if (!token) {
-     res.status(401).json({
+    res.status(401).json({
       success: false,
-      message: 'Unauthorized, no token provided'
+      message: 'Unauthorized, no token provided',
     });
     return;
   }
 
   try {
-    // ตรวจสอบ token
     const decoded = verifyToken(token);
 
     if (typeof decoded !== 'string' && 'userId' in decoded) {
       const userId = decoded.userId;
+      console.log('Decoded userId:', userId);
 
-      // ดึงข้อมูลของผู้ใช้จากฐานข้อมูล
-      const user = await User.findById(userId);
+      // ลองหาใน User ก่อน ถ้าไม่เจอค่อยหาใน Employee
+      let user = await User.findById(userId);
       if (!user) {
-          res.status(404).json({
-          success: false,
-          message: 'User not found'
-        });
-        return ;
+        user = await Employee.findById(userId);
       }
 
-      // ดึงข้อมูลสต็อกสินค้าจากฐานข้อมูลตาม userId
-      const product = await Product.find({ userId: userId }); // Assuming 'Stock' model has a 'userId' field
-        res.status(200).json({
+      if (!user) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+        return;
+      }
+
+      let ownerId: string;
+
+      if (user.role === 'admin' || user.role === 'manager') {
+        ownerId = user._id.toString();
+      } else if (user.role === 'employee') {
+        if (!user.adminId) {
+          res.status(400).json({
+            success: false,
+            message: 'Employee does not have an admin assigned',
+          });
+          return;
+        }
+        ownerId = user.adminId.toString();
+      } else {
+        res.status(403).json({
+          success: false,
+          message: 'Invalid user role',
+        });
+        return;
+      }
+
+      const products = await Product.find({ userId: ownerId });
+
+      res.status(200).json({
         success: true,
-        data: product
+        data: products,
       });
-      return;
     } else {
-       res.status(401).json({
+      res.status(401).json({
         success: false,
-        message: 'Invalid token'
+        message: 'Invalid token',
       });
-      return;
     }
   } catch (error) {
     console.error(error);
-     res.status(403).json({
+    res.status(403).json({
       success: false,
-      message: 'Forbidden, invalid token'
+      message: 'Forbidden, invalid token',
     });
-    return
   }
 };
+
 
 export const getAllProducts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {

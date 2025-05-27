@@ -4,19 +4,14 @@ import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUserTie, faSearch, faEnvelope, faBriefcase, faPlus } from "@fortawesome/free-solid-svg-icons";
 import "../../styles/aboutStore/Employee.css";
-import AddEmployee from "../aboutStore/AddEmployee.tsx"; // นำเข้าฟอร์ม AddEmployee
+import AddEmployee from "../aboutStore/AddEmployee.tsx";
 
 // Define Employee interface
 interface Employee {
     _id: string;
-    name: string;
-    email: string;
-    position: string;
-}
-
-// Define AddEmployee props interface
-interface AddEmployeeProps {
-    closeModal: () => void;
+    username?: string;
+    email?: string;
+    position?: string;
 }
 
 const EmployeeList: React.FC = () => {
@@ -38,7 +33,11 @@ const EmployeeList: React.FC = () => {
             const data = await getEmployeesByManager(token);
             if (!data || !data.employees) throw new Error("No employees found");
 
-            setEmployees(data.employees);
+            const cleanedEmployees = data.employees.filter(
+                (emp: Employee) => emp && emp.username && emp.email && emp.position
+            );
+
+            setEmployees(cleanedEmployees);
         } catch (err) {
             console.error("Error fetching employees:", err);
             setError(err instanceof Error ? err.message : "Unknown error");
@@ -47,26 +46,22 @@ const EmployeeList: React.FC = () => {
         }
     };
 
-    // Initial fetch of employees
     useEffect(() => {
         fetchEmployees();
     }, []);
 
-    // Open modal handler
     const openModal = () => {
         setIsModalOpen(true);
     };
 
-    // Close modal handler and refresh employee list
     const closeModal = () => {
         setIsModalOpen(false);
-        setShowPopup(false); // Optional: Clear popup state when closing modal
-        fetchEmployees(); // Refresh employee data after adding a new employee
+        setShowPopup(false);
+        fetchEmployees();
     };
 
-    // Filter employees based on search
     const filteredEmployees = employees.filter((employee) =>
-        employee.name.toLowerCase().includes(search.toLowerCase())
+        (employee.username || "").toLowerCase().includes(search.toLowerCase())
     );
 
     return (
@@ -101,7 +96,7 @@ const EmployeeList: React.FC = () => {
                         {filteredEmployees.length > 0 ? (
                             filteredEmployees.map((employee) => (
                                 <tr key={employee._id}>
-                                    <td>{employee.name}</td>
+                                    <td>{employee.username}</td>
                                     <td>{employee.email}</td>
                                     <td>{employee.position}</td>
                                 </tr>

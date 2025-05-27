@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
 import Stock from '../models/Stock';  // Assuming you have a Stock model
+import Employee from '../models/Employee'; // แก้ path ตามโฟลเดอร์ของคุณ
 
 // ฟังก์ชันสำหรับการตรวจสอบ JWT Token
 const verifyToken = (token: string) => {
@@ -13,83 +14,147 @@ const verifyToken = (token: string) => {
 };
 
 // ฟังก์ชันเพื่อดึงข้อมูลสต็อกสินค้าตาม userId
-export const getStocks = async (req: Request, res: Response): Promise<void> =>  {
-  const token = req.header('Authorization')?.split(' ')[1]; // ดึง token จาก header
+export const getStocks = async (req: Request, res: Response): Promise<void> => {
+  const token = req.header('Authorization')?.split(' ')[1];
 
   if (!token) {
-     res.status(401).json({
+    res.status(401).json({
       success: false,
-      message: 'Unauthorized, no token provided'
+      message: 'Unauthorized, no token provided',
     });
     return;
   }
 
   try {
-    // ตรวจสอบ token
     const decoded = verifyToken(token);
 
     if (typeof decoded !== 'string' && 'userId' in decoded) {
       const userId = decoded.userId;
+      console.log('Decoded userId:', userId);
 
-      // ดึงข้อมูลของผู้ใช้จากฐานข้อมูล
-      const user = await User.findById(userId);
+      // ลองหาใน User ก่อน ถ้าไม่เจอค่อยหาใน Employee
+      let user = await User.findById(userId);
       if (!user) {
-          res.status(404).json({
-          success: false,
-          message: 'User not found'
-        });
-        return ;
+        user = await Employee.findById(userId);
       }
 
-      // ดึงข้อมูลสต็อกสินค้าจากฐานข้อมูลตาม userId
-      const stocks = await Stock.find({ userId: userId }); // Assuming 'Stock' model has a 'userId' field
-        res.status(200).json({
+      if (!user) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+        return;
+      }
+
+      let ownerId: string;
+
+      if (user.role === 'admin') {
+        ownerId = user._id.toString();
+      } else if (user.role === 'employee') {
+        if (!user.adminId) {
+          res.status(400).json({
+            success: false,
+            message: 'Employee does not have an admin assigned',
+          });
+          return;
+        }
+        ownerId = user.adminId.toString();
+      } else {
+        res.status(403).json({
+          success: false,
+          message: 'Invalid user role',
+        });
+        return;
+      }
+
+      // ดึงสต็อกสินค้าจาก userId ของ admin
+      const stocks = await Stock.find({ userId: ownerId }).populate('productId');
+
+      res.status(200).json({
         success: true,
-        data: stocks
+        data: stocks,
       });
-      return;
     } else {
-       res.status(401).json({
+      res.status(401).json({
         success: false,
-        message: 'Invalid token'
+        message: 'Invalid token',
       });
-      return;
     }
   } catch (error) {
     console.error(error);
-     res.status(403).json({
+    res.status(403).json({
       success: false,
-      message: 'Forbidden, invalid token'
+      message: 'Forbidden, invalid token',
     });
-    return
   }
 };
-
-
-
-// ค้นหาสต็อกสินค้าจาก barcode
 export const getStockByBarcode = async (req: Request, res: Response): Promise<void> => {
+  const token = req.header('Authorization')?.split(' ')[1];
+
+  if (!token) {
+    res.status(401).json({ message: 'Unauthorized, no token provided' });
+    return;
+  }
+
   try {
-    const { barcode } = req.params; // ดึงค่า barcode จาก URL params
+    const decoded = verifyToken(token);
+    if (typeof decoded !== 'string' && 'userId' in decoded) {
+      const userId = decoded.userId;
+      console.log('Decoded userId:', userId);
 
-    // ค้นหาสต็อกจาก barcode
-    const stock = await Stock.findOne({ barcode }).populate('productId');
-    if (!stock) {
-      res.status(404).json({ message: 'Stock not found' });
-      return;
+      // ลองหาใน User ก่อน ถ้าไม่เจอค่อยหาใน Employee
+      let user = await User.findById(userId);
+      if (!user) {
+        user = await Employee.findById(userId);
+      }
+
+      if (!user) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+        return;
+      }
+
+      let ownerId: string;
+
+      if (user.role === 'admin') {
+        ownerId = user._id.toString();
+      } else if (user.role === 'employee') {
+        if (!user.adminId) {
+          res.status(400).json({ message: 'Employee does not have an admin assigned' });
+          return;
+        }
+        ownerId = user.adminId.toString();
+      } else {
+        res.status(403).json({ message: 'Invalid user role' });
+        return;
+      }
+
+      const { barcode } = req.params;
+
+      // ค้นหา stock ที่ตรงกับ barcode และเป็นของเจ้าของ (admin)
+      const stock = await Stock.findOne({ barcode, userId: ownerId }).populate('productId');
+
+      if (!stock) {
+        res.status(404).json({ message: 'Stock not found' });
+        return;
+      }
+
+      res.json({
+        barcode: stock.barcode,
+        stockQuantity: stock.quantity,
+        product: stock.productId,
+      });
+    } else {
+      res.status(401).json({ message: 'Invalid token' });
     }
-
-    // ส่งข้อมูลสต็อกกลับไปยังผู้ใช้ พร้อมกับจำนวนสินค้าในสต็อก
-    res.json({
-      barcode: stock.barcode,
-      stockQuantity: stock.quantity, // จำนวนสินค้าที่มีในสต็อก
-      product: stock.productId, // ข้อมูลสินค้า (เช่น ชื่อ, ราคา ฯลฯ)
-    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 };
+
 
 export const updateStockByBarcode = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -158,13 +223,13 @@ export const updateQuantityByBarcode = async (req: Request, res: Response): Prom
     const stock = await Stock.findOne({ barcode });
 
     if (!stock) {
-       res.status(404).json({ success: false, message: "ไม่พบข้อมูลสต็อก" });
+      res.status(404).json({ success: false, message: "ไม่พบข้อมูลสต็อก" });
       return;
     }
 
     // ตรวจสอบว่าสินค้ามีจำนวนพอหรือไม่
     if (stock.quantity < quantity) {
-       res.status(400).json({
+      res.status(400).json({
         success: false,
         message: `สินค้าในสต็อกไม่เพียงพอ (เหลือ ${stock.quantity} ชิ้น)`
       });
@@ -175,7 +240,7 @@ export const updateQuantityByBarcode = async (req: Request, res: Response): Prom
     stock.quantity -= quantity;
     await stock.save();
 
-      res.status(200).json({
+    res.status(200).json({
       success: true,
       message: "อัปเดตสต็อกสำเร็จ",
       data: stock

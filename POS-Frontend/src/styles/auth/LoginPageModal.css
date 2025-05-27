@@ -102,7 +102,7 @@
 }
 
 /* Error Message */
-.error {
+/* .error {
   color: red;
   font-size: 14px;
   background-color: #ffebee;
@@ -111,7 +111,7 @@
   border-radius: 5px;
   border: 1px solid #f44336;
   text-align: center;
-}
+} */
 
 /* Success Message */
 .success {

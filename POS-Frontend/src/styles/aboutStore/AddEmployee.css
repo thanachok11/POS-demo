@@ -95,21 +95,24 @@
 
 .AddEmployee-popup-content {
     background-color: white;
-    padding: 20px;
-    margin-bottom: 250px;
-    border-radius: 8px;
-    text-align: center;
-    max-width: 400px;
-    width: 100%;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-bottom: 250px;
+        border-radius: 8px;
+        text-align: center;
+        max-width: 400px;
+        width: 100%;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .AddEmployee-popup-title {
     font-size: 1.5em;
-    margin-bottom: 15px;
+        margin-bottom: 15px;
 }
 .AddEmployee-popup.show {
     display: block;
+}
+element.style{
+    display: none;
 }
 .AddEmployee-popup-close-btn{
     display: block;
@@ -123,7 +126,15 @@
     border-radius: 5px;
     cursor: pointer;
 }
+.AddEmployee-popup-content.error {
+    border: 1px solid #d9534f;
+}
 
+.AddEmployee-icon.error {
+    color: #d9534f;
+    font-size: 50px;
+    animation: bounceIn 0.5s ease-in-out;
+}
 @keyframes popup-animation {
     0% {
         opacity: 0;

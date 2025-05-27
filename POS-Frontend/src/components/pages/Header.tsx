@@ -171,19 +171,30 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
               <FontAwesomeIcon icon={faExclamationTriangle} className="icon" /> <span className="dropdown-text-expired">สินค้าเหลือน้อย</span>
             </li>
           </ul>
-          {/* เมนู: รายงาน */}
-          <li className="item-dropdown" onClick={() => toggleDropdown("setting")}>
-            <FontAwesomeIcon icon={faCog} className="icon" /> <span className="menu-text-aboutstore">เกี่ยวกับร้านค้า</span>
-            <FontAwesomeIcon icon={faCaretDown} className={`dropdown-icon ${openDropdown === "setting" ? "open" : ""}`} />
-          </li>
-          <ul className={`item-details ${openDropdown === "setting" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
-            <li onClick={() => handleMenuClick("/setting/employee", "ตั้งค่าพนักงาน")}>
-              <FontAwesomeIcon icon={faUserPlus} className="icon" /> <span className="dropdown-text-employee">พนักงาน</span>
-            </li>
-            <li onClick={() => handleMenuClick("/suppliers", "ผู้ตลิต")}>
-              <FontAwesomeIcon icon={faHandshake} className="icon" /> <span className="dropdown-text-suppliers">ผู้ผลิต</span>
-            </li>
-          </ul>
+          {/* เมนู: เกี่ยวกับร้านค้า (แสดงเฉพาะถ้าไม่ใช่พนักงาน) */}
+          {user?.role !== "employee" && (
+            <>
+              <li className="item-dropdown" onClick={() => toggleDropdown("setting")}>
+                <FontAwesomeIcon icon={faCog} className="icon" />
+                <span className="menu-text-aboutstore">เกี่ยวกับร้านค้า</span>
+                <FontAwesomeIcon
+                  icon={faCaretDown}
+                  className={`dropdown-icon ${openDropdown === "setting" ? "open" : ""}`}
+                />
+              </li>
+              <ul className={`item-details ${openDropdown === "setting" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
+                <li onClick={() => handleMenuClick("/setting/employee", "ตั้งค่าพนักงาน")}>
+                  <FontAwesomeIcon icon={faUserPlus} className="icon" />
+                  <span className="dropdown-text-employee">พนักงาน</span>
+                </li>
+                <li onClick={() => handleMenuClick("/suppliers", "ผู้ตลิต")}>
+                  <FontAwesomeIcon icon={faHandshake} className="icon" />
+                  <span className="dropdown-text-suppliers">ผู้ผลิต</span>
+                </li>
+              </ul>
+            </>
+          )}
+
 
         </ul>
       </aside>

@@ -1,12 +1,13 @@
 /* ตั้งค่าสไตล์สำหรับทั้งหน้า */
 .supplier-list-container {
-    max-width: 900px;
+    max-width: 1100px;
     margin: 20px auto;
     margin-top: 70px;
     padding: 20px;
     background: #fff;
     border-radius: 8px;
-    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.1);}
+    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.1);
+}
 
 /* หัวข้อ */
 .supplier-list-title {
@@ -51,20 +52,33 @@
     color: white;
 }
 
-.supplier-table tr:nth-child(even) {
-    background: #f7e5d1;
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    /* ระยะห่างระหว่างปุ่ม */
+    justify-content: center;
+    /* ตรงกลางหรือใช้ start/end ตามต้องการ */
 }
 
-/* ปุ่มจัดการ */
+/* ปุ่ม */
 .edit-btn,
 .delete-btn {
-    padding: 8px 12px;
-    border: none;
+    padding: 6px 12px;
+    font-size: 14px;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 14px;
-    transition: 0.3s;
-    margin: 5px;
+}
+
+.edit-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+}
+
+.delete-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
 }
 
 .edit-btn {
@@ -193,4 +207,71 @@
 
 .modal-cancel:hover {
     background: #d62828;
+}
+
+/* ขนาดหน้าจอเล็ก: มือถือ */
+@media (max-width: 600px) {
+    .supplier-list-container {
+        padding: 10px;
+        margin: 10px;
+    }
+
+    .supplier-list-title {
+        font-size: 20px;
+    }
+
+    .add-supplier-btn {
+        width: 100%;
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .supplier-table th,
+    .supplier-table td {
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    .modal-container {
+        flex-direction: column;
+        width: 90%;
+        padding: 15px;
+    }
+
+    .modal-content,
+    .modal-preview {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .modal-title {
+        font-size: 18px;
+    }
+
+    .modal-btn {
+        font-size: 14px;
+        padding: 8px;
+    }
+}
+
+/* ขนาดหน้าจอปานกลาง: แท็บเล็ต */
+@media (max-width: 900px) {
+    .supplier-list-container {
+        margin: 20px;
+        padding: 15px;
+    }
+
+    .supplier-table th,
+    .supplier-table td {
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .modal-container {
+        width: 90%;
+    }
+
+    .modal-title {
+        font-size: 20px;
+    }
 }

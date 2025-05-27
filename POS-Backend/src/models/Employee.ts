@@ -2,15 +2,15 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 // กำหนด Interface สำหรับ Employee
 export interface IEmployee extends Document {
-  name: string;
+  username: string;
   email: string;
   firstName: string;
   lastName: string;
   password: string;
   phoneNumber: string;
   position: string;
-  managerId: mongoose.Schema.Types.ObjectId;
-  role: 'employee'; // ค่า role จะมีแค่ 'employee' เท่านั้น
+  adminId: mongoose.Schema.Types.ObjectId; // ✅ เปลี่ยนจาก managerId
+  role: 'employee';
   status: 'active' | 'inactive';
   profile_img?: string;
 }
@@ -18,7 +18,7 @@ export interface IEmployee extends Document {
 // สร้าง Schema สำหรับพนักงาน
 const employeeSchema = new Schema<IEmployee>(
   {
-    name: {
+    username: {
       type: String,
       required: true,
     },
@@ -50,12 +50,12 @@ const employeeSchema = new Schema<IEmployee>(
     },
     role: {
       type: String,
-      enum: ['employee'], // ค่า role จะมีแค่ 'employee' เท่านั้น
-      default: 'employee', // กำหนดค่าเริ่มต้นเป็น 'employee'
+      enum: ['employee'],
+      default: 'employee',
     },
-    managerId: {
+    adminId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User', // อ้างอิงไปยังผู้จัดการร้าน
+      ref: 'User', // ✅ ชัดเจนว่าอ้างถึง admin
       required: true,
     },
     status: {
@@ -65,7 +65,8 @@ const employeeSchema = new Schema<IEmployee>(
     },
     profile_img: {
       type: String,
-      default: 'https://res.cloudinary.com/dboau6axv/image/upload/v1735641179/qa9dfyxn8spwm0nwtako.jpg',
+      default:
+        'https://res.cloudinary.com/dboau6axv/image/upload/v1735641179/qa9dfyxn8spwm0nwtako.jpg',
     },
   },
   {
