@@ -3,6 +3,8 @@ import { getStockData } from "../../api/stock/stock.ts";
 import { getProducts } from "../../api/product/productApi.ts";
 import { Link, useNavigate } from "react-router-dom"; // เพิ่ม useNavigate
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { jwtDecode } from "jwt-decode";
+
 import { faUserTie, faSearch, faEnvelope, faBriefcase, faPlus } from "@fortawesome/free-solid-svg-icons";
 import "../../styles/stock/StockPage.css";
 interface StockItem {
@@ -23,10 +25,34 @@ const StockPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [user, setUser] = useState<{ userId: string; username: string; role: string; email: string } | null>(null);
 
   const navigate = useNavigate(); // ใช้สำหรับเปลี่ยนหน้า
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded: any = jwtDecode(token);
+        setUser({
+          userId: decoded.userId,
+          role: decoded.role, // ✅ ตรงนี้แก้ให้ถูกต้อง
+          username: decoded.username,
+          email: decoded.email,
+          
+        });
+        console.log("Decoded :",decoded);
+
+      } catch (error) {
+        console.error("Invalid token:", error);
+      }
+    }
+  }, []);
+  console.log("Current User:", user);
 
   useEffect(() => {
+
+
+    
     const fetchData = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -115,13 +141,15 @@ const StockPage: React.FC = () => {
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
-
+      
+      {user?.role !== "employee" && (
+      
       <Link to="/add-product">
         <button className="add-product-button">
           <FontAwesomeIcon icon={faPlus} /> เพิ่มสินค้า
           </button>
       </Link>
-
+      )}
       {!loading && !error && (
         <table className="stock-table">
           <thead>

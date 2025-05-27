@@ -13,7 +13,7 @@ import {
   faBox,
   faChartLine,
   faCog,
-  faReceipt, 
+  faReceipt,
   faHistory,
   faCartPlus,
   faFileInvoice,
@@ -114,89 +114,91 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
           <span className="sidebar-logo-text">{user?.nameStore || "EAZYPOS"}</span>
         </div>
 
-        {/* เมนู */}
-        <ul className="navLinks">
-          <li className="item-dropdown" onClick={() => toggleDropdown("management")}>
-            <FontAwesomeIcon icon={faHome} className="icon" />
-            <span className="menu-text-home">หน้าหลัก</span>
-            <FontAwesomeIcon icon={faCaretDown} className={`dropdown-icon ${openDropdown === "management" ? "open" : ""}`} />
-          </li>
+        <div className="sidebar-scrollable">
+          {/* เมนู */}
+          <ul className="navLinks">
+            <li className="item-dropdown" onClick={() => toggleDropdown("management")}>
+              <FontAwesomeIcon icon={faHome} className="icon" />
+              <span className="menu-text-home">หน้าหลัก</span>
+              <FontAwesomeIcon icon={faCaretDown} className={`dropdown-icon ${openDropdown === "management" ? "open" : ""}`} />
+            </li>
 
-          <ul className={`item-details ${openDropdown === "management" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
-            <li onClick={() => handleMenuClick("/shop", "ซื้อสินค้า")}>
-              <FontAwesomeIcon icon={faShoppingCart} className="icon" /> <span className="dropdown-text-buy">ซื้อสินค้า</span>
-            </li>
-          </ul>
-          <li className="item-dropdown" onClick={() => toggleDropdown("reports")}>
-            <FontAwesomeIcon icon={faChartLine} className="icon" /> <span className="menu-text-dashboard">รายงาน</span>
-            <FontAwesomeIcon icon={faCaretDown} className={`dropdown-icon ${openDropdown === "reports" ? "open" : ""}`} />
-          </li>
-          <ul className={`item-details ${openDropdown === "reports" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
-            <li onClick={() => handleMenuClick("/reports/sales", "รายงานยอดขาย")}>
-              <FontAwesomeIcon icon={faFileInvoice} className="icon" /> <span className="dropdown-text-sale">รายงานยอดขาย</span>
-            </li>
-            <li onClick={() => handleMenuClick("/reports/stock", "รายงานสินค้าคงเหลือ")}>
-              <FontAwesomeIcon icon={faClipboardList} className="icon" /> <span className="dropdown-text-stock">รายงานสินค้าคงเหลือ</span>
-            </li>
-            <li onClick={() => handleMenuClick("/reports/receipts", "ใบเสร็จ")}>
-              <FontAwesomeIcon icon={faReceipt} className="icon" /> <span className="dropdown-text-receipt">ใบเสร็จ</span>
-            </li>
-            <li onClick={() => handleMenuClick("/reports/salehistory", "ประวัติการขาย")}>
-              <FontAwesomeIcon icon={faHistory} className="icon" /> <span className="dropdown-text-historysale">ประวัติการขาย</span>
-            </li>
-          </ul>
-
-          {/* เมนู: จัดการสินค้า */}
-          <li className="item-dropdown" onClick={() => toggleDropdown("products")}>
-            <FontAwesomeIcon icon={faBox} className="icon" /> <span className="menu-text-product">จัดการสินค้า</span>
-            <FontAwesomeIcon icon={faCaretDown} className={`dropdown-icon ${openDropdown === "products" ? "open" : ""}`} />
-          </li>
-          <ul className={`item-details ${openDropdown === "products" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
-            <li onClick={() => handleMenuClick("/stocks", "สต็อกสินค้า")}>
-              <FontAwesomeIcon icon={faClipboardList} className="icon" /> <span className="dropdown-text-stock">สต็อกสินค้า</span>
-            </li>
-            <li onClick={() => handleMenuClick("/createOrder", "นำเข้าสินค้าใหม่")}>
-              <FontAwesomeIcon icon={faCartPlus} className="icon" /> <span className="dropdown-text-buyproduct">นำเข้าสินค้าใหม่</span>
-            </li>
-            <li onClick={() => handleMenuClick("/transfer", "โอนสินค้า")}>
-              <FontAwesomeIcon icon={faExchangeAlt} className="icon" /> <span className="dropdown-text-tranfer">โอนสินค้า</span>
-            </li>
-            <li onClick={() => handleMenuClick("/products/scan", "บาร์โค้ด")}>
-              <FontAwesomeIcon icon={faBarcode} className="icon" /> <span className="dropdown-text-barcode">บาร์โค้ด</span>
-            </li>
-            <li onClick={() => handleMenuClick("/debt", "ค้างชำระ")}>
-              <FontAwesomeIcon icon={faScroll} className="icon" /> <span className="dropdown-text-debt">ค้างชำระ</span>
-            </li>
-            <li onClick={() => handleMenuClick("/expired", "สินค้าเหลือน้อย/สินค้าหมด")}>
-              <FontAwesomeIcon icon={faExclamationTriangle} className="icon" /> <span className="dropdown-text-expired">สินค้าเหลือน้อย</span>
-            </li>
-          </ul>
-          {/* เมนู: เกี่ยวกับร้านค้า (แสดงเฉพาะถ้าไม่ใช่พนักงาน) */}
-          {user?.role !== "employee" && (
-            <>
-              <li className="item-dropdown" onClick={() => toggleDropdown("setting")}>
-                <FontAwesomeIcon icon={faCog} className="icon" />
-                <span className="menu-text-aboutstore">เกี่ยวกับร้านค้า</span>
-                <FontAwesomeIcon
-                  icon={faCaretDown}
-                  className={`dropdown-icon ${openDropdown === "setting" ? "open" : ""}`}
-                />
+            <ul className={`item-details ${openDropdown === "management" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
+              <li onClick={() => handleMenuClick("/shop", "ซื้อสินค้า")}>
+                <FontAwesomeIcon icon={faShoppingCart} className="icon" /> <span className="dropdown-text-buy">ซื้อสินค้า</span>
               </li>
-              <ul className={`item-details ${openDropdown === "setting" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
-                <li onClick={() => handleMenuClick("/setting/employee", "ตั้งค่าพนักงาน")}>
-                  <FontAwesomeIcon icon={faUserPlus} className="icon" />
-                  <span className="dropdown-text-employee">พนักงาน</span>
-                </li>
-                <li onClick={() => handleMenuClick("/suppliers", "ผู้ตลิต")}>
-                  <FontAwesomeIcon icon={faHandshake} className="icon" />
-                  <span className="dropdown-text-suppliers">ผู้ผลิต</span>
-                </li>
-              </ul>
-            </>
-          )}
+            </ul>
+            <li className="item-dropdown" onClick={() => toggleDropdown("reports")}>
+              <FontAwesomeIcon icon={faChartLine} className="icon" /> <span className="menu-text-dashboard">รายงาน</span>
+              <FontAwesomeIcon icon={faCaretDown} className={`dropdown-icon ${openDropdown === "reports" ? "open" : ""}`} />
+            </li>
+            <ul className={`item-details ${openDropdown === "reports" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
+              <li onClick={() => handleMenuClick("/reports/sales", "รายงานยอดขาย")}>
+                <FontAwesomeIcon icon={faFileInvoice} className="icon" /> <span className="dropdown-text-sale">รายงานยอดขาย</span>
+              </li>
+              <li onClick={() => handleMenuClick("/reports/stock", "รายงานสินค้าคงเหลือ")}>
+                <FontAwesomeIcon icon={faClipboardList} className="icon" /> <span className="dropdown-text-stock">รายงานสินค้าคงเหลือ</span>
+              </li>
+              <li onClick={() => handleMenuClick("/reports/receipts", "ใบเสร็จ")}>
+                <FontAwesomeIcon icon={faReceipt} className="icon" /> <span className="dropdown-text-receipt">ใบเสร็จ</span>
+              </li>
+              <li onClick={() => handleMenuClick("/reports/salehistory", "ประวัติการขาย")}>
+                <FontAwesomeIcon icon={faHistory} className="icon" /> <span className="dropdown-text-historysale">ประวัติการขาย</span>
+              </li>
+            </ul>
 
+            {/* เมนู: จัดการสินค้า */}
+            <li className="item-dropdown" onClick={() => toggleDropdown("products")}>
+              <FontAwesomeIcon icon={faBox} className="icon" /> <span className="menu-text-product">จัดการสินค้า</span>
+              <FontAwesomeIcon icon={faCaretDown} className={`dropdown-icon ${openDropdown === "products" ? "open" : ""}`} />
+            </li>
+            <ul className={`item-details ${openDropdown === "products" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
+              <li onClick={() => handleMenuClick("/stocks", "สต็อกสินค้า")}>
+                <FontAwesomeIcon icon={faClipboardList} className="icon" /> <span className="dropdown-text-stock">สต็อกสินค้า</span>
+              </li>
+              <li onClick={() => handleMenuClick("/createOrder", "นำเข้าสินค้าใหม่")}>
+                <FontAwesomeIcon icon={faCartPlus} className="icon" /> <span className="dropdown-text-buyproduct">นำเข้าสินค้าใหม่</span>
+              </li>
+              <li onClick={() => handleMenuClick("/transfer", "โอนสินค้า")}>
+                <FontAwesomeIcon icon={faExchangeAlt} className="icon" /> <span className="dropdown-text-tranfer">โอนสินค้า</span>
+              </li>
+              <li onClick={() => handleMenuClick("/products/scan", "บาร์โค้ด")}>
+                <FontAwesomeIcon icon={faBarcode} className="icon" /> <span className="dropdown-text-barcode">บาร์โค้ด</span>
+              </li>
+              <li onClick={() => handleMenuClick("/debt", "ค้างชำระ")}>
+                <FontAwesomeIcon icon={faScroll} className="icon" /> <span className="dropdown-text-debt">ค้างชำระ</span>
+              </li>
+              <li onClick={() => handleMenuClick("/expired", "สินค้าเหลือน้อย/สินค้าหมด")}>
+                <FontAwesomeIcon icon={faExclamationTriangle} className="icon" /> <span className="dropdown-text-expired">สินค้าเหลือน้อย</span>
+              </li>
+            </ul>
+            {/* เมนู: เกี่ยวกับร้านค้า (แสดงเฉพาะถ้าไม่ใช่พนักงาน) */}
+            {user?.role !== "employee" && (
+              <>
+                <li className="item-dropdown" onClick={() => toggleDropdown("setting")}>
+                  <FontAwesomeIcon icon={faCog} className="icon" />
+                  <span className="menu-text-aboutstore">เกี่ยวกับร้านค้า</span>
+                  <FontAwesomeIcon
+                    icon={faCaretDown}
+                    className={`dropdown-icon ${openDropdown === "setting" ? "open" : ""}`}
+                  />
+                </li>
+                <ul className={`item-details ${openDropdown === "setting" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
+                  <li onClick={() => handleMenuClick("/setting/employee", "ตั้งค่าพนักงาน")}>
+                    <FontAwesomeIcon icon={faUserPlus} className="icon" />
+                    <span className="dropdown-text-employee">พนักงาน</span>
+                  </li>
+                  <li onClick={() => handleMenuClick("/suppliers", "ผู้ตลิต")}>
+                    <FontAwesomeIcon icon={faHandshake} className="icon" />
+                    <span className="dropdown-text-suppliers">ผู้ผลิต</span>
+                  </li>
+                </ul>
 
-        </ul>
+              </>
+            )}
+
+          </ul>
+        </div>
       </aside>
 
       {/* Navbar */}

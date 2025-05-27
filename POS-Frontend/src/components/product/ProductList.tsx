@@ -19,7 +19,7 @@ interface Product {
 }
 
 const ProductList: React.FC = () => {
-  const [user, setUser] = useState<{ userId: string; username: string; email: string } | null>(null);
+  const [user, setUser] = useState<{ userId: string; username: string; role: string; email: string } | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<Product[]>([]);
   const [popupVisible, setPopupVisible] = useState(false);
@@ -42,6 +42,7 @@ const ProductList: React.FC = () => {
         const decoded: any = jwtDecode(token);
         setUser({
           userId: decoded.userId,
+          role: decoded.userId,
           username: decoded.username,
           email: decoded.email,
         });

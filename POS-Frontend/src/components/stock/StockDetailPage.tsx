@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getStockData } from "../../api/stock/stock.ts";
 import { getProductByBarcode } from "../../api/product/productApi.ts";
 import "../../styles/stock/StockDetailPage.css";
+import { jwtDecode } from "jwt-decode";
 
 const StockDetail: React.FC = () => {
     const { barcode } = useParams<{ barcode: string }>();
@@ -12,7 +13,27 @@ const StockDetail: React.FC = () => {
     const [stock, setStock] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [user, setUser] = useState<{ userId: string; username: string; role: string; email: string } | null>(null);
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (token) {
+            try {
+                const decoded: any = jwtDecode(token);
+                setUser({
+                    userId: decoded.userId,
+                    role: decoded.role, // ✅ ตรงนี้แก้ให้ถูกต้อง
+                    username: decoded.username,
+                    email: decoded.email,
 
+                });
+                console.log("Decoded :", decoded);
+
+            } catch (error) {
+                console.error("Invalid token:", error);
+            }
+        }
+    }, []);
+    console.log("Current User:", user);
     useEffect(() => {
         const fetchData = async () => {
             if (!barcode) {
@@ -74,19 +95,22 @@ const StockDetail: React.FC = () => {
                             onClick={() => navigate(-1)}>
                                 ⬅️ กลับ
                         </button>
-
+                        {user?.role !== "employee" && (
                         <button 
                             className="import-button-stockDetail" 
                             onClick={() => navigate(`/createOrder`)}
                         >
                             📥 นำเข้าสินค้าใหม่
                         </button>
+                        )}
+                        {user?.role !== "employee" && (
                         <button 
                             className="edit-button-stockDetail" 
                             onClick={() => navigate(`/edit/${barcode}`)}
                         >
                             ✏️ แก้ไขสินค้า
                         </button>
+                        )}
                     </div>
 
                 </div>

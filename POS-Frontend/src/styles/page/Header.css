@@ -257,46 +257,60 @@
 .sidebar {
     position: fixed;
     left: 0;
-    top: 0;
+    top: 80px;
     width: 230px;
-    height: 100%;
-    margin-top: 80px;
-    transition: width 0.3s ease-in-out;
+    height: calc(100% - 80px);
+    /* หักความสูงของ header */
     background: linear-gradient(135deg, #5e768b, #456686);
     color: white;
-    padding-top: 20px;
-    transition: all 0.3s ease-in-out;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    /* ให้แบ่งเป็นส่วนหัว กับ ส่วนเลื่อน */
     border-top-right-radius: 15px;
     border-bottom-right-radius: 15px;
-    /* ทำให้สามารถเลื่อน scroll ได้ */
-    overflow-y: auto;
-    
-    /* Firefox scrollbar */
-        scrollbar-width: thin;
-        scrollbar-color: #aaa transparent;
-    }
-    
-    /* Chrome, Edge, Safari scrollbar */
-    .sidebar::-webkit-scrollbar {
-        width: 6px;
-    }
-    
-    .sidebar::-webkit-scrollbar-track {
-        background: transparent;
-    }
-    
-    .sidebar::-webkit-scrollbar-thumb {
-        background-color: #bbb;
-        border-radius: 6px;
-        border: 2px solid transparent;
-        background-clip: content-box;
-    }
-    
-    .sidebar::-webkit-scrollbar-thumb:hover {
-        background-color: #ccc;
-    }
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
 
+/* ส่วนหัว */
+.sidebar-header {
+    padding: 16px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.1);
+    /* เพิ่มแบ็คกราวด์ถ้าต้องการ */
+}
+
+/* ส่วนที่เลื่อน */
+.sidebar-scrollable {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+
+    /* Scrollbar styling */
+    scrollbar-width: thin;
+    scrollbar-color: #aaa transparent;
+}
+
+.sidebar-scrollable::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-scrollable::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-scrollable::-webkit-scrollbar-thumb {
+    background-color: #bbb;
+    border-radius: 6px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+.sidebar-scrollable::-webkit-scrollbar-thumb:hover {
+    background-color: #ccc;
+}
 .sidebar.closed {
     width: 60px;
 }
