@@ -51,7 +51,6 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
 
     if (typeof decoded !== 'string' && 'userId' in decoded) {
       const userId = decoded.userId;
-      console.log('Decoded userId:', userId);
 
       // ลองหาใน User ก่อน ถ้าไม่เจอค่อยหาใน Employee
       let user = await User.findById(userId);
@@ -128,7 +127,7 @@ export const getProductsByCategory = async (req: Request, res: Response): Promis
   if (!token) {
     res.status(401).json({
       success: false,
-      message: 'Unauthorized, no token provided'
+      message: 'Unauthorized, no token provided',
     });
     return;
   }
@@ -140,33 +139,143 @@ export const getProductsByCategory = async (req: Request, res: Response): Promis
       const userId = decoded.userId;
       const category = req.params.category;
 
-      // ค้นหาสินค้าตาม category + userId
-      const products = await Product.find({ userId, category });
+      // หา user (จาก User หรือ Employee)
+      let user = await User.findById(userId);
+      if (!user) {
+        user = await Employee.findById(userId);
+      }
+
+      if (!user) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+        return;
+      }
+
+      // หา ownerId ตาม role
+      let ownerId: string;
+
+      if (user.role === 'admin' || user.role === 'manager') {
+        ownerId = user._id.toString();
+      } else if (user.role === 'employee') {
+        if (!user.adminId) {
+          res.status(400).json({
+            success: false,
+            message: 'Employee does not have an admin assigned',
+          });
+          return;
+        }
+        ownerId = user.adminId.toString();
+      } else {
+        res.status(403).json({
+          success: false,
+          message: 'Invalid user role',
+        });
+        return;
+      }
+
+      // ดึงสินค้าตาม category และ ownerId
+      const products = await Product.find({ userId: ownerId, category });
 
       if (products.length === 0) {
         res.status(404).json({
           success: false,
-          message: 'No products found for this category'
+          message: 'No products found for this category',
         });
         return;
       }
 
       res.status(200).json({
         success: true,
-        data: products
+        data: products,
       });
     } else {
       res.status(401).json({
         success: false,
-        message: 'Invalid token'
+        message: 'Invalid token',
       });
     }
   } catch (error) {
     console.error(error);
     res.status(403).json({
       success: false,
-      message: 'Forbidden, invalid token'
+      message: 'Forbidden, invalid token',
     });
   }
 };
 
+export const getCategories = async (req: Request, res: Response): Promise<void> => {
+  const token = req.header('Authorization')?.split(' ')[1];
+
+  if (!token) {
+    res.status(401).json({
+      success: false,
+      message: 'Unauthorized, no token provided',
+    });
+    return;
+  }
+
+  try {
+    const decoded = verifyToken(token);
+
+    if (typeof decoded !== 'string' && 'userId' in decoded) {
+      const userId = decoded.userId;
+
+      // หา user จาก User หรือ Employee
+      let user = await User.findById(userId);
+      if (!user) {
+        user = await Employee.findById(userId);
+      }
+
+      if (!user) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+        return;
+      }
+
+      // หาค่า ownerId ตาม role
+      let ownerId: string;
+
+      if (user.role === 'admin' || user.role === 'manager') {
+        ownerId = user._id.toString();
+      } else if (user.role === 'employee') {
+        if (!user.adminId) {
+          res.status(400).json({
+            success: false,
+            message: 'Employee does not have an admin assigned',
+          });
+          return;
+        }
+        ownerId = user.adminId.toString();
+      } else {
+        res.status(403).json({
+          success: false,
+          message: 'Invalid user role',
+        });
+        return;
+      }
+
+      // ใช้ distinct ดึง category ทั้งหมดแบบไม่ซ้ำ
+      const categories = await Product.distinct('category', { userId: ownerId });
+
+      res.status(200).json({
+        success: true,
+        data: categories,
+      });
+    } else {
+      res.status(401).json({
+        success: false,
+        message: 'Invalid token',
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(403).json({
+      success: false,
+      message: 'Forbidden, invalid token',
+    });
+  }
+};

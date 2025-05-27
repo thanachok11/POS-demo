@@ -41,6 +41,7 @@ app.use(bodyParser.json()); // ลบได้
 app.use('/api/test', testRoute);
 app.use("/api/products", productRoutes);
 app.use("/api/products/barcode", productRoutes);
+app.use("/api/category", productRoutes);
 app.post("/api/product/upload", uploadRoutes);
 app.use("/api/auth", authRoutes);  // ใช้เพียงเส้นทางนี้
 app.use("/api/stocks", Stock);

@@ -2,9 +2,16 @@ import { useState, useEffect } from "react";
 import { getProducts } from "../../api/product/productApi.ts";
 import { updateStockByBarcode, getStockByBarcode } from "../../api/stock/stock.ts";
 import { createPayment } from "../../api/payment/paymentApi.ts"; // นำเข้า API ชำระเงิน
-import { getCategories } from "../../api/product/categoryApi.ts"; // Import API ดึงหมวดหมู่สินค้า
+import { getCategories, getProductsByCategory } from "../../api/product/categoryApi.ts"; // Import API ดึงหมวดหมู่สินค้า
 import Checkout from "../product/Checkout.tsx"; // นำเข้า Checkout Modal
 import "../../styles/product/ProductList.css";
+import {
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+} from "@mui/material";
 import { jwtDecode } from "jwt-decode";
 
 import React from "react";
@@ -51,30 +58,23 @@ const ProductList: React.FC = () => {
       }
     }
   }, []);
-  useEffect(() => {
-  const fetchCategories = async () => {
-    try {
-      const categoryData = await getCategories();
-      if (categoryData.success && Array.isArray(categoryData.data)) {
-        setCategories(categoryData.data);
-      } else {
-        console.error("ไม่พบข้อมูลหมวดหมู่");
-      }
-    } catch (error) {
-      console.error("เกิดข้อผิดพลาดในการดึงหมวดหมู่:", error);
-    }
-  };
 
-  fetchCategories();
-  }, []);
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const productData = await getProducts();  // เรียกใช้ฟังก์ชันจาก productApi.ts
-        console.log("Product data: ", productData); // log ดูข้อมูลสินค้า
+        const productData = await getProducts();
+        console.log("Product data: ", productData);
 
         if (productData.success && Array.isArray(productData.data)) {
-          setProducts(productData.data);  // ใช้ productData.data แทน
+          const allProducts = productData.data;
+          setProducts(allProducts);
+
+          const uniqueCategories = [
+            ...new Set(allProducts.map((product) => product.category))
+          ] as string[];
+
+          setCategories(uniqueCategories);
+
         } else {
           setErrorMessage("ไม่พบข้อมูลสินค้า");
         }
@@ -86,6 +86,7 @@ const ProductList: React.FC = () => {
 
     fetchProducts();
   }, []);
+
 
 
   const addToCart = (product: Product) => {
@@ -103,7 +104,7 @@ const ProductList: React.FC = () => {
   };
 
 
-const removeFromCart = (product: Product, barcode: string) => {
+  const removeFromCart = (product: Product, barcode: string) => {
     setCart((prevCart) => {
       const updatedCart = prevCart.filter(item => item.barcode !== barcode); // 🔥 ลบสินค้าทั้งหมดที่ตรงกับ barcode
 
@@ -120,75 +121,75 @@ const removeFromCart = (product: Product, barcode: string) => {
 
       return updatedCart;
     });
-};
-
-
-const checkout = async (amountReceived: number, selectedPaymentMethod: "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code") => {
-  if (!user) {
-    setErrorMessage("กรุณาเข้าสู่ระบบก่อนทำการชำระเงิน");
-    return;
-  }
-
-  const validPaymentMethods = ["เงินสด", "โอนเงิน", "บัตรเครดิต", "QR Code"] as const;
-
-  if (!validPaymentMethods.includes(selectedPaymentMethod)) {
-    setErrorMessage("วิธีการชำระเงินไม่ถูกต้อง");
-    return;
-  }
-
-  const paymentData = {
-    saleId: new Date().getTime().toString(),
-    employeeName: user.username,
-    paymentMethod: selectedPaymentMethod,
-    amount: getTotalPrice(),
-    amountReceived,
-    change: amountReceived - getTotalPrice(),
-    items: cart.map(item => ({
-      barcode: item.barcode,
-      name: item.name,
-      price: item.price,
-      quantity: item.quantity,
-      subtotal: item.price * item.quantity,
-    }))
   };
 
-  try {
-    const paymentResponse = await createPayment(paymentData);
-    if (!paymentResponse.success) {
-      setErrorMessage(paymentResponse.message);
+
+  const checkout = async (amountReceived: number, selectedPaymentMethod: "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code") => {
+    if (!user) {
+      setErrorMessage("กรุณาเข้าสู่ระบบก่อนทำการชำระเงิน");
       return;
     }
 
-    for (const item of cart) {
-      try {
-        const updatedStock = await updateStockByBarcode(item.barcode, item.quantity);
-        if (!updatedStock.success) {
-          setErrorMessage(`ไม่สามารถอัปเดตสต็อกของ ${item.name}`);
-          return;
-        }
-      } catch (error) {
-        setErrorMessage(`เกิดข้อผิดพลาดในการอัปเดตสต็อกของ ${item.name}`);
-        console.error(error);
-        return;
-      }
+    const validPaymentMethods = ["เงินสด", "โอนเงิน", "บัตรเครดิต", "QR Code"] as const;
+
+    if (!validPaymentMethods.includes(selectedPaymentMethod)) {
+      setErrorMessage("วิธีการชำระเงินไม่ถูกต้อง");
+      return;
     }
 
-    setCart([]);
-    setShowCart(false);
-    setTimeout(() => {
+    const paymentData = {
+      saleId: new Date().getTime().toString(),
+      employeeName: user.username,
+      paymentMethod: selectedPaymentMethod,
+      amount: getTotalPrice(),
+      amountReceived,
+      change: amountReceived - getTotalPrice(),
+      items: cart.map(item => ({
+        barcode: item.barcode,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        subtotal: item.price * item.quantity,
+      }))
+    };
+
+    try {
+      const paymentResponse = await createPayment(paymentData);
+      if (!paymentResponse.success) {
+        setErrorMessage(paymentResponse.message);
+        return;
+      }
+
+      for (const item of cart) {
+        try {
+          const updatedStock = await updateStockByBarcode(item.barcode, item.quantity);
+          if (!updatedStock.success) {
+            setErrorMessage(`ไม่สามารถอัปเดตสต็อกของ ${item.name}`);
+            return;
+          }
+        } catch (error) {
+          setErrorMessage(`เกิดข้อผิดพลาดในการอัปเดตสต็อกของ ${item.name}`);
+          console.error(error);
+          return;
+        }
+      }
+
+      setCart([]);
       setShowCart(false);
-    }, 3000);
-  } catch (error) {
-    setErrorMessage("เกิดข้อผิดพลาดในการบันทึกข้อมูลชำระเงิน");
-    console.error(error);
-    return;
-  }
-};
+      setTimeout(() => {
+        setShowCart(false);
+      }, 3000);
+    } catch (error) {
+      setErrorMessage("เกิดข้อผิดพลาดในการบันทึกข้อมูลชำระเงิน");
+      console.error(error);
+      return;
+    }
+  };
 
 
 
-// 📌 ฟังก์ชันยืนยันการชำระเงินจาก Modal
-const handleConfirmPayment = (method: string, amountReceived?: number) => {
+  // 📌 ฟังก์ชันยืนยันการชำระเงินจาก Modal
+  const handleConfirmPayment = (method: string, amountReceived?: number) => {
     const validPaymentMethods = ["เงินสด", "โอนเงิน", "บัตรเครดิต", "QR Code"] as const;
 
     if (!validPaymentMethods.includes(method as any)) {
@@ -212,22 +213,22 @@ const handleConfirmPayment = (method: string, amountReceived?: number) => {
       }))
     };
 
-  createPayment(paymentData)
-    .then((response) => {
-      if (!response.success) {
-        setErrorMessage(response.message);
-        return;
-      }
+    createPayment(paymentData)
+      .then((response) => {
+        if (!response.success) {
+          setErrorMessage(response.message);
+          return;
+        }
 
-      setCart([]);              // ล้างตะกร้า
-      setPopupVisible(true);    // ✅ แสดง popup สำเร็จ
-    })
-    .catch((error) => {
-      setErrorMessage("เกิดข้อผิดพลาดในการบันทึกข้อมูลชำระเงิน");
-      console.error(error);
-    });
+        setCart([]);              // ล้างตะกร้า
+        setPopupVisible(true);    // ✅ แสดง popup สำเร็จ
+      })
+      .catch((error) => {
+        setErrorMessage("เกิดข้อผิดพลาดในการบันทึกข้อมูลชำระเงิน");
+        console.error(error);
+      });
 
-};
+  };
 
 
   // คำนวณยอดรวมทั้งหมดในตะกร้า
@@ -248,20 +249,20 @@ const handleConfirmPayment = (method: string, amountReceived?: number) => {
     setShowCheckout(false); // ✅ ปิด Modal ที่นี่
   };
 
-const handleDeleteOne = () => {
-  setCurrentQuantity((prev) => {
-    const newValue = prev.toString().slice(0, -1); // ลบตัวสุดท้าย
-    if (newValue === "" || newValue === "0") {
-      return 0;
-    }
-    return Number(newValue);
-  });
-};
-const clearCart = () => {
-  setCart([]); // เคลียร์สินค้าในตะกร้า
-};
+  const handleDeleteOne = () => {
+    setCurrentQuantity((prev) => {
+      const newValue = prev.toString().slice(0, -1); // ลบตัวสุดท้าย
+      if (newValue === "" || newValue === "0") {
+        return 0;
+      }
+      return Number(newValue);
+    });
+  };
+  const clearCart = () => {
+    setCart([]); // เคลียร์สินค้าในตะกร้า
+  };
 
-const handleSetQuantity = () => {
+  const handleSetQuantity = () => {
     setCart((prevCart) => {
       return prevCart
         .map((item) =>
@@ -273,13 +274,17 @@ const handleSetQuantity = () => {
     });
 
     setShowNumberPad(false); // ปิดแป้นตัวเลข
-};
+  };
 
 
-const filteredProducts = products.filter((product) =>
-  product.name.toLowerCase().includes(searchProduct.toLowerCase()) &&
-  (categoryFilter === "" || product.category === categoryFilter) // กรองสินค้าตามหมวดหมู่
-);
+  const filteredCategory = categoryFilter
+    ? products.filter((product) => product.category === categoryFilter)
+    : products;
+
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(searchProduct.toLowerCase()) &&
+    (categoryFilter === "" || product.category === categoryFilter) // กรองสินค้าตามหมวดหมู่
+  );
 
   return (
     <div className="product-page">
@@ -292,22 +297,23 @@ const filteredProducts = products.filter((product) =>
             value={searchProduct}
             onChange={(e) => setSearchProduct(e.target.value)}
           />
- 
-        <div className="category-filter-container">
-        <select
-          className="category-filter"
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-        >
-          <option value="">📦 ทุกหมวดหมู่</option>
-          {categories.map((category) => (
-            <option key={category} value={category}>
-              {category}
-            </option>
-          ))}
-        </select>
-               </div>
-      </div>
+
+          <div className="category-filter-container">
+            <select
+              className="category-filter"
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+            >
+              <option value="">📦 ทุกหมวดหมู่</option>
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
+
+        </div>
       </div>
       <div className="product-list-container">
         {errorMessage && <p className="error-message">{errorMessage}</p>}
@@ -374,39 +380,39 @@ const filteredProducts = products.filter((product) =>
         />
       )}
 
-{/* Number Pad for Quantity */}
-{showNumberPad && (
-  <div className="numpad-overlay">
-  <div className="numpad-product">
-<button onClick={() => setShowNumberPad(false)} className="numpad-product-close">
-  &times;
-</button>
+      {/* Number Pad for Quantity */}
+      {showNumberPad && (
+        <div className="numpad-overlay">
+          <div className="numpad-product">
+            <button onClick={() => setShowNumberPad(false)} className="numpad-product-close">
+              &times;
+            </button>
 
-    <div className="numpad-product-display">
-      {errorMessage ? (
-        <p className="numpad-product-error">{errorMessage}</p> // แสดงข้อความ error ถ้ามี
-      ) : (
-        <p>จำนวน: {currentQuantity}</p> // แสดงจำนวนที่ผู้ใช้ป้อน
+            <div className="numpad-product-display">
+              {errorMessage ? (
+                <p className="numpad-product-error">{errorMessage}</p> // แสดงข้อความ error ถ้ามี
+              ) : (
+                <p>จำนวน: {currentQuantity}</p> // แสดงจำนวนที่ผู้ใช้ป้อน
+              )}
+            </div>
+            <div className="numpad-product-buttons">
+              {["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].map((button) => (
+                <button key={button} onClick={() => handleQuantityChange(button)} className="numpad-product-btn">
+                  {button}
+                </button>
+
+              ))}
+              <button onClick={handleDeleteOne} className="numpad-product-clear-one">C</button>
+              <button onClick={() => handleQuantityChange("ลบทั้งหมด")} className="numpad-product-clear">
+                AC
+              </button>
+            </div>
+            <button onClick={handleSetQuantity} className="numpad-product-set">
+              เลือก
+            </button>
+          </div>
+        </div>
       )}
-    </div>
-    <div className="numpad-product-buttons">
-      {["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].map((button) => (
-        <button key={button} onClick={() => handleQuantityChange(button)} className="numpad-product-btn">
-          {button}
-        </button>
-        
-      ))}
-    <button onClick={handleDeleteOne} className="numpad-product-clear-one">C</button>
-    <button onClick={() => handleQuantityChange("ลบทั้งหมด")} className="numpad-product-clear">
-      AC
-    </button>
-    </div>
-        <button onClick={handleSetQuantity} className="numpad-product-set">
-      เลือก
-    </button>
-  </div>
-  </div>
-)}
     </div>
   );
 };
