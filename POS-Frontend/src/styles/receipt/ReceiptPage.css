@@ -3,10 +3,12 @@
     max-width: 900px;
     margin: 20px auto;
     margin-top: 70px;
+    margin-left: 200px;
     padding: 20px;
     background: #fff;
     border-radius: 8px;
-    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.1);}
+    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.1);
+}
 
 /* ชื่อหัวข้อ */
 .receipt-title {

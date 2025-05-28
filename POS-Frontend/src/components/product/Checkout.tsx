@@ -33,14 +33,15 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfir
 
   const handleCashPayment = () => {
     const cashAmount = parseFloat(cashInput);
-    if (isNaN(cashAmount) || cashAmount < totalPrice) {
-      setError("จำนวนเงินไม่เพียงพอ");
+    if (isNaN(cashAmount)) {
+      setError("กรุณาใส่จำนวนเงินให้ถูกต้อง");
       setChange(null);
     } else {
-      setChange(cashAmount - totalPrice);
-      setError(null);
+      setChange(cashAmount - totalPrice); // ✅ ตั้งค่า change ทุกกรณี
+      setError(null); // ❌ ไม่ต้องตั้ง error ที่นี่ ใช้ JSX เช็คแทน
     }
   };
+
 
   const confirmCashPayment = async () => {
     const cashAmount = parseFloat(cashInput);
@@ -77,7 +78,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfir
             {cart.map((item) => (
               <div key={item.barcode} className="checkout-item">
                 <span className="checkout-item-name">{item.name}</span>
-                <span className="checkout-item-price">ราคา {item.price} บาท</span>
+                <span className="checkout-item-price">ราคา {item.price.toLocaleString()} บาท</span>
                 <span className="checkout-item-quantity">x {item.quantity} รายการ</span>
               </div>
             ))}
@@ -85,11 +86,19 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfir
 
           <div className="checkout-total">
             <span className="checkout-total-label">ยอดรวม:</span>
-            <span className="checkout-total-price">{totalPrice} ฿</span>
+            <span className="checkout-total-price">{totalPrice.toLocaleString()} ฿</span>
           </div>
+
+          {/* แสดงข้อความเมื่อจำนวนเงินเพียงพอ */}
           {change !== null && change >= 0 && (
             <p className="checkout-change">จำนวนเงินถูกต้อง</p>
           )}
+
+          {/* แสดงข้อความเมื่อจำนวนเงินไม่พอ */}
+          {change !== null && change < 0 && (
+            <p className="checkout-error">จำนวนเงินไม่เพียงพอ</p>
+          )}
+
         </div>
 
         {/* ด้านขวา: ปุ่มเลือกวิธีชำระเงิน */}
@@ -118,26 +127,72 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfir
               {error && <div className="checkout-error">{error}</div>}
             </div>
           ) : (
-            <div className="checkout-numpad">
-              <h3 className="checkout-numpad-title">กรุณาใส่จำนวนเงิน</h3>
-              <input type="text" className="checkout-numpad-input" value={cashInput} readOnly />
-              <div className="numpad-buttons">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((num) => (
-                  <button key={num} className="numpad-btn" onClick={() => setCashInput(cashInput + num)}>
-                    {num}
+              <div className="checkout-numpad">
+                <h3 className="checkout-numpad-title">กรุณาใส่จำนวนเงิน</h3>
+                <input
+                  type="text"
+                  className="checkout-numpad-input"
+                  value={
+                    Number(cashInput)
+                      ? Number(cashInput).toLocaleString()
+                      : ""
+                  }
+                  readOnly
+                />
+
+                <div className="numpad-buttons">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((num) => (
+                    <button
+                      key={num}
+                      className="numpad-btn"
+                      onClick={() => {
+                        setCashInput(cashInput + num);
+                        setError(null); // เคลียร์ error ถ้ามี
+                      }}
+                    >
+                      {num}
+                    </button>
+                  ))}
+
+                  {/* ปุ่มลบทีละตัว (Backspace) */}
+                  <button
+                    className="numpad-btn backspace-btn"
+                    onClick={() => {
+                      setCashInput(cashInput.slice(0, -1));
+                      setChange(null);
+                      setError(null);
+                    }}
+                  >
+                    ⬅
                   </button>
-                ))}
-                <button className="numpad-btn clear-btn" onClick={() => setCashInput("")}>
-                  C
-                </button>
-                <button className="numpad-btn confirm-btn" onClick={handleCashPayment}>
-                  ยืนยัน
+
+                  {/* ปุ่มล้างทั้งหมด */}
+                  <button
+                    className="numpad-btn clear-btn"
+                    onClick={() => {
+                      setCashInput("");
+                      setChange(null);
+                      setError(null);
+                    }}
+                  >
+                    AC
+                  </button>
+
+                  {/* ปุ่มคำนวณเงินทอน */}
+                  <button className="numpad-btn confirm-btn" onClick={handleCashPayment}>
+                    ยืนยัน
+                  </button>
+                </div>
+
+                <button
+                  onClick={confirmCashPayment}
+                  className="checkout-btn checkout-confirm-btn"
+                  disabled={change === null || change < 0}
+                >
+                  ยืนยันชำระเงิน
                 </button>
               </div>
-              <button onClick={confirmCashPayment} className="checkout-btn checkout-confirm-btn" disabled={change === null || change < 0}>
-                ยืนยันชำระเงิน
-              </button>
-            </div>
+
           )}
 
           {/* QR Code Modal */}
@@ -184,7 +239,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfir
           <div className="payment-popup-content">
             <FontAwesomeIcon icon={faCheckCircle} className="payment-popup-icon" />
             <h3 className="payment-popup-title">ชำระเงินสำเร็จ!</h3>
-            <p className="payment-popup-change">เงินทอน: {change} ฿</p>
+            <p className="payment-popup-change">เงินทอน: {change?.toLocaleString()} ฿</p>
 
             <button
               onClick={() => {

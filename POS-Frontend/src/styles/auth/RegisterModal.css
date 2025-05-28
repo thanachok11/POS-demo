@@ -8,7 +8,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 1200;
 }
 
 .modal-content {
@@ -39,7 +39,7 @@
 }
 .title-register {
   font-size: 2rem;
-    color: #7c9590;
+    color: #2c3e50;
     margin-bottom: 20px;
     text-align: center;
     font-family: Arial, sans-serif;

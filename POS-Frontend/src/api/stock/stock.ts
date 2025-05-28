@@ -3,16 +3,7 @@ import axios from "axios";
 // Base URL ของ API
 const API_BASE_URL = "http://localhost:5000/api";
 
-export const fetchStockData = async () => {
-  try {
-    // ใช้ axios ดึงข้อมูลสินค้าจาก API
-    const response = await axios.get(`${API_BASE_URL}/stocks`);
-    return response.data; // คืนค่าข้อมูลที่ได้จาก API
-  } catch (error) {
-    console.error("เกิดข้อผิดพลาดในการดึง Stock:", error);
-    throw new Error("Error fetching stock data");
-  }
-};
+
 
 export const getStockByBarcode = async (barcode: string) => {
   try {

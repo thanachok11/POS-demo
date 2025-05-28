@@ -6,6 +6,7 @@ import { faUserTie, faSearch, faEnvelope, faBriefcase, faPlus } from "@fortaweso
 import "../../styles/aboutStore/Employee.css";
 import AddEmployee from "../aboutStore/AddEmployee.tsx";
 
+
 // Define Employee interface
 interface Employee {
     _id: string;

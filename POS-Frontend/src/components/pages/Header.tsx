@@ -27,15 +27,27 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import { getStockData } from "../../api/stock/stock.ts";
+import { getProducts } from "../../api/product/productApi.ts";
 import LoginPageModal from "../auth/LoginPageModal.tsx";
 import RegisterPageModal from "../auth/RegisterPageModal.tsx";
 import "../../styles/page/Header.css";
-
+import "../../styles/page/Notification.css";
 interface NavbarProps {
   isSidebarOpen: boolean;
   toggleSidebar: () => void;
 }
-
+interface StockItem {
+  barcode: string;
+  name: string;
+  imageUrl: string;
+  quantity: number;
+  updatedAt: string;
+  location: string;
+  status: string;
+  supplier: string;
+  category: string;
+}
 const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
   const [user, setUser] = useState<{
     name: string;
@@ -47,11 +59,16 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
   } | null>(null);
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
   const [isRegisterModalVisible, setIsRegisterModalVisible] = useState(false);
-  const [userdropdown, setDropdownOpen] = useState(false);
+  const [userdropdown, setUserDropdown] = useState(false);
   const [activeMenu, setActiveMenu] = useState("ยินดีต้อนรับสู่ระบบจัดการสินค้า");
   const [openDropdown, setOpenDropdown] = useState(null);
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
+  const [stockData, setStockData] = useState<StockItem[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -73,9 +90,22 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
     }
   }, []);
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.target.closest(".item-dropdown")) {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+
+      // ปิด dropdown ของสินค้า
+      if (!target.closest(".item-dropdown")) {
         setOpenDropdown(null);
+      }
+
+      // ปิด dropdown ของผู้ใช้
+      if (!target.closest(".user-dropdown")) {
+        setUserDropdown(false);
+      }
+
+      // ปิด dropdown การแจ้งเตือน
+      if (!target.closest(".notification-dropdown")) {
+        setNotificationOpen(false);
       }
     };
 
@@ -83,6 +113,27 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
     return () => {
       document.removeEventListener("click", handleClickOutside);
     };
+  }, []);
+
+
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setErrorMessage("❌ ไม่พบ token");
+        return;
+      }
+
+      try {
+        const stock = await getStockData(token);
+        setStockData(stock);
+      } catch (err) {
+        setErrorMessage("❌ ดึงข้อมูล stock ไม่สำเร็จ");
+      }
+    };
+
+    fetchData();
   }, []);
 
   const handleMenuClick = (path: string, menuName: string) => {
@@ -218,17 +269,23 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
             {user ? (
               <>
                 {/* Dropdown การแจ้งเตือน */}
-                <div className="user-dropdown" onClick={() => setNotificationOpen(!notificationOpen)}>
+                <div className="notification-dropdown" onClick={(e) => {
+                  setNotificationOpen(!notificationOpen);
+                  setUserDropdown(false); // ปิดอีกอัน
+                }}>
                   <FontAwesomeIcon icon={faBell} className="icon notification-icon" />
-                  <FontAwesomeIcon icon={faCaretDown} className="dropdown-icon" />
                   {notificationOpen && (
                     <div className="notification-menu">
+                      <span className="notification-badge">3</span>
                       <p className="notification-item">🔔 การแจ้งเตือนใหม่</p>
                       <p className="notification-item">📦 สินค้าเหลือน้อย</p>
                     </div>
                   )}
                 </div>
-                <div className="user-dropdown" onClick={() => setDropdownOpen(!userdropdown)}>
+                <div className="user-dropdown" onClick={() => {
+                  setUserDropdown(!userdropdown);
+                  setNotificationOpen(false); // ปิดอีกอัน
+                }}>
                   <div className="user-info">
                     <img src={user.profileImg} alt="User" className="avatar" />
                     <div className="user-details">

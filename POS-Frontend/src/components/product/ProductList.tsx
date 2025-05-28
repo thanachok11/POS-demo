@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getProducts } from "../../api/product/productApi.ts";
-import { updateStockByBarcode, getStockByBarcode } from "../../api/stock/stock.ts";
+import { updateStockByBarcode, getStockByBarcode, getStockData } from "../../api/stock/stock.ts";
 import { createPayment } from "../../api/payment/paymentApi.ts"; // นำเข้า API ชำระเงิน
 import { getCategories, getProductsByCategory } from "../../api/product/categoryApi.ts"; // Import API ดึงหมวดหมู่สินค้า
 import Checkout from "../product/Checkout.tsx"; // นำเข้า Checkout Modal
@@ -16,6 +16,22 @@ import { jwtDecode } from "jwt-decode";
 
 import React from "react";
 
+interface StockItem {
+  barcode: string;
+  name: string;
+  imageUrl: string;
+  quantity: number;
+  updatedAt: string;
+  location: string;
+  status: string;
+  supplier: string;
+  category: string;
+}
+
+interface CartProps {
+  isSidebarOpen: boolean;
+  toggleSidebar: () => void;
+}
 interface Product {
   barcode: string;
   name: string;
@@ -25,18 +41,22 @@ interface Product {
   imageUrl: string;
 }
 
-const ProductList: React.FC = () => {
+const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
   const [user, setUser] = useState<{ userId: string; username: string; role: string; email: string } | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<Product[]>([]);
   const [popupVisible, setPopupVisible] = useState(false);
+  const [stockData, setStockData] = useState<StockItem[]>([]);
 
   const [showCheckout, setShowCheckout] = useState<boolean>(false);
   const [showCart, setShowCart] = useState<boolean>(false);
   const [showNumberPad, setShowNumberPad] = useState<boolean>(false);
   const [selectedProductBarcode, setSelectedProductBarcode] = useState<string>("");
-  const [currentQuantity, setCurrentQuantity] = useState<number>(0);
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [currentQuantity, setCurrentQuantity] = useState("1");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isEditing, setIsEditing] = useState(false); // ✅ ใช้เพื่อตรวจว่าเพิ่งเริ่มพิมพ์หรือยัง
+  const [numpadErrorMessage, setNumpadErrorMessage] = useState("");
+
   const [lowStockMessages, setLowStockMessages] = useState<Map<string, string>>(new Map());
   const [searchProduct, setSearchProduct] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
@@ -58,6 +78,26 @@ const ProductList: React.FC = () => {
       }
     }
   }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setErrorMessage("❌ ไม่พบ token");
+        return;
+      }
+
+      try {
+        const stock = await getStockData(token);
+        setStockData(stock);
+      } catch (err) {
+        setErrorMessage("❌ ดึงข้อมูล stock ไม่สำเร็จ");
+      }
+    };
+
+    fetchData();
+  }, []);
+
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -87,6 +127,76 @@ const ProductList: React.FC = () => {
     fetchProducts();
   }, []);
 
+  // เรียกเมื่อต้องการเปิด numpad
+  const openNumberPad = (initialQty: number) => {
+    setCurrentQuantity(initialQty.toString());
+    setErrorMessage("");
+    setIsEditing(false); // ✅ เตรียมให้เปลี่ยนเลขใหม่ทันทีที่กด
+    setShowNumberPad(true);
+  };
+
+
+  const handleQuantityChange = (value: string) => {
+    setErrorMessage("");
+
+    setCurrentQuantity((prev) => {
+      if (!isEditing || prev === "0") {
+        setIsEditing(true);
+        return value; // ✅ ถ้ายังไม่เคยแก้ หรือเป็น 0 → แทนค่าใหม่
+      } else {
+        return prev + value; // ต่อท้ายตามปกติ
+      }
+    });
+  };
+
+
+
+  // ลบทีละตัว
+  const handleDeleteOne = () => {
+    setErrorMessage("");
+    setIsEditing(true);
+    setCurrentQuantity((prev) => {
+      const updated = prev.slice(0, -1);
+      return updated || "0";
+    });
+  };
+
+  // ล้างทั้งหมด
+  const handleClear = () => {
+    setCurrentQuantity("0");
+    setErrorMessage("");
+    setNumpadErrorMessage("");
+    setIsEditing(false);
+  };
+
+  const handleSetQuantity = () => {
+    const value = parseInt(currentQuantity, 10);
+    if (isNaN(value) || value <= 0) {
+      setErrorMessage("กรุณาใส่จำนวนที่ถูกต้อง");
+      return;
+    }
+
+    // หา stock ของสินค้าชิ้นนี้
+    const productStock = stockData.find(item => item.barcode === selectedProductBarcode);
+
+    if (productStock && value > productStock.quantity) {
+      setNumpadErrorMessage("❌ สินค้าในคลังไม่เพียงพอ");
+      return;
+    }
+
+    // ✅ อัปเดตจำนวนในตะกร้า
+    setCart((prevCart) =>
+      prevCart.map((item) =>
+        item.barcode === selectedProductBarcode
+          ? { ...item, quantity: value }
+          : item
+      )
+    );
+
+    setShowNumberPad(false);
+    setNumpadErrorMessage("");
+  };
+
 
 
   const addToCart = (product: Product) => {
@@ -102,6 +212,7 @@ const ProductList: React.FC = () => {
       return [...prevCart, { ...product, quantity: 1 }];
     });
   };
+
 
 
   const removeFromCart = (product: Product, barcode: string) => {
@@ -237,44 +348,17 @@ const ProductList: React.FC = () => {
   };
 
 
-  const handleQuantityChange = (value: string) => {
-    if (value === "ลบทั้งหมด") {
-      setCurrentQuantity(0); // รีเซ็ตจำนวนเมื่อกด "ลบทั้งหมด"
-    } else {
-      // ถ้ามีค่าปัจจุบันอยู่แล้ว (currentQuantity), ต่อเลขใหม่เข้าไป
-      setCurrentQuantity((prev) => Number(prev.toString() + value));
-    }
-  };
+
   const handleCloseCheckout = () => {
     setShowCheckout(false); // ✅ ปิด Modal ที่นี่
   };
 
-  const handleDeleteOne = () => {
-    setCurrentQuantity((prev) => {
-      const newValue = prev.toString().slice(0, -1); // ลบตัวสุดท้าย
-      if (newValue === "" || newValue === "0") {
-        return 0;
-      }
-      return Number(newValue);
-    });
-  };
+
   const clearCart = () => {
     setCart([]); // เคลียร์สินค้าในตะกร้า
   };
 
-  const handleSetQuantity = () => {
-    setCart((prevCart) => {
-      return prevCart
-        .map((item) =>
-          item.barcode === selectedProductBarcode
-            ? { ...item, quantity: currentQuantity }
-            : item
-        )
-        .filter((item) => item.quantity > 0); // 🔥 ลบสินค้าที่มีจำนวนเป็น 0
-    });
 
-    setShowNumberPad(false); // ปิดแป้นตัวเลข
-  };
 
 
   const filteredCategory = categoryFilter
@@ -287,8 +371,10 @@ const ProductList: React.FC = () => {
   );
 
   return (
-    <div className="product-page">
-      <div className="search-grid">
+    <div className="product-page" >
+      {/* ค้นหา + หมวดหมู่ filter */}
+      <div className={`search-grid ${!isSidebarOpen ? "sidebar-closed-margin" : ""
+        }`} >
         <div className="searchproduct-container">
           <input
             type="text"
@@ -312,25 +398,52 @@ const ProductList: React.FC = () => {
               ))}
             </select>
           </div>
-
         </div>
       </div>
-      <div className="product-list-container">
+
+      {/* ส่วนแสดงสินค้า scroll ได้ */}
+      <div
+        className={`product-list-wrapper ${!isSidebarOpen ? "sidebar-closed-margin" : ""
+          }`}
+      >
         {errorMessage && <p className="error-message">{errorMessage}</p>}
 
         <div className="product-grid">
-          {filteredProducts.map((product) => (
-            <div key={product.barcode} className="product-card" onClick={() => addToCart(product)}>
-              <img src={product.imageUrl} alt={product.name} className="product-image" />
-              <h2>{product.name}</h2>
-              <p className="product-price">{product.price} ฿</p>
-            </div>
-          ))}
+          {filteredProducts.map((product) => {
+            const cartItem = cart.find((item) => item.barcode === product.barcode); // หาจำนวนในตะกร้า
+
+            return (
+              <div
+                key={product.barcode}
+                className="product-card"
+                onClick={() => addToCart(product)}
+              >
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className="product-image"
+                />
+                <h2 className="product-title">{product.name}</h2>
+                <p className="product-price">{product.price.toLocaleString()} ฿</p>
+
+                {/* ✅ แสดงจำนวนที่เลือก */}
+                {cartItem && cartItem.quantity > 0 && (
+                  <p className="product-selected">เลือกแล้ว: {cartItem.quantity} ชิ้น</p>
+                )}
+              </div>
+            );
+          })}
+
         </div>
       </div>
 
       {/* ตะกร้าสินค้า */}
-      <div className={`cart ${cart.length > 0 ? "show-cart" : "hidden-cart"}`}>
+      <div
+        className={`cart ${cart.length > 0 ? "show-cart" : "hidden-cart"} ${isSidebarOpen ? "cart-collapse" : "cart-expand"
+          }`}
+      >
+        <p className="cart-summary">รวมทั้งหมด: {cart.reduce((sum, item) => sum + item.quantity, 0)} รายการ</p>
+
         <h2 className="cart-title ">ตะกร้าสินค้า</h2>
         <button onClick={clearCart} className="clear-cart-btn">เคลียตะกร้า</button>
 
@@ -341,12 +454,15 @@ const ProductList: React.FC = () => {
               <div className="cart-item-info">
                 <p className="cart-item-name">{item.name}</p>
                 <p className="cart-item-quantity">จำนวน: {item.quantity}</p>
+                <p className="cart-item-price">ราคา: {item.price.toLocaleString()} ฿</p>
                 <button
                   onClick={() => {
                     setSelectedProductBarcode(item.barcode);
-                    setCurrentQuantity(item.quantity); // Pre-fill the quantity in number pad
-                    setShowNumberPad(true); // Show number pad
+                    setCurrentQuantity(item.quantity.toString());
+                    setIsEditing(false); // ✅ เพิ่มบรรทัดนี้
+                    setShowNumberPad(true);
                   }}
+
                   className="edit-quantity-btn"
                 >
                   แก้ไขจำนวน
@@ -361,8 +477,11 @@ const ProductList: React.FC = () => {
 
         {/* ✅ แสดงยอดรวมด้านบนปุ่มชำระเงิน ✅ */}
         <div className="cart-total">
-          <p>ยอดรวม: <span>{getTotalPrice()} ฿</span></p>
+          <p>
+            ยอดรวม: <span>{getTotalPrice().toLocaleString()} ฿</span>
+          </p>
         </div>
+
 
         <div className="checkout">
           <button onClick={() => setShowCheckout(true)} className="checkout-btn">
@@ -389,30 +508,31 @@ const ProductList: React.FC = () => {
             </button>
 
             <div className="numpad-product-display">
-              {errorMessage ? (
-                <p className="numpad-product-error">{errorMessage}</p> // แสดงข้อความ error ถ้ามี
+              {numpadErrorMessage ? (
+                <p className="numpad-product-error">{numpadErrorMessage}</p>
               ) : (
-                <p>จำนวน: {currentQuantity}</p> // แสดงจำนวนที่ผู้ใช้ป้อน
+                <p>จำนวน: {currentQuantity}</p>
               )}
             </div>
+
             <div className="numpad-product-buttons">
               {["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].map((button) => (
                 <button key={button} onClick={() => handleQuantityChange(button)} className="numpad-product-btn">
                   {button}
                 </button>
-
               ))}
-              <button onClick={handleDeleteOne} className="numpad-product-clear-one">C</button>
-              <button onClick={() => handleQuantityChange("ลบทั้งหมด")} className="numpad-product-clear">
-                AC
-              </button>
+
+              <button onClick={handleDeleteOne} className="numpad-product-clear-one">⬅</button>
+              <button onClick={handleClear} className="numpad-product-clear">AC</button>
             </div>
+
             <button onClick={handleSetQuantity} className="numpad-product-set">
               เลือก
             </button>
           </div>
         </div>
       )}
+
     </div>
   );
 };

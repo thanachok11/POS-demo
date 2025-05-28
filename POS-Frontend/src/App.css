@@ -1,25 +1,61 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
 .app-container {
   display: flex;
-  transition: margin-left 0.3s ease-in-out;
+  height: 100vh;
   background-color: #ffffff;
-  /* ทำให้การเลื่อนราบรื่น */
+  transition: margin-left 0.3s ease-in-out;
 }
 
 .app-container.sidebar-open .main-content {
-  margin-left: 240px;
-  transition: margin-left 0.5s ease-in-out;
-  /* เลื่อนเมื่อเปิด sidebar */
+  margin-left: 150px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
 
 .app-container.sidebar-closed .main-content {
   margin-left: 10px;
-  margin-top: 10px;
-  /* เมื่อลบ sidebar ออก เลื่อนกลับไปที่ 0 */
-  transition: margin-left 0.5s ease-in-out;
-  /* เลื่อนกลับเมื่อปิด sidebar */
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
 
-.main-content {
-  flex-grow: 1;
-  padding: 20px;
+/* ปกติ cart จะซ่อน */
+.cart {
+  width: -10;
+  overflow: hidden;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
+
+.app-container.sidebar-closed .search-grid {
+  margin-left: -200px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+  z-index: 1000;
+}
+
+.app-container.sidebar-open .search-grid {
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
+
+/* เมื่อ sidebar ปิดอยู่ ให้ cart มีขนาด 400px */
+.app-container.sidebar-closed .cart.show-cart {
+  width: 450px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
+
+/* เมื่อ sidebar เปิดอยู่ ให้ cart มีขนาด 0px */
+.app-container.sidebar-open .cart.show-cart {
+  width: 350px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
+
+.product-list-wrapper {
+  transition: margin-left 0.3s ease-in-out;
+}
+
+/* เมื่อ sidebar ปิด */
+.sidebar-closed-margin {
+  margin-left: -450px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }

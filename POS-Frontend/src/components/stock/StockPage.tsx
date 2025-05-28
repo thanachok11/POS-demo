@@ -50,9 +50,7 @@ const StockPage: React.FC = () => {
   console.log("Current User:", user);
 
   useEffect(() => {
-
-
-    
+ 
     const fetchData = async () => {
       const token = localStorage.getItem("token");
       if (!token) {

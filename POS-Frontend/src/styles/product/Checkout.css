@@ -9,6 +9,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 3000;
 }
 
 .checkout-content {
@@ -84,9 +85,9 @@
 }
 
 .checkout-error {
+    margin-top: 1rem;
     color: red;
-    text-align: center;
-    margin-top: 10px;
+    font-weight: bold;
 }
 
 .checkout-change {
@@ -126,7 +127,7 @@
     padding: 15px;
     font-size: 18px;
     border: none;
-    background: #f4a261;
+    background: #6e90f7;
     color: white;
     border-radius: 5px;
     cursor: pointer;
@@ -134,6 +135,16 @@
 
 .numpad-btn:hover {
     background: #e76f51;
+}
+
+.backspace-btn {
+    background-color: #f39c12;
+    color: white;
+    border-color: #e67e22;
+}
+
+.backspace-btn:hover {
+    background-color: #e67e22;
 }
 
 .clear-btn {
@@ -169,7 +180,7 @@
     border-radius: 5px;
     cursor: pointer;
     color: rgb(255, 255, 255);
-    background-color: #007bff;
+    background-color: #28a745;
 }
 
 .checkout-confirm-btn:hover {
@@ -483,7 +494,8 @@
     background: white;
     font-size: 16px;
 }
-.credit-title{
+
+.credit-title {
     font-size: 24px;
     font-weight: bold;
     margin-bottom: 10px;
@@ -542,5 +554,27 @@
 
     100% {
         transform: scale(1);
+    }
+}
+
+@keyframes shake {
+    0% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    50% {
+        transform: translateX(5px);
+    }
+
+    75% {
+        transform: translateX(-5px);
+    }
+
+    100% {
+        transform: translateX(0);
     }
 }
