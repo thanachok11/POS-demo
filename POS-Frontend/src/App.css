@@ -2,6 +2,7 @@ html,
 body {
   margin: 0;
   padding: 0;
+
 }
 
 .app-container {
@@ -22,11 +23,6 @@ body {
 }
 
 /* ปกติ cart จะซ่อน */
-.cart {
-  width: -10;
-  overflow: hidden;
-  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
-}
 
 .app-container.sidebar-closed .search-grid {
   margin-left: -200px;
@@ -58,4 +54,12 @@ body {
 .sidebar-closed-margin {
   margin-left: -450px;
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
+
+.main-content {
+  flex-grow: 1;
+  padding: 20px;
+  height: 100%;
+  box-sizing: border-box;
+
 }
