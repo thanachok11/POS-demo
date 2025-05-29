@@ -1,24 +1,34 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 interface IOrder extends Document {
-  userId: mongoose.Schema.Types.ObjectId; // อ้างอิงถึง User
-  supplierId: mongoose.Schema.Types.ObjectId; // อ้างอิงถึง Supplier
-  productName: string; // ชื่อสินค้า
-  quantity: number; // จำนวนที่ต้องการสั่งซื้อ
-  orderDate: Date; // วันที่สั่งซื้อ
-  status: "รอการชำระเงิน" | "ชำระเงินแล้ว" | "ยกเลิกรายการ"; // สถานะการสั่งซื้อ
+  userId: mongoose.Schema.Types.ObjectId;
+  supplierId: mongoose.Schema.Types.ObjectId;
+  supplierCompany: string;
+
+  productName: string;
+  quantity: number;
+  location: string;
+  orderDate: Date;
+  status: "รอการชำระเงิน" | "ชำระเงินแล้ว" | "ยกเลิกรายการ";
   createdAt: Date;
   updatedAt: Date;
 }
 
 const OrderSchema = new Schema<IOrder>(
   {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // เชื่อมกับผู้ใช้
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     supplierId: { type: Schema.Types.ObjectId, ref: "Supplier", required: true },
+    supplierCompany: { type: String, required: true },
+
     productName: { type: String, required: true },
+    location: { type: String, required:true},
     quantity: { type: Number, required: true },
     orderDate: { type: Date, default: Date.now },
-    status: { type: String, enum: ["รอการชำระเงิน", "ชำระเงินแล้ว", "ยกเลิกรายการ"], default: "รอการชำระเงิน" },
+    status: {
+      type: String,
+      enum: ["รอการชำระเงิน", "ชำระเงินแล้ว", "ยกเลิกรายการ"],
+      default: "รอการชำระเงิน",
+    },
   },
   { timestamps: true }
 );

@@ -16,6 +16,7 @@ interface StockItem {
   location: string;
   status: string;
   supplier: string;
+  supplierCompany: string;
   category: string;
 }
 

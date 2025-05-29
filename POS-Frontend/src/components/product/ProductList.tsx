@@ -98,6 +98,13 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    document.body.classList.add('noscroll');
+    return () => {
+      document.body.classList.remove('noscroll');
+    };
+  }, []);
+
 
   useEffect(() => {
     const fetchProducts = async () => {

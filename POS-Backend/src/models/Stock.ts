@@ -5,6 +5,7 @@ export interface IStock extends Document {
   productId: mongoose.Types.ObjectId; // อ้างอิงไปยัง Product
   userId: mongoose.Types.ObjectId; // อ้างอิงไปยัง User
   quantity: number; // จำนวนสินค้าคงเหลือ
+  supplierId: string; // ชื่อบริษัทผู้จัดจำหน่าย
   supplier: string; // เชื่อมกับ Supplier
   location?: string; // ตำแหน่งจัดเก็บ
   threshold?: number; // ค่าขั้นต่ำที่ต้องมีในสต็อก
@@ -21,7 +22,9 @@ const StockSchema: Schema = new Schema(
     productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true }, // เชื่อมโยงกับ Product
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // เพิ่ม userId ที่อ้างอิงกับ User
     quantity: { type: Number, required: true, default: 0 }, // จำนวนสินค้าคงเหลือ
-    supplier: { type: String },
+    supplier: { type: String},
+
+    supplierId: { type: String ,required: true },
     location: { type: String }, // ที่จัดเก็บสินค้า
     threshold: { type: Number, default: 5 }, // จำนวนขั้นต่ำ
     status: {

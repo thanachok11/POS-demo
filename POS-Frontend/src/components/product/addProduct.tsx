@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
+import { faCheckCircle, faTimesCircle, faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
 import { uploadProduct } from "../../api/product/productApi.ts"; // Ensure this import is correct
 import '../../styles/product/AddProductForm.css';
 import { getSupplierData } from "../../api/suppliers/supplierApi.ts"; // Import your API function
 
 const AddProductForm = () => {
-  const [suppliers, setSuppliers] = useState<{companyName: string }[]>([]); // Update the type to be an array of objects
+  const [suppliers, setSuppliers] = useState<{ companyName: string }[]>([]); // Update the type to be an array of objects
   const [productData, setProductData] = useState({
     name: '',
     description: '',
@@ -18,6 +18,7 @@ const AddProductForm = () => {
   const [stockData, setStockData] = useState({
     quantity: '',
     supplier: '',
+    supplierCompany: '', 
     location: '',
     threshold: '',
     customSupplier: '', // For custom supplier input
@@ -25,13 +26,17 @@ const AddProductForm = () => {
   });
   const [image, setImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [errormessage, seterrorMessage] = useState('');
+
   const [message, setMessage] = useState('');
   const [addedProduct, setAddedProduct] = useState<any | null>(null);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
+
   const [error, setError] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const navigate = useNavigate();
-  
+
 
   useEffect(() => {
     const fetchSuppliers = async () => {
@@ -66,7 +71,15 @@ const AddProductForm = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    if (name in productData) {
+
+    if (name === "supplierCompany") {
+      setStockData((prevData) => ({
+        ...prevData,
+        supplierCompany: value,
+        supplier: value, // sync ให้ supplier = supplierCompany
+        customSupplier: value === "custom" ? prevData.customSupplier : "",
+      }));
+    } else if (name in productData) {
       setProductData((prevData) => ({
         ...prevData,
         [name]: value,
@@ -77,19 +90,8 @@ const AddProductForm = () => {
         [name]: value,
       }));
     }
-    if (name === "supplier") {
-      setStockData((prevData) => ({
-        ...prevData,
-        supplier: value,
-        customSupplier: value === "custom" ? prevData.customSupplier : "", // Reset custom supplier if not custom
-      }));
-    } else {
-      setStockData((prevData) => ({
-        ...prevData,
-        [name]: value,
-      }));
-    }
   };
+
 
   const handleCustomSupplierChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setStockData((prevData) => ({
@@ -124,15 +126,17 @@ const AddProductForm = () => {
       !image ||
       !stockData.quantity ||
       !stockData.supplier ||
+      !stockData.supplierCompany ||
+
       !stockData.location ||
       !stockData.threshold
     ) {
-      setMessage('กรุณากรอกข้อมูลให้ครบถ้วน');
+      seterrorMessage('กรุณากรอกข้อมูลให้ครบถ้วน');
       return;
     }
 
     setLoading(true);
-    setMessage('');
+    seterrorMessage('');
     setAddedProduct(null);
 
     const formData = new FormData();
@@ -143,18 +147,16 @@ const AddProductForm = () => {
     formData.append('barcode', productData.barcode);
     formData.append('image', image);
     formData.append('quantity', stockData.quantity);
-    formData.append('supplier', stockData.supplier === 'custom' ? stockData.customSupplier : stockData.supplier);
+    formData.append('supplierCompany', stockData.supplier === 'custom' ? stockData.customSupplier : stockData.supplier); // ✅ แค่ supplierCompany
     formData.append('location', stockData.location);
     formData.append('threshold', stockData.threshold);
+
 
     try {
       const response = await uploadProduct(formData, token);
       setAddedProduct(response.data);
       setShowSuccessPopup(true);
-      // Redirect to stock page after 2 seconds (or immediately)
-      setTimeout(() => {
-        navigate("/stocks");
-      }, 2000);
+
       setProductData({
         name: '',
         description: '',
@@ -165,6 +167,7 @@ const AddProductForm = () => {
       setStockData({
         quantity: '',
         supplier: '',
+        supplierCompany: '',
         location: '',
         threshold: '',
         customSupplier: '', // For custom supplier input
@@ -172,23 +175,21 @@ const AddProductForm = () => {
       });
       setImage(null);
     } catch (error) {
-      setMessage('เกิดข้อผิดพลาดในการเพิ่มสินค้า');
+      setShowErrorPopup(true)
       console.error(error);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (showSuccessPopup) {
-      const timer = setTimeout(() => {
-        setShowSuccessPopup(false);
-      }, 3000);
 
-      return () => clearTimeout(timer);
-    }
-  }, [showSuccessPopup]);
+  const onClose = () => {
+    navigate("/stocks");
 
+    setShowSuccessPopup(false); // ปิด modal หลัก
+  };
+
+  
   return (
     <div className="add-product-container">
       <h2 className="form-title">เพิ่มสินค้าใหม่</h2>
@@ -252,7 +253,7 @@ const AddProductForm = () => {
               onChange={handleImageChange}
               className="form-file-input"
             />
-          {imagePreview && <img src={imagePreview} alt="Product Preview" className="image-preview" />}
+            {imagePreview && <img src={imagePreview} alt="Product Preview" className="image-preview" />}
 
           </div>
           <div className="form-group">
@@ -277,11 +278,12 @@ const AddProductForm = () => {
           <div className="form-group">
             <label className="form-label">ผู้จำหน่าย:</label>
             <select
-              name="supplier"
-              value={stockData.supplier}
+              name="supplierCompany"
+              value={stockData.supplierCompany}
               onChange={handleInputChange}
               className="form-input"
             >
+
               <option value="">เลือกผู้จำหน่าย</option>
               {suppliers.map((supplier, index) => (
                 <option key={index} value={supplier.companyName}>
@@ -331,18 +333,50 @@ const AddProductForm = () => {
         </div>
 
       </form>
-      {message && <p className="error-message">{message}</p>}
+      {errormessage && <p className="error-message">{errormessage}</p>}
 
-{/* Popup */}
+      {/* ✅ Success Popup */}
       {showSuccessPopup && (
         <div className="product-popup">
           <div className="product-popup-content">
             <FontAwesomeIcon icon={faCheckCircle} className="product-icon" />
             <h3 className="product-popup-title">เพิ่มสินค้าใหม่สำเร็จ!!</h3>
+
+            <button
+              onClick={() => {
+                setShowSuccessPopup(false);
+                onClose();
+              }}
+              className="popup-close-btn"
+            >
+              ปิด
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ Error Popup */}
+      {showErrorPopup && (
+        <div className="product-popup-error">
+          <div className="product-popup-content">
+           
+            <FontAwesomeIcon icon={faExclamationCircle} className="product-icon-error" />
+            <h3 className="product-popup-title">{message || "เกิดข้อผิดพลาดในการเพิ่มสินค้า"}</h3>
+
+            <button
+              onClick={() => {
+                setShowErrorPopup(false);
+                onClose();
+              }}
+              className="popup-close-btn"
+            >
+              ปิด
+            </button>
           </div>
         </div>
       )}
     </div>
+
   );
 };
 

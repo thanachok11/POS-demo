@@ -30,7 +30,6 @@ export const getStocks = async (req: Request, res: Response): Promise<void> => {
 
     if (typeof decoded !== 'string' && 'userId' in decoded) {
       const userId = decoded.userId;
-      console.log('Decoded userId:', userId);
 
       // ลองหาใน User ก่อน ถ้าไม่เจอค่อยหาใน Employee
       let user = await User.findById(userId);
@@ -100,7 +99,6 @@ export const getStockByBarcode = async (req: Request, res: Response): Promise<vo
     const decoded = verifyToken(token);
     if (typeof decoded !== 'string' && 'userId' in decoded) {
       const userId = decoded.userId;
-      console.log('Decoded userId:', userId);
 
       // ลองหาใน User ก่อน ถ้าไม่เจอค่อยหาใน Employee
       let user = await User.findById(userId);

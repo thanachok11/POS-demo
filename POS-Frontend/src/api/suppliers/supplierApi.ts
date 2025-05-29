@@ -57,7 +57,7 @@ export const getProductsBySupplier = async (supplierId: string, token: string | 
     try {
         if (!token) throw new Error("Unauthorized: No token provided");
 
-        const response = await axios.get(`${API_BASE_URL}/products?supplierId=${supplierId}`, {
+        const response = await axios.get(`${API_BASE_URL}/suppliers/${supplierId}/products-with-stock`, {
             headers: { Authorization: `Bearer ${token}` },
         });
 

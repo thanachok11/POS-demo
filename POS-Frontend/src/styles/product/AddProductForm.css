@@ -1,5 +1,5 @@
 .add-product-container {
-    
+
     max-width: 1000px;
     margin: 0 auto;
     padding: 30px 100px;
@@ -81,15 +81,17 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1100;
+    z-index: 2200;
 }
 
 .product-icon {
     font-size: 50px;
     color: #4CAF50;
+    /* สีเขียว */
     animation: bounceIn 0.5s ease-in-out;
 }
-.product-popup-content{
+
+.product-popup-content {
     background-color: white;
     padding: 20px;
     margin-bottom: 250px;
@@ -99,19 +101,85 @@
     width: 100%;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
+.popup-close-btn {
+    padding: 10px;
+    background-color: #135dc6;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.popup-close-btn:hover {
+    background-color: #69bce6;
+}
 .product-popup-title {
     font-size: 1.5em;
     margin-bottom: 15px;
 }
+
 .error-message {
     color: red;
     text-align: center;
     margin-top: 20px;
 }
-.image-preview{
+
+.image-preview {
     width: 100%;
     height: 300px;
     object-fit: cover;
     margin-top: 20px;
     border-radius: 5px;
+}
+
+.product-popup-error {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2200;
+}
+
+/* .product-popup-error {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #d4edda;
+  
+    color: #155724;
+    padding: 15px 25px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+} */
+
+.product-title-error {
+    font-size: 1.5em;
+    margin-bottom: 15px;
+}
+
+.product-popup-content-error {
+    background-color: white;
+    padding: 20px;
+    margin-bottom: 250px;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.product-icon-error {
+    font-size: 50px;
+    color: #ee0707;
+    animation: bounceIn 0.5s ease-in-out;
+
 }

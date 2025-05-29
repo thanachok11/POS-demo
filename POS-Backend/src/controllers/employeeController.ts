@@ -26,7 +26,6 @@ export const registerEmployee = async (req: Request, res: Response): Promise<voi
         if (typeof decoded !== 'string' && 'userId' in decoded) {
 
             const user = await User.findById(decoded.userId);
-            console.log('Decoded userId:', decoded.userId);
             if (!user) {
                 res.status(404).json({ success: false, message: 'User not found' });
                 return;
