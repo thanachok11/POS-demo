@@ -425,6 +425,7 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
                 className="product-card"
                 onClick={() => addToCart(product)}
               >
+                
                 <img
                   src={product.imageUrl}
                   alt={product.name}
