@@ -17,6 +17,7 @@ import ReceiptPage from "./components/receipt/ReceiptPage.tsx";
 import ReceiptDetail from "./components/receipt/ReceiptDetail.tsx";
 import Search from "./components/product/BarcodeSearch.tsx";
 import SalePage from "./components/pages/Dashboard.tsx";
+import TestQr from "./App.js";
 import PaymentPage from "./components/payment/PaymentPage.tsx";
 import EmployeeList from "./components/aboutStore/EmployeePage.tsx";
 import "./App.css";
@@ -68,6 +69,7 @@ const App: React.FC = () => {
             <Route path="/receipts/paymentId/:paymentId" element={<ReceiptDetail />} /> {/* ✅ รับ paymentId เป็น dynamic parameter */}
             <Route path="/products/barcode/:barcode" element={<StockDetailPage />} /> {/* ✅ รับ barcode เป็น dynamic parameter */}
             <Route path="/createOrder" element={<CreateOrder />} />
+
           </Routes>
         </div>
       </div>

@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import "../../styles/product/Checkout.css"; // CSS สำหรับ Modal
+import React, { useState, useEffect } from "react";
+
+import "../../styles/payment/Checkout.css"; // CSS สำหรับ Modal
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -7,6 +8,8 @@ import {
 
 } from "@fortawesome/free-solid-svg-icons";
 
+import { QRCodeSVG } from 'qrcode.react'; // 👈 แก้ตรงนี้
+import generatePayload from 'promptpay-qr';
 
 interface CheckoutProps {
   cart: { barcode: string; name: string; price: number; quantity: number }[];
@@ -26,10 +29,15 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfir
   const [change, setChange] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [popupVisible, setPopupVisible] = useState(false);
-  const [showQR, setShowQR] = useState(false); // เปิด QR Code
   const [showCredit, setShowCredit] = useState(false); // เปิด Modal บัตรเครดิต
   const [selectedCard, setSelectedCard] = useState<string | null>(null); // เลือกประเภทบัตร
   const navigate = useNavigate();
+
+  const [totalPriceQr, setTotalPrice] = useState(0);
+
+  const [phoneNumber] = useState("0633133099");
+  const [showQR, setShowQR] = useState(false);
+  const [qrCode, setqrCode] = useState("");
 
   const handleCashPayment = () => {
     const cashAmount = parseFloat(cashInput);
@@ -64,6 +72,19 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfir
     }
   };
 
+
+
+    useEffect(() => {
+      const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
+      setTotalPrice(total);
+    }, [cart]);
+
+    useEffect(() => {
+      // Generate PromptPay QR code when totalPrice changes
+      const qr = generatePayload(phoneNumber, { amount: totalPrice });
+      setqrCode(qr);
+    }, [totalPrice, phoneNumber]);
+  
   const handleClose = () => {
     navigate("/reports/receipts");
     onClose();
@@ -197,19 +218,15 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfir
 
           {/* QR Code Modal */}
           {showQR && (
-            <div className="qr-modal">
+            <div className="qr-code-image">
               <h3 className="qr-title">สแกน QR Code เพื่อชำระเงิน</h3>
-              <img
-                src="https://res.cloudinary.com/dboau6axv/image/upload/v1742099090/Qr_POS_oioty6.jpg"
-                alt="QR Code"
-                className="qr-code-image"
-              />
+              {qrCode && <QRCodeSVG value={qrCode} size={256} />}
               <button onClick={confirmQRPayment} className="qr-confirm-btn">
                 ยืนยันชำระเงิน
               </button>
             </div>
           )}
-
+ 
 
           {/* Credit Card Modal */}
           {showCredit && (

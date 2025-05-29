@@ -443,17 +443,24 @@
 }
 
 .qr-code-image {
-    width: 225px;
-    height: 70%;
     margin: 10px 0;
-    margin-left: 80px;
-    border: 1px solid #333;
+    margin-left: 10px;
     border-radius: 30px;
+}
+
+.qr-code-image svg {
+    margin-bottom: 20px;
+    border-radius: 12px;
+    margin-left: 55px;
+    border: 2px solid #e0e0e0;
+    padding: 8px;
+    background: #f9f9f9;
 }
 
 .qr-title {
     font-size: 24px;
     font-weight: bold;
+    margin-left: -10px;
     margin-bottom: 10px;
     text-align: center;
 }
