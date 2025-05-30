@@ -76,17 +76,17 @@
 }
 
 .product-list-wrapper {
-  flex: 0 0 auto; /* ไม่ให้ยืดตาม flex */
-  overflow-y: auto;
-  max-height: calc(100vh - 150px);
-  border: 1px solid #eee;
-  border-radius: 12px;
-  padding: 16px;
-  margin-top: 30px;
-  margin-left: -250px;
-  background-color: #fff;
+  flex: 0 0 auto;
+    /* ไม่ให้ยืดตาม flex */
+    overflow-y: auto;
+    max-height: calc(100vh - 150px);
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 30px;
+    margin-left: -250px;
+    background-color: #fff;
 }
-
 
 /* Adjusting layout of other elements */
 .product-grid {
@@ -154,7 +154,6 @@
   margin-top: 8px;
 }
 
-/* แสดง badge */
 .product-quantity-badge {
   position: absolute;
   top: 8px;
@@ -166,13 +165,13 @@
   padding: 4px 8px;
   border-radius: 999px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-  animation: scaleFadeIn 0.3s ease-out forwards;
-}
+  opacity: 1;
+  visibility: visible;
+  transition: none;
+  animation: scaleFadeIn 0.4s ease-out;
 
-.product-quantity-badge.hide {
-  animation: scaleFadeOut 0.3s ease-in forwards;
+  /* ไม่ต้องมี transition จาก hover */
 }
-
 
 .product-card:hover {
   transform: translateY(-5px);
@@ -211,7 +210,7 @@
 
 /* แสดงตะกร้า */
 .show-cart {
-    animation: scaleFadeIn 0.4s ease-out;
+  animation: slideIn 0.3s forwards;
 }
 
 /* ซ่อนตะกร้า */
@@ -309,7 +308,6 @@
   padding: 5px 10px;
   border-radius: 5px;
   cursor: pointer;
-  
 }
 
 .remove-btn:hover {
@@ -586,30 +584,16 @@
 }
 
 @keyframes scaleFadeIn {
-  0% {
-    opacity: 0;
+  from {
     transform: scale(0.8);
+    opacity: 0;
   }
 
-  100% {
-    opacity: 1;
+  to {
     transform: scale(1);
+    opacity: 1;
   }
 }
-
-@keyframes scaleFadeOut {
-  0% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  100% {
-    opacity: 0;
-    transform: scale(0.8);
-    visibility: hidden;
-  }
-}
-
 @keyframes slideIn {
   from {
     transform: translateX(120%);
