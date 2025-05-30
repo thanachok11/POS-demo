@@ -108,7 +108,7 @@ const StockDetail: React.FC = () => {
                             className="edit-button-stockDetail" 
                             onClick={() => navigate(`/edit/${barcode}`)}
                         >
-                            ✏️ แก้ไขสินค้า
+                            ✏️ ปรับสต็อกสินค้า
                         </button>
                         )}
                     </div>

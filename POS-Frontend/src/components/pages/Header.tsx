@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBell,
@@ -38,6 +38,7 @@ interface NavbarProps {
   toggleSidebar: () => void;
 }
 interface StockItem {
+  id: string;
   barcode: string;
   name: string;
   imageUrl: string;
@@ -63,7 +64,13 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
   const [activeMenu, setActiveMenu] = useState("ยินดีต้อนรับสู่ระบบจัดการสินค้า");
   const [openDropdown, setOpenDropdown] = useState(null);
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const notificationRef = useRef<HTMLDivElement>(null);
+  const userRef = useRef<HTMLDivElement>(null);
+
+
   const [errorMessage, setErrorMessage] = useState("");
+  const [lowStockItems, setLowStockItems] = useState<StockItem[]>([]);
+  const [showLowStockList, setShowLowStockList] = useState(false);
 
   const [stockData, setStockData] = useState<StockItem[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -93,48 +100,77 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
 
-      // ปิด dropdown ของสินค้า
+      // ตรวจว่าคลิกอยู่นอก notification dropdown จริงหรือไม่
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(target)
+      ) {
+        setNotificationOpen(false);
+      }
+
       if (!target.closest(".item-dropdown")) {
         setOpenDropdown(null);
       }
 
-      // ปิด dropdown ของผู้ใช้
       if (!target.closest(".user-dropdown")) {
         setUserDropdown(false);
       }
-
-      // ปิด dropdown การแจ้งเตือน
-      if (!target.closest(".notification-dropdown")) {
-        setNotificationOpen(false);
-      }
     };
 
-    document.addEventListener("click", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener("click", handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
 
 
   useEffect(() => {
     const fetchData = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
-        setErrorMessage("❌ ไม่พบ token");
+        setError("❌ ไม่พบ token");
+        setLoading(false);
         return;
       }
 
       try {
+        // 1. ดึงข้อมูล stock
         const stock = await getStockData(token);
         setStockData(stock);
+
+        // 2. ดึงข้อมูลสินค้า
+        const productData = await getProducts();
+        if (productData.success && Array.isArray(productData.data)) {
+          setProducts(productData.data);
+
+          // 3. จับคู่สินค้าเหลือน้อยกับชื่อ
+          const lowStock = stock
+            .filter(item => item.quantity < 5)
+            .map(item => {
+              const matchedProduct = productData.data.find(
+                (product: any) => product.id === item.productId
+              );
+              return {
+                ...item,
+                name: item.productId?.name || "ไม่พบชื่อสินค้า"              };
+            });
+
+          setLowStockItems(lowStock);
+
+            console.log('Name',lowStock);
+        } else {
+          setError("❌ ไม่พบข้อมูลสินค้า");
+        }
       } catch (err) {
-        setErrorMessage("❌ ดึงข้อมูล stock ไม่สำเร็จ");
+        setError("❌ ดึงข้อมูลไม่สำเร็จ");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchData();
   }, []);
+
 
   const handleMenuClick = (path: string, menuName: string) => {
     setActiveMenu(menuName);
@@ -268,24 +304,59 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
           <div className="nav-right">
             {user ? (
               <>
-                {/* Dropdown การแจ้งเตือน */}
-                <div className="notification-dropdown" onClick={(e) => {
-                  setNotificationOpen(!notificationOpen);
-                  setUserDropdown(false); // ปิดอีกอัน
-                }}>
-                  <FontAwesomeIcon icon={faBell} className="icon notification-icon" />
+                {/* 🔔 Notification Dropdown */}
+                <div
+                  className="notification-dropdown"
+                  ref={notificationRef}
+                  onClick={() => {
+                    setNotificationOpen(!notificationOpen);
+                    setUserDropdown(false);
+                  }}
+                >
+                  <div className="notification-wrapper">
+                    <FontAwesomeIcon icon={faBell} className="icon notification-icon" />
+                    {lowStockItems.length > 0 && (
+                      <span className="notification-length">{lowStockItems.length}</span>
+                    )}
+                  </div>
+
                   {notificationOpen && (
-                    <div className="notification-menu">
-                      <span className="notification-badge">3</span>
+                    <div className="notification-menu" onClick={(e) => e.stopPropagation()}>
                       <p className="notification-item">🔔 การแจ้งเตือนใหม่</p>
-                      <p className="notification-item">📦 สินค้าเหลือน้อย</p>
+
+                      {lowStockItems.length > 0 && (
+                        <>
+                          <div
+                            className="notification-item low-stock-header clickable"
+                            onClick={() => setShowLowStockList(prev => !prev)}
+                          >
+                            📦 สินค้าเหลือน้อย
+                            <span className="low-stock-count">
+                              ({lowStockItems.length} รายการ)
+                            </span>
+                          </div>
+                         
+                          {showLowStockList &&
+                            lowStockItems.map((item,index)=> (
+                              <p key={index} className="notification-item clickable">
+                                • {item.name} เหลือ {item.quantity} ชิ้น
+                              </p>
+                            ))}
+                        </>
+                      )}
                     </div>
                   )}
+          
+
                 </div>
-                <div className="user-dropdown" onClick={() => {
-                  setUserDropdown(!userdropdown);
-                  setNotificationOpen(false); // ปิดอีกอัน
-                }}>
+                <div
+                  className="user-dropdown"
+                  ref={userRef}
+                  onClick={() => {
+                    setUserDropdown(!userdropdown);
+                    setNotificationOpen(false);
+                  }}
+                >
                   <div className="user-info">
                     <img src={user.profileImg} alt="User" className="avatar" />
                     <div className="user-details">
@@ -296,7 +367,7 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
                   </div>
 
                   {userdropdown && (
-                    <div className="dropdown-menu">
+                    <div className="dropdown-menu" onClick={(e) => e.stopPropagation()}>
                       <p className="user-role">👤 Role: {user.role}</p>
                       {/* เมนูตั้งค่าผู้ใช้ */}
                       <button

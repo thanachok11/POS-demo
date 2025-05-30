@@ -47,6 +47,7 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
   const [cart, setCart] = useState<Product[]>([]);
   const [popupVisible, setPopupVisible] = useState(false);
   const [stockData, setStockData] = useState<StockItem[]>([]);
+  const [showStockError, setShowStockError] = useState(false);
 
   const [showCheckout, setShowCheckout] = useState<boolean>(false);
   const [showCart, setShowCart] = useState<boolean>(false);
@@ -140,6 +141,7 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
     setErrorMessage("");
     setIsEditing(false); // ✅ เตรียมให้เปลี่ยนเลขใหม่ทันทีที่กด
     setShowNumberPad(true);
+    setNumpadErrorMessage("");
   };
 
 
@@ -207,6 +209,18 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
 
 
   const addToCart = (product: Product) => {
+    const productStock = stockData.find(item => item.barcode === product.barcode);
+
+    // หาจำนวนใน cart ปัจจุบันก่อน
+    const currentCartItem = cart.find(item => item.barcode === product.barcode);
+    const currentQtyInCart = currentCartItem ? currentCartItem.quantity : 0;
+
+    if (productStock && currentQtyInCart + 1 > productStock.quantity) {
+      setShowStockError(true); // 👈 เปิด Dialog
+      setNumpadErrorMessage("❌ สินค้าในคลังไม่เพียงพอ");
+      return;
+    }
+
     setCart((prevCart) => {
       const existingProduct = prevCart.find((item) => item.barcode === product.barcode);
       if (existingProduct) {
@@ -219,6 +233,7 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
       return [...prevCart, { ...product, quantity: 1 }];
     });
   };
+
 
 
 
@@ -425,7 +440,11 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
                 className="product-card"
                 onClick={() => addToCart(product)}
               >
-                
+                {/* ✅ Badge แสดงจำนวนที่มุมขวาบน */}
+                {cartItem && cartItem.quantity > 0 && (
+                  <div className="product-quantity-badge">{cartItem.quantity}</div>
+                )}
+
                 <img
                   src={product.imageUrl}
                   alt={product.name}
@@ -433,11 +452,6 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
                 />
                 <h2 className="product-title">{product.name}</h2>
                 <p className="product-price">{product.price.toLocaleString()} ฿</p>
-
-                {/* ✅ แสดงจำนวนที่เลือก */}
-                {cartItem && cartItem.quantity > 0 && (
-                  <p className="product-selected">เลือกแล้ว: {cartItem.quantity} ชิ้น</p>
-                )}
               </div>
             );
           })}
@@ -467,14 +481,14 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
                   onClick={() => {
                     setSelectedProductBarcode(item.barcode);
                     setCurrentQuantity(item.quantity.toString());
-                    setIsEditing(false); // ✅ เพิ่มบรรทัดนี้
-                    setShowNumberPad(true);
+                    setIsEditing(false); // ✅ รีเซ็ตสถานะการแก้ไข
+                    openNumberPad(item.quantity); // ✅ ส่งจำนวนจริงไปแทน true
                   }}
-
                   className="edit-quantity-btn"
                 >
                   แก้ไขจำนวน
                 </button>
+
               </div>
               <button onClick={() => removeFromCart(item, item.barcode)} className="remove-btn">
                 ลบสินค้า
@@ -497,6 +511,21 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
           </button>
         </div>
       </div>
+
+
+      {showStockError && (
+        <div className="dialog-overlay" onClick={() => setShowStockError(false)}>
+          <div className="dialog-box" onClick={(e) => e.stopPropagation()}>
+            <h2 className="dialog-title">❌ สินค้าไม่เพียงพอ</h2>
+            <p className="dialog-message">จำนวนสินค้าที่คุณเลือกมีมากกว่าที่มีในคลัง</p>
+            <button className="dialog-button" onClick={() => setShowStockError(false)}>
+              ปิด
+            </button>
+          </div>
+        </div>
+      )}
+
+
       {showCheckout && (
         <Checkout
           cart={cart}

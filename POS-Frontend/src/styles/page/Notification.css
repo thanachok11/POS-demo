@@ -41,17 +41,6 @@
     animation: fadeDown 0.3s ease-out;
 }
 
-.notification-badge {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    background-color: red;
-    color: white;
-    font-size: 10px;
-    font-weight: bold;
-    padding: 2px 6px;
-    border-radius: 999px;
-}
 
 
 .notification-item {
@@ -61,6 +50,74 @@
     padding: 10px 16px;
     transition: background-color 0.2s ease;
     cursor: pointer;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+}
+
+.notification-icon {
+    margin-right: 10px;
+}
+
+.notification-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.notification-icon {
+    font-size: 24px;
+    /* ปรับขนาดไอคอนตามต้องการ */
+}
+
+.notification-length {
+    position: absolute;
+    bottom: -5px;
+    right: -10px;
+    background-color: red;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 12px;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+.low-stock-header {
+    font-weight: bold;
+    color: #e67300;
+    /* ส้มอ่อน */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.low-stock-count {
+    background-color: #fef0d5;
+    color: #b35400;
+    padding: 2px 6px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+
+
+.notification-item.clickable {
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.notification-item.clickable:hover {
+    background-color: #f5f5f5;
+}
+
+.low-stock-header {
+    font-weight: bold;
+    color: #e67e22;
+}
+
+.low-stock-count {
+    margin-left: 8px;
+    color: #c0392b;
+    font-weight: normal;
 }
 
 .notification-item:hover {

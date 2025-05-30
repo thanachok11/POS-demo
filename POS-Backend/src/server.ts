@@ -28,7 +28,7 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://10.30.136.49:3000'], // อนุญาตหลาย origin
+  origin: ['http://localhost:3000', 'http://192.168.1.153:3000','https://ae80-184-82-100-22.ngrok-free.app'], // อนุญาตหลาย origin
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // อนุญาตเฉพาะ method ที่ระบุ
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
