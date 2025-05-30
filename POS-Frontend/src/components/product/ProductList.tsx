@@ -292,17 +292,26 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
         setErrorMessage(paymentResponse.message);
         return;
       }
-
       for (const item of cart) {
         try {
+          console.log(`👉 กำลังอัปเดตสต็อก:`, {
+            barcode: item.barcode,
+            quantityToReduce: item.quantity,
+            name: item.name,
+          });
+
           const updatedStock = await updateStockByBarcode(item.barcode, item.quantity);
+
           if (!updatedStock.success) {
+            console.error(`❌ ไม่สามารถอัปเดตสต็อกของ ${item.name}`, updatedStock);
             setErrorMessage(`ไม่สามารถอัปเดตสต็อกของ ${item.name}`);
             return;
+          } else {
+            console.log(`✅ อัปเดตสต็อกของ ${item.name} สำเร็จ`, updatedStock);
           }
         } catch (error) {
+          console.error(`💥 เกิดข้อผิดพลาดในการอัปเดตสต็อกของ ${item.name}`, error);
           setErrorMessage(`เกิดข้อผิดพลาดในการอัปเดตสต็อกของ ${item.name}`);
-          console.error(error);
           return;
         }
       }
@@ -431,32 +440,36 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
         {errorMessage && <p className="error-message">{errorMessage}</p>}
 
         <div className="product-grid">
-          {filteredProducts.map((product) => {
-            const cartItem = cart.find((item) => item.barcode === product.barcode); // หาจำนวนในตะกร้า
+          {filteredProducts.length === 0 ? (
+            <p className="no-product-message">🔍 ไม่พบข้อมูลสินค้าในร้านของคุณกรุณาเพิ่มสินค้าในหน้าจัดการสินค้า</p>
+          ) : (
+            filteredProducts.map((product) => {
+              const cartItem = cart.find((item) => item.barcode === product.barcode); // หาจำนวนในตะกร้า
 
-            return (
-              <div
-                key={product.barcode}
-                className="product-card"
-                onClick={() => addToCart(product)}
-              >
-                {/* ✅ Badge แสดงจำนวนที่มุมขวาบน */}
-                {cartItem && cartItem.quantity > 0 && (
-                  <div className="product-quantity-badge">{cartItem.quantity}</div>
-                )}
+              return (
+                <div
+                  key={product.barcode}
+                  className="product-card"
+                  onClick={() => addToCart(product)}
+                >
+                  {/* ✅ Badge แสดงจำนวนที่มุมขวาบน */}
+                  {cartItem && cartItem.quantity > 0 && (
+                    <div className="product-quantity-badge">{cartItem.quantity}</div>
+                  )}
 
-                <img
-                  src={product.imageUrl}
-                  alt={product.name}
-                  className="product-image"
-                />
-                <h2 className="product-title">{product.name}</h2>
-                <p className="product-price">{product.price.toLocaleString()} ฿</p>
-              </div>
-            );
-          })}
-
+                  <img
+                    src={product.imageUrl}
+                    alt={product.name}
+                    className="product-image"
+                  />
+                  <h2 className="product-title">{product.name}</h2>
+                  <p className="product-price">{product.price.toLocaleString()} ฿</p>
+                </div>
+              );
+            })
+          )}
         </div>
+
       </div>
 
       {/* ตะกร้าสินค้า */}

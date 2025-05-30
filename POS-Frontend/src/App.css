@@ -53,7 +53,7 @@ body {
 
 /* เมื่อ sidebar ปิด */
 .app-container.sidebar-closed .product-list-wrapper {
-  margin-left: -450px;
+  margin-left: -500px;
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
 

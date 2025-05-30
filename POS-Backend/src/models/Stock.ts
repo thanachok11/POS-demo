@@ -12,58 +12,43 @@ export interface IStock extends Document {
   status: 'สินค้าพร้อมขาย' | 'สินค้าหมด' | 'สินค้าเหลือน้อย'; // สถานะของสินค้า
   lastRestocked?: Date; // วันที่เติมสต็อกล่าสุด
   barcode?: string; // รหัสบาร์โค้ดของสินค้า
-  unit: string[]; // ✅ เปลี่ยนเป็น array
-  costPrice: number; // ราคาทุน
-  sellingPrice: number; // ราคาขาย
-  isActive?: boolean; // เปิดใช้งานสินค้าหรือไม่
-  batchNumber?: string; // รหัสล็อต
-  restockHistory?: {
-    date: Date;
-    quantityAdded: number;
-    userId: mongoose.Types.ObjectId;
-    note?: string;
-  }[]; // ✅ รองรับประวัติการเติมสินค้า
   createdAt: Date;
   updatedAt: Date;
 }
 
-
 // Schema ของ Stock
-const StockSchema: Schema = new Schema({
-  productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
-  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  quantity: { type: Number, required: true, default: 0 },
-  supplierId: { type: String, required: true },
-  supplier: { type: String },
-  location: { type: String },
-  threshold: { type: Number, default: 5 },
-  status: {
-    type: String,
-    enum: ['สินค้าพร้อมขาย', 'สินค้าหมด', 'สินค้าเหลือน้อย'],
-    default: 'สินค้าพร้อมขาย',
-  },
-  lastRestocked: { type: Date },
-  barcode: { type: String, unique: true, index: true },
-  // ✅ เปลี่ยนจาก string เป็น array
-  unit: {
-    type: [String],
-    default: ['ชิ้น'],
-  },
-  costPrice: { type: Number, required: true },
-  sellingPrice: { type: Number, required: true },
-  isActive: { type: Boolean, default: true },
-  batchNumber: { type: String },
+const StockSchema: Schema = new Schema(
+  {
+    productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true }, // เชื่อมโยงกับ Product
+    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // เพิ่ม userId ที่อ้างอิงกับ User
+    quantity: { type: Number, required: true, default: 0 }, // จำนวนสินค้าคงเหลือ
+    supplier: { type: String},
 
-  restockHistory: [
-    {
-      date: { type: Date, default: Date.now },
-      quantityAdded: Number,
-      userId: { type: Schema.Types.ObjectId, ref: 'User' },
-      note: String,
+    supplierId: { type: String ,required: true },
+    location: { type: String }, // ที่จัดเก็บสินค้า
+    threshold: { type: Number, default: 5 }, // จำนวนขั้นต่ำ
+    status: {
+      type: String,
+      enum: ['สินค้าพร้อมขาย', 'สินค้าหมด', 'สินค้าเหลือน้อย'],
+      default: 'พร้อมขาย',
     },
-  ],
-}, { timestamps: true });
+    lastRestocked: { type: Date },
+    barcode: { type: String, unique: true }, // รหัสบาร์โค้ดของสินค้า
+  },
+  { timestamps: true }
+);
 
+// ฟังก์ชันในการอัพเดตสถานะของสต็อก
+StockSchema.methods.updateStatus = async function () {
+  if (this.quantity <= 0) {
+    this.status = 'สินค้าหมด';
+  } else if (this.quantity <= this.threshold) {
+    this.status = 'สินค้าเหลือน้อย';
+  } else {
+    this.status = 'สินค้าพร้อมขาย';
+  }
+  await this.save();
+};
 
 // Export model
 export default mongoose.models.Stock || mongoose.model<IStock>('Stock', StockSchema);

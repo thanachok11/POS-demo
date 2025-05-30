@@ -54,23 +54,27 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfir
   const confirmCashPayment = async () => {
     const cashAmount = parseFloat(cashInput);
     if (change !== null && change >= 0) {
-      onConfirmPayment("เงินสด", cashAmount);
+      console.log("📦 เรียก checkout แล้ว:", cashAmount); // ✅ Log ตรงนี้
+
+      await checkout(cashAmount, "เงินสด"); // ✅ เรียกตรงนี้เลย
       setPopupVisible(true);
     }
   };
 
 
+
   const confirmQRPayment = async () => {
-    onConfirmPayment("QR Code");
+    await checkout(totalPrice, "QR Code"); // ✅ ส่งราคาเข้าไปเป็นเงินที่รับ
     setPopupVisible(true);
   };
 
   const confirmCreditPayment = async () => {
     if (selectedCard) {
-      onConfirmPayment("บัตรเครดิต");
+      await checkout(totalPrice, "บัตรเครดิต"); // ✅ ส่งราคาเข้าไปเป็นเงินที่รับ
       setPopupVisible(true);
     }
   };
+
 
 
 

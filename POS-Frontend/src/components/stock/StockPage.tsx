@@ -198,7 +198,7 @@ const StockPage: React.FC = () => {
               })
             ) : (
               <tr>
-                <td colSpan={10} className="no-data">🔍 ไม่พบข้อมูลสินค้า</td>
+                <td colSpan={10} className="no-data">🔍 ไม่พบข้อมูลสินค้าในร้านของคุณ</td>
               </tr>
             )}
           </tbody>
