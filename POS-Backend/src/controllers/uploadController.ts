@@ -54,6 +54,12 @@ export const addProductWithStock = async (req: Request, res: Response): Promise<
         }
 
         const { name, description, price, category, barcode, quantity, supplierCompany, location, threshold } = req.body;
+        // ถ้าไม่ได้ส่ง barcode มาให้ระบบ gen อัตโนมัติ
+        let finalBarcode = barcode;
+        if (!finalBarcode || finalBarcode.trim() === '') {
+          // ตัวอย่างการ gen barcode อัตโนมัติแบบสุ่ม 13 หลัก
+          finalBarcode = `BC${Date.now().toString().slice(-6)}${Math.floor(100 + Math.random() * 900)}`;
+        }
 
         // ✅ ค้นหาบริษัทก่อนสร้าง product
         const supplierDoc = await Supplier.findOne({ companyName: supplierCompany });
@@ -72,7 +78,7 @@ export const addProductWithStock = async (req: Request, res: Response): Promise<
             description,
             price,
             category,
-            barcode,
+            barcode: finalBarcode,
             imageUrl: result?.secure_url,
             public_id: result?.public_id,
             userId: decoded.userId,
@@ -101,7 +107,7 @@ export const addProductWithStock = async (req: Request, res: Response): Promise<
             supplier: supplier.companyName, // ✅ เก็บชื่อบริษัท
             location,
             threshold: threshold || 5,
-            barcode,
+            barcode: finalBarcode,
             status: "สินค้าพร้อมขาย",
             lastRestocked: quantity > 0 ? new Date() : undefined,
           });

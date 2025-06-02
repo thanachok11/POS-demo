@@ -122,7 +122,6 @@ const AddProductForm = () => {
       !productData.description ||
       !productData.price ||
       !productData.category ||
-      !productData.barcode ||
       !image ||
       !stockData.quantity ||
       !stockData.supplier ||
@@ -241,6 +240,7 @@ const AddProductForm = () => {
             <input
               type="text"
               name="barcode"
+              placeholder='สร้างบาร์โค้ดอัตโนมัติหากไม่กรอก'
               value={productData.barcode}
               onChange={handleInputChange}
               className="form-input"

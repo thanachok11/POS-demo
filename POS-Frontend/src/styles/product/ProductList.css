@@ -77,15 +77,15 @@
 
 .product-list-wrapper {
   flex: 0 0 auto;
-    /* ไม่ให้ยืดตาม flex */
-    overflow-y: auto;
-    max-height: calc(100vh - 180px);
-    border: 1px solid #eee;
-    border-radius: 12px;
-    padding: 16px;
-    margin-top: 30px;
-    margin-left: -300px;
-    background-color: #fff;
+  /* ไม่ให้ยืดตาม flex */
+  overflow-y: auto;
+  max-height: calc(100vh - 180px);
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 30px;
+  margin-left: -300px;
+  background-color: #fff;
 }
 
 /* Adjusting layout of other elements */
@@ -171,6 +171,7 @@
 
   /* ไม่ต้องมี transition จาก hover */
 }
+
 .no-product-message {
   text-align: center;
   font-size: 1.2rem;
@@ -178,6 +179,7 @@
   margin-top: 2rem;
   grid-column: 1 / -1;
 }
+
 .product-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 14px rgba(0, 0, 0, 0.2);
@@ -599,6 +601,7 @@
     opacity: 1;
   }
 }
+
 @keyframes slideIn {
   from {
     transform: translateX(120%);
