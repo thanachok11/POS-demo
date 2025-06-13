@@ -28,6 +28,9 @@ npm install @fortawesome/react-fontawesome
 npm install @fortawesome/free-solid-svg-icons
 npm install chart.js react-chartjs-2
 npm install @react-oauth/google
+npm install @mui/material @emotion/react @emotion/styled
+npm install promptpay-qr qrcode.react
+
 npm install 
 ```
 3. Start the server:
