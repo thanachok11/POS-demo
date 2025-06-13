@@ -1,0 +1,87 @@
+.order-container {
+    max-width: 900px;
+    margin: 20px auto;
+    margin-top: 70px;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.1);
+}
+
+.order-title {
+    font-size: 24px;
+    text-align: center;
+    color: #6c5ce7;
+    margin-bottom: 20px;
+}
+
+.order-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.order-card {
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.1);
+    transition: 0.3s ease;
+}
+
+.order-card:hover {
+    transform: translateY(-2px);
+}
+
+.order-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+}
+
+.order-status {
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* สีสถานะ */
+.status-รอการชำระเงิน {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-ชำระเงินแล้ว {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-ยกเลิกรายการ {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.order-actions {
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.order-actions select {
+    padding: 0.4rem 0.6rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.order-loading,
+.order-error,
+.order-empty {
+    text-align: center;
+        font-size: 1.2rem;
+        color: #888;
+}

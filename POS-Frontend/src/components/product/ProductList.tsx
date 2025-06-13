@@ -489,7 +489,9 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
               <div className="cart-item-info">
                 <p className="cart-item-name">{item.name}</p>
                 <p className="cart-item-quantity">จำนวน: {item.quantity}</p>
-                <p className="cart-item-price">ราคา: {item.price.toLocaleString()} ฿</p>
+                <p className="cart-item-price">
+                  ราคา: {(item.price * item.quantity).toLocaleString()}฿
+                </p>
                 <button
                   onClick={() => {
                     setSelectedProductBarcode(item.barcode);

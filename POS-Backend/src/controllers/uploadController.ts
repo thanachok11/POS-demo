@@ -62,11 +62,11 @@ export const addProductWithStock = async (req: Request, res: Response): Promise<
         }
 
         // ✅ ค้นหาบริษัทก่อนสร้าง product
-        const supplierDoc = await Supplier.findOne({ companyName: supplierCompany });
+        const supplierDoc = await Supplier.findById(req.body.supplierId);
         if (!supplierDoc) {
           res.status(400).json({
             success: false,
-            message: `ไม่พบบริษัทผู้จัดจำหน่ายชื่อ "${supplierCompany}"`
+            message: `ไม่พบบริษัทผู้จัดจำหน่าย`
           });
           return;
         }
@@ -82,29 +82,20 @@ export const addProductWithStock = async (req: Request, res: Response): Promise<
             imageUrl: result?.secure_url,
             public_id: result?.public_id,
             userId: decoded.userId,
-            supplierId: supplierDoc._id, // ✔️ สำคัญ
+            supplierId: supplierDoc._id, // สำคัญ
           });
 
           await newProduct.save();
 
-          // ✅ 2. หา supplier จากชื่อบริษัท
-          const supplier = await Supplier.findOne({ companyName: supplierCompany });
+          // ไม่ต้องหาอีกรอบจากชื่อบริษัทแล้ว
 
-          if (!supplier) {
-            res.status(400).json({
-              success: false,
-              message: `ไม่พบบริษัทผู้จัดจำหน่ายชื่อ "${supplierCompany}"`
-            });
-            return;
-          }
-
-          // ✅ 3. สร้าง Stock ใหม่
+          // ✅ สร้าง Stock ใหม่โดยใช้ supplierDoc เดิม
           const newStock = new Stock({
             productId: newProduct._id,
             userId: decoded.userId,
             quantity: quantity || 5,
-            supplierId: supplier._id,              // ✅ _id จาก Supplier
-            supplier: supplier.companyName, // ✅ เก็บชื่อบริษัท
+            supplierId: supplierDoc._id,
+            supplier: supplierDoc.companyName,
             location,
             threshold: threshold || 5,
             barcode: finalBarcode,

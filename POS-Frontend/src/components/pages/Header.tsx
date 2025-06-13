@@ -67,8 +67,9 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
   const notificationRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
 
-
-  const [errorMessage, setErrorMessage] = useState("");
+  const [hasSeenLowStock, setHasSeenLowStock] = useState(
+    localStorage.getItem('hasSeenLowStock') === 'true'
+  );
   const [lowStockItems, setLowStockItems] = useState<StockItem[]>([]);
   const [showLowStockList, setShowLowStockList] = useState(false);
 
@@ -96,6 +97,29 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (showLowStockList) {
+      setHasSeenLowStock(true);
+      localStorage.setItem('hasSeenLowStock', 'true');
+    }
+  }, [showLowStockList]);
+
+
+  useEffect(() => {
+    if (lowStockItems.length > 0) {
+      const lastItemIds = localStorage.getItem('lastLowStockIds');
+      const newItemIds = JSON.stringify(lowStockItems.map(item => item.id || item.name)); // ใช้ id ถ้ามี
+
+      if (lastItemIds !== newItemIds) {
+        setHasSeenLowStock(false);
+        localStorage.setItem('hasSeenLowStock', 'false');
+        localStorage.setItem('lastLowStockIds', newItemIds);
+      }
+    }
+  }, [lowStockItems]);
+
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -315,7 +339,7 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
                 >
                   <div className="notification-wrapper">
                     <FontAwesomeIcon icon={faBell} className="icon notification-icon" />
-                    {lowStockItems.length > 0 && (
+                    {lowStockItems.length > 0 && !hasSeenLowStock && (
                       <span className="notification-length">{lowStockItems.length}</span>
                     )}
                   </div>

@@ -56,20 +56,6 @@ export const uploadProduct = async (formData: FormData, token: string | null) =>
     throw error;
   }
 };
-export const createOrder = async (Orderdata: any, token: string) => {
-  try {
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    };
-    const response = await axios.post(`${API_BASE_URL}/orders/create`, Orderdata, config);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
 
 
 export const placeOrder = async (orderData: any) => {

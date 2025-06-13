@@ -77,6 +77,7 @@
     background-color: #f5f5f5;
     color: #444;
 }
+
 .product-details-suppliers th {
     background: #6c5ce7;
     color: white;
@@ -247,6 +248,53 @@
     color: #ee0707;
     animation: bounceIn 0.5s ease-in-out;
 
+}
+
+.order-items-list {
+    margin-top: 20px;
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 700px;
+}
+.add-item-btn{
+    background-color: #28a745;
+    /* สีเขียวสดใส */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 15px;
+    display: inline-block;
+}
+
+.add-item-btn:hover {
+    background-color: #218838;
+    /* สีเขียวเข้มเวลาโฮเวอร์ */
+}
+.order-item-list-h{
+    border: 1px solid #ddd;
+        padding: 10px 12px;
+        text-align: left;
+        font-size: 14px;
+}
+.remove-item-btn {
+    background-color: #dc3545;
+    /* สีแดง */
+    color: white;
+    border: none;
+    margin: 10px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+.remove-item-btn:hover {
+    background-color: #c82333;
 }
 
 @media (max-width: 600px) {

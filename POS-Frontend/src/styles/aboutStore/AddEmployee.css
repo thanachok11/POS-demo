@@ -116,16 +116,17 @@ element.style{
     display: none;
 }
 .AddEmployee-popup-close-btn{
-    display: block;
-    margin: 20px auto 0;
-    padding: 7px 15px;
-    margin-left: 180px;
-    font-size: 16px;
-    background: #d9534f;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+    padding: 10px;
+        background-color: #135dc6;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+}
+.AddEmployee-popup-close-btn:hover {
+    background-color: #69bce6;
+    animation: both 0.5s ease-in-out;
+    
 }
 .AddEmployee-popup-content.error {
     border: 1px solid #d9534f;

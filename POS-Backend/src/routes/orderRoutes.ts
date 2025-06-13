@@ -1,11 +1,18 @@
 // routes/orderRoutes.ts
 import { Router } from 'express';
-import {createOrder} from '../controllers/orderController';
+import {
+    createOrder,
+    getOrdersByUser,
+    getOrderById,
+    updateOrderStatus
+} from "../controllers/orderController";
 
 const router = Router();
 
-// route สำหรับการสร้างใบสั่งซื้อ
-router.post('/create', createOrder);
+router.post("/create", createOrder);
+router.get("/", getOrdersByUser);         // ดึงทั้งหมด
+router.get("/orders/:id", getOrderById);        // ดึงเฉพาะ ID
+router.put("/:id/status", updateOrderStatus);  // แก้สถานะ
 
 // route สำหรับดึงรายการใบสั่งซื้อทั้งหมด
 

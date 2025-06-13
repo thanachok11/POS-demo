@@ -7,7 +7,7 @@ import '../../styles/product/AddProductForm.css';
 import { getSupplierData } from "../../api/suppliers/supplierApi.ts"; // Import your API function
 
 const AddProductForm = () => {
-  const [suppliers, setSuppliers] = useState<{ companyName: string }[]>([]); // Update the type to be an array of objects
+  const [suppliers, setSuppliers] = useState<{ companyName: string; _id: string }[]>([]);
   const [productData, setProductData] = useState({
     name: '',
     description: '',
@@ -18,7 +18,8 @@ const AddProductForm = () => {
   const [stockData, setStockData] = useState({
     quantity: '',
     supplier: '',
-    supplierCompany: '', 
+    supplierCompany: '',
+    supplierId: '',
     location: '',
     threshold: '',
     customSupplier: '', // For custom supplier input
@@ -73,10 +74,12 @@ const AddProductForm = () => {
     const { name, value } = e.target;
 
     if (name === "supplierCompany") {
+      const selectedSupplier = suppliers.find(s => s.companyName === value); // ✅ ประกาศใน scope นี้
       setStockData((prevData) => ({
         ...prevData,
         supplierCompany: value,
-        supplier: value, // sync ให้ supplier = supplierCompany
+        supplierId: selectedSupplier?._id || '', // ✅ ใช้ได้เลย
+        supplier: value,
         customSupplier: value === "custom" ? prevData.customSupplier : "",
       }));
     } else if (name in productData) {
@@ -125,8 +128,7 @@ const AddProductForm = () => {
       !image ||
       !stockData.quantity ||
       !stockData.supplier ||
-      !stockData.supplierCompany ||
-
+      !stockData.supplierId ||
       !stockData.location ||
       !stockData.threshold
     ) {
@@ -146,7 +148,7 @@ const AddProductForm = () => {
     formData.append('barcode', productData.barcode);
     formData.append('image', image);
     formData.append('quantity', stockData.quantity);
-    formData.append('supplierCompany', stockData.supplier === 'custom' ? stockData.customSupplier : stockData.supplier); // ✅ แค่ supplierCompany
+    formData.append('supplierId', stockData.supplierId);
     formData.append('location', stockData.location);
     formData.append('threshold', stockData.threshold);
 
@@ -166,6 +168,7 @@ const AddProductForm = () => {
       setStockData({
         quantity: '',
         supplier: '',
+        supplierId: '',
         supplierCompany: '',
         location: '',
         threshold: '',
@@ -188,7 +191,7 @@ const AddProductForm = () => {
     setShowSuccessPopup(false); // ปิด modal หลัก
   };
 
-  
+
   return (
     <div className="add-product-container">
       <h2 className="form-title">เพิ่มสินค้าใหม่</h2>
@@ -359,7 +362,7 @@ const AddProductForm = () => {
       {showErrorPopup && (
         <div className="product-popup-error">
           <div className="product-popup-content">
-           
+
             <FontAwesomeIcon icon={faExclamationCircle} className="product-icon-error" />
             <h3 className="product-popup-title">{message || "เกิดข้อผิดพลาดในการเพิ่มสินค้า"}</h3>
 

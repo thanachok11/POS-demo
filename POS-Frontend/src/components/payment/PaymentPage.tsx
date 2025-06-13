@@ -56,15 +56,20 @@ export default function PaymentPage() {
   const getPaymentMethodEmoji = (method: string) => {
     switch (method) {
       case "บัตรเครดิต":
-        return "💳 บัตรเครดิต";
-      case "โอนเงิน":
-        return "💸 โอนเงิน";
+        return "ชำระด้วยบัตรเครดิต";
+      case "QR Code":
+        return "สแกน QR Code";
       case "เงินสด":
-        return "💵 เงินสด";
+        return "ชำระด้วยเงินสด";
+      case "โอนผ่านธนาคาร":
+        return "โอนผ่านธนาคาร";
+      case "พร้อมเพย์":
+        return "พร้อมเพย์";
       default:
-        return "💵";
+        return "วิธีชำระเงินอื่นๆ";
     }
   };
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString("th-TH", {
