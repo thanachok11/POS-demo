@@ -66,6 +66,7 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
   const [notificationOpen, setNotificationOpen] = useState(false);
   const notificationRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
+  const [showLoginAlert, setShowLoginAlert] = useState(false);
 
   const [hasSeenLowStock, setHasSeenLowStock] = useState(
     localStorage.getItem('hasSeenLowStock') === 'true'
@@ -180,8 +181,6 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
             });
 
           setLowStockItems(lowStock);
-
-            console.log('Name',lowStock);
         } else {
           setError("❌ ไม่พบข้อมูลสินค้า");
         }
@@ -197,9 +196,15 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
 
 
   const handleMenuClick = (path: string, menuName: string) => {
-    setActiveMenu(menuName);
+    if (!user) {
+      setShowLoginAlert(true);
+      setActiveMenu(menuName);
+      return;
+    }
+
     navigate(path);
   };
+  
   const toggleDropdown = (menu) => {
     setOpenDropdown(openDropdown === menu ? null : menu);
   };
@@ -214,6 +219,15 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
 
   return (
     <>
+      {showLoginAlert && (
+        <div className="Alert-modal-overlay">
+          <div className="Alert-modal">
+            <p className="Alert-title-login">กรุณาเข้าสู่ระบบก่อนใช้งานเมนูนี้</p>
+            <button className="Alert-modal-close" onClick={() => setShowLoginAlert(false)}>ปิด</button>
+          </div>
+        </div>
+      )}
+
       {/* ปุ่ม Toggle Sidebar */}
       <button className={`toggleButton ${isSidebarOpen ? "open" : "closed"}`} onClick={toggleSidebar}>
         <FontAwesomeIcon icon={isSidebarOpen ? faTimes : faBars} />
@@ -270,10 +284,8 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar }) => {
               <li onClick={() => handleMenuClick("/createOrder", "นำเข้าสินค้าใหม่")}>
                 <FontAwesomeIcon icon={faCartPlus} className="icon" /> <span className="dropdown-text-buyproduct">นำเข้าสินค้าใหม่</span>
               </li>
-              <li onClick={() => handleMenuClick("/transfer", "โอนสินค้า")}>
-                <FontAwesomeIcon icon={faExchangeAlt} className="icon" /> <span className="dropdown-text-tranfer">โอนสินค้า</span>
-              </li>
-              <li onClick={() => handleMenuClick("/products/scan", "บาร์โค้ด")}>
+
+              <li onClick={() => handleMenuClick("/barcode", "บาร์โค้ด")}>
                 <FontAwesomeIcon icon={faBarcode} className="icon" /> <span className="dropdown-text-barcode">บาร์โค้ด</span>
               </li>
               <li onClick={() => handleMenuClick("/debt", "ค้างชำระ")}>

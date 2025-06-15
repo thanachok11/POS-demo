@@ -28,11 +28,17 @@ interface StockItem {
   category: string;
 }
 
+interface Category {
+  _id: string;
+  name: string;
+}
+
 interface CartProps {
   isSidebarOpen: boolean;
   toggleSidebar: () => void;
 }
 interface Product {
+  _id: string;   
   barcode: string;
   name: string;
   price: number;
@@ -48,6 +54,7 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
   const [popupVisible, setPopupVisible] = useState(false);
   const [stockData, setStockData] = useState<StockItem[]>([]);
   const [showStockError, setShowStockError] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const [showCheckout, setShowCheckout] = useState<boolean>(false);
   const [showCart, setShowCart] = useState<boolean>(false);
@@ -60,7 +67,6 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
 
   const [lowStockMessages, setLowStockMessages] = useState<Map<string, string>>(new Map());
   const [searchProduct, setSearchProduct] = useState("");
-  const [categories, setCategories] = useState<string[]>([]);
   const [categoryFilter, setCategoryFilter] = useState<string>("");
 
   useEffect(() => {
@@ -117,12 +123,6 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
           const allProducts = productData.data;
           setProducts(allProducts);
 
-          const uniqueCategories = [
-            ...new Set(allProducts.map((product) => product.category))
-          ] as string[];
-
-          setCategories(uniqueCategories);
-
         } else {
           setErrorMessage("ไม่พบข้อมูลสินค้า");
         }
@@ -158,7 +158,30 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
     });
   };
 
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return;
+      }
 
+      try {
+        const categoryList = await getCategories(token);
+        if (categoryList.success && Array.isArray(categoryList.data)) {
+          setCategories(categoryList.data);
+        } else {
+
+        }
+
+        console.log("📦 Category Data:", categoryList);
+      } catch (error) {
+      
+        console.error("Category Fetch Error:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   // ลบทีละตัว
   const handleDeleteOne = () => {
@@ -216,7 +239,7 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
     const currentQtyInCart = currentCartItem ? currentCartItem.quantity : 0;
 
     if (productStock && currentQtyInCart + 1 > productStock.quantity) {
-      setShowStockError(true); // 👈 เปิด Dialog
+      setShowStockError(true); 
       setNumpadErrorMessage("❌ สินค้าในคลังไม่เพียงพอ");
       return;
     }
@@ -390,22 +413,18 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
   };
 
 
-
-
-  const filteredCategory = categoryFilter
-    ? products.filter((product) => product.category === categoryFilter)
+  const productsByCategory = categoryFilter
+    ? products.filter(product => product.category === categoryFilter)
     : products;
 
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchProduct.toLowerCase()) &&
-    (categoryFilter === "" || product.category === categoryFilter) // กรองสินค้าตามหมวดหมู่
+  const filteredProducts = productsByCategory.filter(product =>
+    product.name.toLowerCase().includes(searchProduct.toLowerCase())
   );
 
   return (
-    <div className="product-page" >
+    <div className="product-page">
       {/* ค้นหา + หมวดหมู่ filter */}
-      <div className={`search-grid ${!isSidebarOpen ? "sidebar-closed-margin" : ""
-        }`} >
+      <div className={`search-grid ${!isSidebarOpen ? "sidebar-closed-margin" : ""}`}>
         <div className="searchproduct-container">
           <input
             type="text"
@@ -415,6 +434,8 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
             onChange={(e) => setSearchProduct(e.target.value)}
           />
 
+         
+
           <div className="category-filter-container">
             <select
               className="category-filter"
@@ -423,8 +444,8 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
             >
               <option value="">📦 ทุกหมวดหมู่</option>
               {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
+                <option key={category._id} value={category._id}>
+                  {category.name}
                 </option>
               ))}
             </select>
@@ -433,18 +454,19 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
       </div>
 
       {/* ส่วนแสดงสินค้า scroll ได้ */}
-      <div
-        className={`product-list-wrapper ${!isSidebarOpen ? "sidebar-closed-margin" : ""
-          }`}
-      >
+      <div className={`product-list-wrapper ${!isSidebarOpen ? "sidebar-closed-margin" : ""}`}>
         {errorMessage && <p className="error-message">{errorMessage}</p>}
 
         <div className="product-grid">
           {filteredProducts.length === 0 ? (
-            <p className="no-product-message">🔍 ไม่พบข้อมูลสินค้าในร้านของคุณกรุณาเพิ่มสินค้าในหน้าจัดการสินค้า</p>
+            searchProduct.trim() !== "" || categoryFilter !== "" ? (
+              <p className="no-product-message">❌ ไม่พบสินค้าที่คุณค้นหา</p>
+            ) : (
+              <p className="no-product-message">🔍 ไม่พบข้อมูลสินค้าในร้านของคุณ กรุณาเพิ่มสินค้าในหน้าจัดการสินค้า</p>
+            )
           ) : (
             filteredProducts.map((product) => {
-              const cartItem = cart.find((item) => item.barcode === product.barcode); // หาจำนวนในตะกร้า
+              const cartItem = cart.find((item) => item.barcode === product.barcode);
 
               return (
                 <div
@@ -452,16 +474,11 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
                   className="product-card"
                   onClick={() => addToCart(product)}
                 >
-                  {/* ✅ Badge แสดงจำนวนที่มุมขวาบน */}
                   {cartItem && cartItem.quantity > 0 && (
                     <div className="product-quantity-badge">{cartItem.quantity}</div>
                   )}
 
-                  <img
-                    src={product.imageUrl}
-                    alt={product.name}
-                    className="product-image"
-                  />
+                  <img src={product.imageUrl} alt={product.name} className="product-image" />
                   <h2 className="product-title">{product.name}</h2>
                   <p className="product-price">{product.price.toLocaleString()} ฿</p>
                 </div>
@@ -469,6 +486,7 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
             })
           )}
         </div>
+
 
       </div>
 

@@ -4,7 +4,8 @@ import { getProducts } from "../../api/product/productApi.ts";
 import { Link, useNavigate } from "react-router-dom"; // เพิ่ม useNavigate
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { jwtDecode } from "jwt-decode";
-
+import { getWarehouses } from "../../api/product/warehousesApi.ts";
+import {getCategories} from "../../api/product/categoryApi.ts";
 import { faUserTie, faSearch, faEnvelope, faBriefcase, faPlus } from "@fortawesome/free-solid-svg-icons";
 import "../../styles/stock/StockPage.css";
 interface StockItem {
@@ -27,6 +28,8 @@ const StockPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [user, setUser] = useState<{ userId: string; username: string; role: string; email: string } | null>(null);
+  const [Warehouses, setGetWarehouses] = useState<any | null>(null);
+  const [categories, setCategories] = useState<any[]>([]);
 
   const navigate = useNavigate(); // ใช้สำหรับเปลี่ยนหน้า
   useEffect(() => {
@@ -41,14 +44,12 @@ const StockPage: React.FC = () => {
           email: decoded.email,
           
         });
-        console.log("Decoded :",decoded);
 
       } catch (error) {
         console.error("Invalid token:", error);
       }
     }
   }, []);
-  console.log("Current User:", user);
 
   useEffect(() => {
  
@@ -63,7 +64,7 @@ const StockPage: React.FC = () => {
       try {
         const stock = await getStockData(token);
         setStockData(stock);
-
+        console.log('stock data:',stock);
         const productData = await getProducts();
         if (productData.success && Array.isArray(productData.data)) {
           setProducts(productData.data);
@@ -79,22 +80,79 @@ const StockPage: React.FC = () => {
     fetchData();
   }, []);
 
+    useEffect(() => {
+      const fetchWarehouses = async () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setError("❌ No token found for warehouse");
+          return;
+        }
+  
+        try {
+          const warehouseList = await getWarehouses();
+          console.log("📦 Warehouse Data:", warehouseList);
+          setGetWarehouses(warehouseList); // สมมุติว่าข้อมูลเป็น array
+        } catch (error) {
+          setError("❌ ไม่สามารถโหลดข้อมูลคลังสินค้าได้");
+          console.error("Warehouse Fetch Error:", error);
+        }
+      };
+  
+      fetchWarehouses();
+    }, []);
+    
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("❌ No token found for categories");
+        return;
+      }
+
+      try {
+        const categoryList = await getCategories(token);
+        console.log("📦 Category Data (API response):", categoryList);
+        setCategories(categoryList.data); // สำคัญมาก
+      } catch (error) {
+        setError("❌ ไม่สามารถโหลดข้อมูลหมวดหมู่ได้");
+        console.error("Category Fetch Error:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+    
+    
+    
+
   const getProductDetails = (barcode: string) => {
     return products.find((product) => product.barcode === barcode);
   };
+  const getLocationName = (locationId: string) => {
+    const location = Warehouses.find(w => w._id === locationId);
+    return location ? location.location : "ไม่ทราบที่เก็บ";
+  };
 
-  const formatDateTime = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = {
-      day: "2-digit",
-      month: "2-digit",
+  const getCategoryNameById = (categoryId: string | undefined) => {
+    if (!categoryId || !Array.isArray(categories)) return "ไม่ทราบหมวดหมู่";
+
+    const category = categories.find(cat => cat._id === categoryId);
+    return category ? category.name : "ไม่ทราบหมวดหมู่";
+  };
+  
+
+
+  const formatThaiDateTime = (dateString: string) =>
+    new Date(dateString).toLocaleString("th-TH", {
       year: "numeric",
+      month: "long",
+      day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
       hour12: false,
-    };
-    return new Date(dateString).toLocaleString("th-TH", options);
-  };
+      timeZone: "Asia/Bangkok"
+    }).replace("น.", "").trim() + " น.";
+
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -158,7 +216,7 @@ const StockPage: React.FC = () => {
               <th className="stock-header-cell">รูปภาพ</th>
               <th className="stock-header-cell">ราคา</th>
               <th className="stock-header-cell">จำนวน</th>
-              <th className="stock-header-cell">ที่เก็บ</th>
+              <th className="stock-header-cell">คลังสินค้า</th>
               <th className="stock-header-cell">ซัพพลายเออร์</th>
               <th className="stock-header-cell">สถานะ</th>
               <th className="stock-header-cell">หมวดหมู่</th>
@@ -186,13 +244,13 @@ const StockPage: React.FC = () => {
                     </td>
                     <td className="stock-cell">{product?.price} บาท</td>
                     <td className="stock-cell">{item.quantity}</td>
-                    <td className="stock-cell">{item.location}</td>
+                    <td className="stock-cell">{getLocationName(item.location)}</td>
                     <td className="stock-cell">{item.supplier}</td>
                     <td className="stock-cell status-cell">
                       {getStatusIcon(item.status)} {item.status}
                     </td>
-                    <td className="stock-cell">{product?.category}</td>
-                    <td className="stock-cell">{formatDateTime(item.updatedAt)}</td>
+                    <td className="stock-cell">{getCategoryNameById(product.category)}</td>
+                    <td className="stock-cell">{formatThaiDateTime(item.updatedAt)}</td>
                   </tr>
                 );
               })

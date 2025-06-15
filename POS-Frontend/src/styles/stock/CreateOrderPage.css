@@ -68,9 +68,11 @@
 
 .product-details-suppliers th,
 .product-details-suppliers td {
-    border: 1px solid #ccc;
     padding: 10px;
-    text-align: left;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    border: 1px solid #ddd;
 }
 
 .product-details-suppliers th {
@@ -256,7 +258,8 @@
     width: 100%;
     max-width: 700px;
 }
-.add-item-btn{
+
+.add-item-btn {
     background-color: #28a745;
     /* สีเขียวสดใส */
     color: white;
@@ -274,12 +277,14 @@
     background-color: #218838;
     /* สีเขียวเข้มเวลาโฮเวอร์ */
 }
-.order-item-list-h{
+
+.order-item-list-h {
     border: 1px solid #ddd;
-        padding: 10px 12px;
-        text-align: left;
-        font-size: 14px;
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 14px;
 }
+
 .remove-item-btn {
     background-color: #dc3545;
     /* สีแดง */

@@ -3,8 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckCircle, faTimesCircle, faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
 import { uploadProduct } from "../../api/product/productApi.ts"; // Ensure this import is correct
-import '../../styles/product/AddProductForm.css';
 import { getSupplierData } from "../../api/suppliers/supplierApi.ts"; // Import your API function
+import { getWarehouses, createWarehouse, updateWarehouse, deleteWarehouse } from "../../api/product/warehousesApi.ts";
+import { getCategories } from "../../api/product/categoryApi.ts"; // Import your API function
+import WarehouseModal from '../product/Warehouses.tsx';
+import CategoryModal from './CategoryModal.tsx';
+
+import '../../styles/product/AddProductForm.css';
 
 const AddProductForm = () => {
   const [suppliers, setSuppliers] = useState<{ companyName: string; _id: string }[]>([]);
@@ -28,16 +33,66 @@ const AddProductForm = () => {
   const [image, setImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [errormessage, seterrorMessage] = useState('');
+  const [showModal, setShowModal] = useState(false);
+
+  const [categories, setCategories] = useState<any[]>([]);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   const [message, setMessage] = useState('');
   const [addedProduct, setAddedProduct] = useState<any | null>(null);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [showErrorPopup, setShowErrorPopup] = useState(false);
-
+  const [Warehouses, setGetWarehouses] = useState<any | null>(null);
   const [error, setError] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const fetchWarehouses = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("❌ No token found for warehouse");
+        return;
+      }
+
+      try {
+        const warehouseList = await getWarehouses();
+        console.log("📦 Warehouse Data:", warehouseList);
+        setGetWarehouses(warehouseList); // สมมุติว่าข้อมูลเป็น array
+      } catch (error) {
+        setError("❌ ไม่สามารถโหลดข้อมูลคลังสินค้าได้");
+        console.error("Warehouse Fetch Error:", error);
+      }
+    };
+
+    fetchWarehouses();
+  }, []);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("❌ No token found for categories");
+        return;
+      }
+
+      try {
+        const categoryList = await getCategories(token);
+        if (categoryList.success && Array.isArray(categoryList.data)) {
+          setCategories(categoryList.data);
+        } else {
+          setError("❌ ไม่สามารถโหลดข้อมูลหมวดหมู่ได้");
+        }
+
+        console.log("📦 Category Data:", categoryList);
+      } catch (error) {
+        setError("❌ ไม่สามารถโหลดข้อมูลหมวดหมู่ได้");
+        console.error("Category Fetch Error:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     const fetchSuppliers = async () => {
@@ -96,12 +151,12 @@ const AddProductForm = () => {
   };
 
 
-  const handleCustomSupplierChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setStockData((prevData) => ({
-      ...prevData,
-      customSupplier: e.target.value,
-    }));
-  };
+  // const handleCustomSupplierChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setStockData((prevData) => ({
+  //     ...prevData,
+  //     customSupplier: e.target.value,
+  //   }));
+  // };
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files ? e.target.files[0] : null;
     if (file) {
@@ -229,15 +284,42 @@ const AddProductForm = () => {
             />
           </div>
           <div className="form-group">
-            <label className="form-label">หมวดหมู่:</label>
-            <input
-              type="text"
+            <label className="form-label">หมวดหมู่สินค้า:</label>
+            <select
               name="category"
               value={productData.category}
-              onChange={handleInputChange}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === "custom") {
+                  setShowCategoryModal(true); // เปิด modal
+                } else {
+                  setProductData({ ...productData, category: value }); // ✅ เก็บ _id ไม่ใช่ name
+                }
+              }}
               className="form-input"
-            />
+            >
+              <option value="">-- เลือกหมวดหมู่สินค้า --</option>
+              {categories.map((cat) => (
+                <option key={cat._id} value={cat._id}>
+                  {cat.name}
+                </option>
+              ))}
+              <option value="custom">➕ เพิ่มหมวดหมู่ใหม่</option>
+            </select>
+
           </div>
+
+          {/* 🧩 Modal สำหรับเพิ่มหมวดหมู่ */}
+          <CategoryModal
+            isOpen={showCategoryModal}
+            onClose={() => setShowCategoryModal(false)}
+            onSuccess={(newCategory) => {
+              setCategories((prev) => [...prev, newCategory]);
+              setProductData({ ...productData, category: newCategory._id }); // ✅ ต้องใช้ _id
+            }}
+          />
+
+
           <div className="form-group">
             <label className="form-label">บาร์โค้ด:</label>
             <input
@@ -287,41 +369,53 @@ const AddProductForm = () => {
               className="form-input"
             >
 
-              <option value="">เลือกผู้จำหน่าย</option>
+              <option value="">-- เลือกผู้จำหน่าย --</option>
               {suppliers.map((supplier, index) => (
                 <option key={index} value={supplier.companyName}>
                   {supplier.companyName}
                 </option>
               ))}
-              <option value="custom">อื่นๆ (กรุณากรอก)</option>
+              
             </select>
-
           </div>
-
-          {/* Show the custom supplier input field if "อื่นๆ" is selected */}
-          {stockData.supplier === "custom" && (
-            <div className="form-group">
-              <label className="form-label">กรุณากรอกผู้จำหน่าย:</label>
-              <input
-                type="text"
-                name="customSupplier"
-                value={stockData.customSupplier}
-                onChange={handleCustomSupplierChange}
-                className="form-input"
-              />
-            </div>
-          )}
           <div className="form-group">
             <label className="form-label">ตำแหน่งจัดเก็บ:</label>
-            <input
-              type="text"
+            <select
               name="location"
               value={stockData.location}
-              onChange={handleInputChange}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === "custom") {
+                  setShowModal(true); // เปิด Modal
+                } else {
+                  setStockData({ ...stockData, location: value });
+                }
+              }}
               className="form-input"
-            />
-
+            >
+              <option value="">-- เลือกคลังจัดเก็บสินค้า --</option>
+              {Warehouses?.map((wh: any) => (
+                <option key={wh._id} value={wh.location}>
+                  {wh.location}
+                </option>
+              ))}
+              <option value="custom">➕ เพิ่มคลังจัดเก็บสินค้าใหม่</option>
+            </select>
           </div>
+
+          {/* 🧩 Modal อยู่ด้านนอก */}
+          <WarehouseModal
+            isOpen={showModal}
+            onClose={() => setShowModal(false)}
+            onSuccess={(newWarehouse) => {
+              // โหลดใหม่หรือเพิ่มเข้า state
+              setGetWarehouses((prev: any[]) => [...(prev || []), newWarehouse]);
+              setStockData({ ...stockData, location: newWarehouse.location });
+            }}
+          />
+
+
+
           <div className="form-group">
             <label className="form-label">ค่าขั้นต่ำสต็อก:</label>
             <input

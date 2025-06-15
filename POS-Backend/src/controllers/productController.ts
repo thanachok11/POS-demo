@@ -3,6 +3,8 @@ import Product from '../models/Product';
 import jwt from 'jsonwebtoken'; // นำเข้า jwt สำหรับการตรวจสอบ token
 import User from '../models/User'; // นำเข้า model User
 import Employee from '../models/Employee'; // แก้ path ตามโฟลเดอร์ของคุณ
+import Category from '../models/Category';
+
 
 const verifyToken = (token: string) => {
   try {
@@ -222,7 +224,6 @@ export const getCategories = async (req: Request, res: Response): Promise<void> 
     if (typeof decoded !== 'string' && 'userId' in decoded) {
       const userId = decoded.userId;
 
-      // หา user จาก User หรือ Employee
       let user = await User.findById(userId);
       if (!user) {
         user = await Employee.findById(userId);
@@ -276,6 +277,123 @@ export const getCategories = async (req: Request, res: Response): Promise<void> 
     res.status(403).json({
       success: false,
       message: 'Forbidden, invalid token',
+    });
+  }
+};
+
+
+export const fetchCategories = async (req: Request, res: Response): Promise<void> => {
+  const token = req.header('Authorization')?.split(' ')[1];
+
+  if (!token) {
+    res.status(401).json({ success: false, message: 'Unauthorized: No token provided' });
+    return;
+  }
+
+  try {
+    const decoded = verifyToken(token);
+
+    if (typeof decoded !== 'string' && 'userId' in decoded) {
+      const userId = decoded.userId;
+
+      let user = await User.findById(userId);
+      if (!user) {
+        user = await Employee.findById(userId);
+      }
+
+      if (!user) {
+        res.status(404).json({ success: false, message: 'User not found' });
+        return;
+      }
+
+      const ownerId = user.role === 'employee' ? user.adminId : user._id;
+      const categories = await Category.find({ adminId: ownerId });
+
+      res.status(200).json({ success: true, data: categories });
+    } else {
+      res.status(401).json({ success: false, message: 'Invalid token' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Failed to fetch categories' });
+  }
+};
+
+export const addCategory = async (req: Request, res: Response): Promise<void> => {
+  const token = req.header('Authorization')?.split(' ')[1];
+
+  if (!token) {
+    res.status(401).json({
+      success: false,
+      message: 'Unauthorized, no token provided',
+    });
+    return;
+  }
+
+  try {
+    const decoded = verifyToken(token);
+
+    if (typeof decoded !== 'string' && 'userId' in decoded) {
+      const userId = decoded.userId;
+
+      let user = await User.findById(userId);
+      if (!user) {
+        user = await Employee.findById(userId);
+      }
+
+      if (!user) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+        return;
+      }
+
+      const { name, description } = req.body;
+
+      if (!name || name.trim() === "") {
+        res.status(400).json({
+          success: false,
+          message: 'Category name is required',
+        });
+        return;
+      }
+
+      // ตรวจสอบว่าหมวดหมู่นี้มีอยู่แล้วหรือไม่
+      const existingCategory = await Category.findOne({ name });
+      if (existingCategory) {
+        res.status(400).json({
+          success: false,
+          message: 'Category already exists',
+        });
+        return;
+      }
+
+      const newCategory = new Category({
+        name,
+        description,
+        adminId: decoded.userId, // ✅ เปลี่ยนจาก managerId เป็น adminId
+
+      });
+
+      await newCategory.save();
+
+      res.status(201).json({
+        success: true,
+        message: 'Category added successfully',
+        data: newCategory,
+      });
+    } else {
+      res.status(401).json({
+        success: false,
+        message: 'Invalid token',
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while adding category',
     });
   }
 };

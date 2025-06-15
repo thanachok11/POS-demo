@@ -1,14 +1,13 @@
 /* ตั้งค่าหลักของ container */
 .employee-container {
     max-width: 900px;
-    width: 1200px;
-    margin: 20px auto;
-    margin-top: 70px;
-    padding: 20px;
-    margin-left: 150px;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.1);}
+        margin: 20px auto;
+        margin-top: 70px;
+        padding: 20px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 40px rgba(0, 0, 0, 0.1);
+    }
 
 /* หัวข้อหลัก */
 .employee-header {

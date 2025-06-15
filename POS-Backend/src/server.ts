@@ -12,6 +12,7 @@ import Supplier from "./routes/supplierRoutes";
 import employeeRouter from './routes/employeeRouter'; // เชื่อมต่อ router ของพนักงาน
 import createPayment from './routes/paymentRouter';
 import receiptRoutes from "./routes/receiptRoutes";
+import warehouseRoutes from "./routes/warehouseRoutes";
 
 import cors from "cors";
 
@@ -51,9 +52,10 @@ app.use('/api/employee', employeeRouter);
 app.use('/api/payment', createPayment);
 app.use("/api/receipts/paymentId", receiptRoutes);
 app.use("/api/receipts", receiptRoutes);
-
+app.use("/api/warehouses", warehouseRoutes);
 
 // เริ่มเซิร์ฟเวอร์
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+

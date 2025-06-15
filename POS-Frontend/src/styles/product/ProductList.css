@@ -106,6 +106,7 @@
 }
 
 .product-card {
+  margin-top: -30px;
   background: #ffffff;
   border-radius: 8px;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
@@ -126,7 +127,7 @@
 .product-card img {
   width: 150px;
   height: 150px;
-  margin: 0 auto 10px auto;
+  margin: 20px auto 10px auto;
   object-fit: cover;
   border-radius: 6px;
 }
@@ -159,7 +160,7 @@
   right: 8px;
   background-color: #ff5722;
   color: white;
-  font-size: 0.75rem;
+  font-size: 14px;
   font-weight: bold;
   padding: 4px 8px;
   border-radius: 999px;
@@ -173,17 +174,24 @@
 }
 
 .no-product-message {
+  grid-column: 1 / -1;
+  /* ให้ข้อความครอบทั้งความกว้างของ grid */
   text-align: center;
   font-size: 1.2rem;
-  color: #888;
+  color: #ff4d4d;
+  background-color: #fff3f3;
+  padding: 1rem 2rem;
+  border: 1px solid #ffcccc;
+  border-radius: 12px;
   margin-top: 2rem;
-  grid-column: 1 / -1;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.05);
+  animation: fadeIn 0.3s ease-in-out;
 }
 
-.product-card:hover {
+/* .product-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 14px rgba(0, 0, 0, 0.2);
-}
+} */
 
 .cart-summary {
   font-size: 16px;
@@ -582,11 +590,13 @@
 /* Keyframes */
 @keyframes fadeIn {
   from {
-    background-color: rgba(0, 0, 0, 0);
+    opacity: 0;
+    transform: translateY(8px);
   }
 
   to {
-    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

@@ -52,16 +52,17 @@ useEffect(() => {
   getReceipts();
 }, []);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString("th-TH", {
+  const formatThaiDateTime = (dateString: string) =>
+    new Date(dateString).toLocaleString("th-TH", {
       year: "numeric",
       month: "long",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
-    });
-  };
+      hour12: false,
+      timeZone: "Asia/Bangkok"
+    }).replace("น.", "").trim() + " น.";
+
 
   return (
   <div className="receipt-container">
@@ -87,7 +88,7 @@ useEffect(() => {
     receipts.map((receipt, index) => (
       <tr key={receipt._id}>
         <td>{index + 1}</td>
-        <td>{formatDate(receipt.timestamp)}</td> {/* ใช้ formatDate() เพื่อแสดงวันที่และเวลา */}
+        <td>{formatThaiDateTime(receipt.timestamp)}</td> {/* ใช้ formatDate() เพื่อแสดงวันที่และเวลา */}
         <td>{receipt.employeeName}</td>
         <td>{receipt.totalPrice.toLocaleString()} บาท</td>
         <td>{receipt.paymentMethod}</td>

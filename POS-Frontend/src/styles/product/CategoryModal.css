@@ -1,0 +1,87 @@
+.modalcategory-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2999;
+}
+
+.modalcategory {
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 400px;
+}
+
+.modalcategory-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #5c6bc0;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.modalcategory-error {
+    color: red;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.modalcategory-input,
+.modalcategory-textarea {
+    width: 100%;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+    box-sizing: border-box;
+}
+
+.modalcategory-textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.modalcategory-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.modalcategory-button {
+    width: 100%;
+    max-width: 200px;
+    padding: 12px;
+    font-size: 18px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    align-self: center;
+}
+
+.modalcategory-button.confirm:hover {
+    background: linear-gradient(135deg, #0056b3, #004099);
+    transition: 2s;
+}
+
+.modalcategory-button.cancel {
+    background: #ccc;
+    color: #333;
+}
+
+.modalcategory-button.cancel:hover {
+    background-color: red;
+    color: white;
+    transition: 0.3s;
+}

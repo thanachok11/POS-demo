@@ -1,13 +1,12 @@
 /* ตัว Container หลัก */
 .receipt-container {
-    max-width: 1100px;
-    margin: 20px auto;
-    margin-top: 70px;
-    margin-left: 100px;
-    padding: 20px;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.1);
+    max-width: 900px;
+        margin: 20px auto;
+        margin-top: 70px;
+        padding: 20px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 40px rgba(0, 0, 0, 0.1);
 }
 
 /* ชื่อหัวข้อ */

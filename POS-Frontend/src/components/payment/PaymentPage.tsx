@@ -71,16 +71,16 @@ export default function PaymentPage() {
   };
 
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString("th-TH", {
+  const formatThaiDateTime = (dateString: string) =>
+    new Date(dateString).toLocaleString("th-TH", {
       year: "numeric",
       month: "long",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
-    });
-  };
+      hour12: false,
+      timeZone: "Asia/Bangkok"
+    }).replace("น.", "").trim() + " น.";
 
   return (
     <div className="payment-container">
@@ -112,7 +112,7 @@ export default function PaymentPage() {
                   <td>{getPaymentMethodEmoji(payment.paymentMethod)}</td>
                   <td>{payment.amount.toLocaleString()} บาท</td>
                   <td>{getStatusEmoji(payment.status)}</td>
-                  <td>{formatDate(payment.createdAt)}</td> {/* แสดงวันที่ */}
+                  <td>{formatThaiDateTime(payment.createdAt)}</td> {/* แสดงวันที่ */}
                 </tr>
               ))
             ) : (

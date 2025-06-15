@@ -5,7 +5,7 @@ export interface IProduct extends Document {
   name: string;
   description: string;
   price: number;
-  category: string;
+  category: mongoose.Schema.Types.ObjectId; 
   barcode: string;
   imageUrl?: string;
   public_id?: string;
@@ -22,7 +22,7 @@ const ProductSchema: Schema = new Schema(
     name: { type: String, required: true },
     description: { type: String, required: true },
     price: { type: Number, required: true },
-    category: { type: String, required: true },
+    category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
     barcode: { type: String, required: true, unique: true },
     imageUrl: { type: String }, // เก็บ URL ของภาพจาก Cloudinary
     public_id: { type: String }, // เก็บ public_id ของภาพจาก Cloudinary

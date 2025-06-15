@@ -25,16 +25,18 @@ interface Receipt {
     timestamp: string;
 }
 
-const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString("th-TH", {
+const formatThaiDateTime = (dateString: string) =>
+    new Date(dateString).toLocaleString("th-TH", {
         year: "numeric",
         month: "long",
         day: "numeric",
         hour: "2-digit",
         minute: "2-digit",
-        second: "2-digit",
-    });
-};
+        hour12: false,
+        timeZone: "Asia/Bangkok"
+    }).replace("น.", "").trim() + " น.";
+
+
 
 export default function ReceiptDetail() {
     const { paymentId } = useParams<{ paymentId?: string }>();
@@ -82,7 +84,7 @@ export default function ReceiptDetail() {
 
                 {!loading && !error && receipt && (
                     <>
-                        <p><strong>วันที่:</strong> {formatDate(receipt.timestamp)}</p>
+                        <p><strong>วันที่:</strong> {formatThaiDateTime(receipt.timestamp)}</p>
                         <p><strong>พนักงาน:</strong> {receipt.employeeName ?? "ไม่ระบุ"}</p>
                         <hr />
 

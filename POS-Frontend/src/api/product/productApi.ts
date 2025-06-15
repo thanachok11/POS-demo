@@ -43,7 +43,7 @@ export const getProductByBarcode = async (barcode: string) => {
 // ฟังก์ชันสำหรับอัปโหลดสินค้าใหม่ (จากตัวอย่างก่อนหน้า)
 export const uploadProduct = async (formData: FormData, token: string | null) => {
   try {
-    const response = await axios.post((`${API_BASE_URL}/product/upload`),formData,
+    const response = await axios.post((`${API_BASE_URL}/product/upload`), formData,
       {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -61,3 +61,7 @@ export const uploadProduct = async (formData: FormData, token: string | null) =>
 export const placeOrder = async (orderData: any) => {
   return await axios.post(`${API_BASE_URL}/checkout`, orderData);
 };
+
+
+
+

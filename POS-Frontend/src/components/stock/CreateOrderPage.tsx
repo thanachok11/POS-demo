@@ -12,6 +12,9 @@ import {
     getSupplierData,
     getProductsBySupplier,
 } from "../../api/suppliers/supplierApi.ts";
+import { getWarehouses } from "../../api/product/warehousesApi.ts";
+import { getCategories } from "../../api/product/categoryApi.ts";
+
 import "../../styles/stock/CreateOrderPage.css";
 
 const CreateOrderPage: React.FC = () => {
@@ -19,6 +22,9 @@ const CreateOrderPage: React.FC = () => {
     const [items, setItems] = useState<{ productId: string; quantity: number }[]>(
         []
     );
+
+    const [Warehouses, setGetWarehouses] = useState<any | null>(null);
+    const [categories, setCategories] = useState<any[]>([]);
 
     const [productId, setProductId] = useState<string>("");
     const [quantity, setQuantity] = useState<number>(1);
@@ -48,6 +54,48 @@ const CreateOrderPage: React.FC = () => {
         };
         fetchSuppliers();
     }, []);
+
+    useEffect(() => {
+        const fetchWarehouses = async () => {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                setError("❌ No token found for warehouse");
+                return;
+            }
+
+            try {
+                const warehouseList = await getWarehouses();
+                console.log("📦 Warehouse Data:", warehouseList);
+                setGetWarehouses(warehouseList); // สมมุติว่าข้อมูลเป็น array
+            } catch (error) {
+                setError("❌ ไม่สามารถโหลดข้อมูลคลังสินค้าได้");
+                console.error("Warehouse Fetch Error:", error);
+            }
+        };
+
+        fetchWarehouses();
+    }, []);
+
+useEffect(() => {
+    const fetchCategories = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("❌ No token found for categories");
+        return;
+      }
+
+      try {
+        const categoryList = await getCategories(token);
+        console.log("📦 Category Data (API response):", categoryList);
+        setCategories(categoryList.data); // สำคัญมาก
+      } catch (error) {
+        setError("❌ ไม่สามารถโหลดข้อมูลหมวดหมู่ได้");
+        console.error("Category Fetch Error:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
     useEffect(() => {
         if (!supplier) return;
@@ -93,6 +141,13 @@ const CreateOrderPage: React.FC = () => {
         setItems(items.filter((item) => item.productId !== productIdToRemove));
     };
 
+
+    const getLocationName = (locationId: string) => {
+        const location = Warehouses.find(w => w._id === locationId);
+        return location ? location.location : "ไม่ทราบที่เก็บ";
+      };
+
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -135,6 +190,14 @@ const CreateOrderPage: React.FC = () => {
         setShowErrorPopup(false);
         navigate("/createOrder");
     };
+
+
+    const getCategoryNameById = (categoryId: string | undefined) => {
+        if (!categoryId || !Array.isArray(categories)) return "ไม่ทราบหมวดหมู่";
+
+        const category = categories.find(cat => cat._id === categoryId);
+        return category ? category.name : "ไม่ทราบหมวดหมู่";
+      };
 
     // แก้ไขการหา selectedProductData ให้ถูกต้อง
     const selectedProductData = products.find((p) => p.product._id === productId);
@@ -208,12 +271,12 @@ const CreateOrderPage: React.FC = () => {
                                             <td>{selectedProductData.product.name}</td>
                                             <td>{selectedProductData.product.price}</td>
                                             <td>{selectedProductData.product.description}</td>
-                                            <td>{selectedProductData.product.category}</td>
+                                            <td>{getCategoryNameById(selectedProductData.product.category)}</td>
                                             <td>{selectedProductData.product.barcode}</td>
                                             <td>{selectedProductData.stock.quantity}</td>
                                             <td>{selectedProductData.stock.status}</td>
-                                            <td>{selectedProductData.stock.location}</td>
-                                        </tr>
+                                            <td>{getLocationName(selectedProductData.stock.location)}</td>
+                                            </tr>
                                     </tbody>
                                 </table>
                             </div>
