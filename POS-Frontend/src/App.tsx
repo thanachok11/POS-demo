@@ -21,6 +21,7 @@ import TestQr from "./App.js";
 import PaymentPage from "./components/payment/PaymentPage.tsx";
 import EmployeeList from "./components/aboutStore/EmployeePage.tsx";
 import OrderPage from "./components/stock/OrderPage.tsx";
+import EmployeePage from "./components/pages/Employee/Dashboard-employee.tsx";
 import "./App.css";
 // Interceptor เพื่อตรวจสอบ response ทั้งหมด
 axios.interceptors.response.use(
@@ -58,6 +59,7 @@ const App: React.FC = () => {
             <Route path="/debt" element={<OrderPage />} />
             <Route path="/reports/sales" element={<SalePage />} />
             <Route path="/products/scan" element={<ScanBarcode />} />
+            <Route path="/employee-dashboard" element={<EmployeePage />} />
             <Route
               path="/shop"
               element={

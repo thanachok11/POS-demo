@@ -159,8 +159,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfir
                   className="checkout-numpad-input"
                   value={
                     Number(cashInput)
-                      ? Number(cashInput).toLocaleString()
-                      : ""
+                      ? Number(cashInput).toLocaleString(): ""
                   }
                   readOnly
                 />

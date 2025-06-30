@@ -1,0 +1,60 @@
+.employee-dashboard {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 50px 60px;
+    background-color: #f4f6f9;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+.employee-dashboard__text {
+    flex: 1;
+    min-width: 320px;
+    padding-right: 30px;
+}
+
+.employee-dashboard__heading {
+    font-size: 2.8rem;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+.employee-dashboard__description {
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.employee-dashboard__features {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.employee-dashboard__feature-item {
+    background-color: #ffffff;
+    border-left: 5px solid #3498db;
+    padding: 14px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    font-size: 1rem;
+    color: #333;
+}
+
+.employee-dashboard__image {
+    flex: 1;
+    min-width: 320px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.employee-dashboard__img {
+    width: 100%;
+    max-width: 480px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}

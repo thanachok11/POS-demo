@@ -48,7 +48,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }
     useEffect(() => {
         const fetchCountries = async () => {
             try {
-                const res = await axios.get("https://restcountries.com/v3.1/all");
+                const res = await axios.get("https://restcountries.com/v3.1/all?fields=name");
                 const countryList = res.data.map((c: any) => c.name.common).sort();
                 setCountries(countryList);
             } catch (error) {
@@ -57,6 +57,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }
         };
         fetchCountries();
     }, []);
+
 
     useEffect(() => {
         if (formData.country === "Thailand") {

@@ -57,6 +57,24 @@ body {
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
 
+/* เมื่อ sidebar เปิดอยู่ ให้ cart มีขนาด 0px */
+.app-container.sidebar-open .employee-dashboard {
+  margin-left: 150px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+
+}
+
+.employee-dashboard {
+  transition: margin-left 0.3s ease-in-out;
+}
+
+/* เมื่อ sidebar ปิด */
+.app-container.sidebar-closed .employee-dashboard {
+  margin-left: 10px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+
+}
+
 .main-content {
   flex-grow: 1;
   padding: 20px;

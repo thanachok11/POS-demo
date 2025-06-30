@@ -6,7 +6,7 @@ import { uploadProduct } from "../../api/product/productApi.ts"; // Ensure this 
 import { getSupplierData } from "../../api/suppliers/supplierApi.ts"; // Import your API function
 import { getWarehouses, createWarehouse, updateWarehouse, deleteWarehouse } from "../../api/product/warehousesApi.ts";
 import { getCategories } from "../../api/product/categoryApi.ts"; // Import your API function
-import WarehouseModal from '../product/Warehouses.tsx';
+import WarehouseModal from './Warehouses.tsx';
 import CategoryModal from './CategoryModal.tsx';
 
 import '../../styles/product/AddProductForm.css';
