@@ -30,6 +30,7 @@ npm install chart.js react-chartjs-2
 npm install @react-oauth/google
 npm install @mui/material @emotion/react @emotion/styled
 npm install promptpay-qr qrcode.react
+npm install @zxing/browser @zxing/library
 
 npm install 
 ```
