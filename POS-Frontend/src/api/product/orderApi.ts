@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Base URL ของ API
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 // ฟังก์ชันสร้างคำสั่งซื้อใหม่
 export const createOrder = async (orderData: {
