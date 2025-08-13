@@ -1,7 +1,7 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Model } from "mongoose";
 
 // 🔹 กำหนด Interface สำหรับ Receipt
-interface IReceipt extends Document {
+export interface IReceipt extends Document {
     paymentId: mongoose.Types.ObjectId;
     employeeName: string;
     items: {
@@ -10,16 +10,16 @@ interface IReceipt extends Document {
         price: number;
         quantity: number;
         subtotal: number;
-    }[]; // รวม ReceiptItem เข้าไปใน items
+    }[];
     totalPrice: number;
     paymentMethod: "เงินสด" | "QR Code" | "บัตรเครดิต" | "โอนผ่านธนาคาร";
-    amountPaid?: number; // 💰 เงินที่ลูกค้าจ่าย (เฉพาะเงินสด)
-    changeAmount?: number; // 💵 เงินทอน
+    amountPaid?: number;    // 💰 เงินที่ลูกค้าจ่าย (เฉพาะเงินสด)
+    changeAmount?: number;  // 💵 เงินทอน
     timestamp: Date;
 }
 
 // 🔹 Schema สำหรับใบเสร็จ
-const ReceiptSchema = new Schema<IReceipt>({
+const ReceiptSchema: Schema<IReceipt> = new Schema({
     paymentId: { type: Schema.Types.ObjectId, ref: "Payment", required: true },
     employeeName: { type: String, required: true },
     items: [
@@ -30,19 +30,19 @@ const ReceiptSchema = new Schema<IReceipt>({
             quantity: { type: Number, required: true },
             subtotal: { type: Number, required: true },
         },
-    ], // รวมรายการสินค้าทั้งหมดในใบเสร็จ
+    ],
     totalPrice: { type: Number, required: true },
     paymentMethod: {
         type: String,
         enum: ["เงินสด", "QR Code", "บัตรเครดิต", "โอนผ่านธนาคาร"],
         required: true,
     },
-    amountPaid: { type: Number }, // 💰 เพิ่มจำนวนเงินที่ลูกค้าจ่าย
-    changeAmount: { type: Number, default: 0 }, // 💵 เงินทอน
+    amountPaid: { type: Number },
+    changeAmount: { type: Number, default: 0 },
     timestamp: { type: Date, default: Date.now },
 });
 
 // 🔹 สร้าง Model
-const Receipt = mongoose.model<IReceipt>("Receipt", ReceiptSchema);
+const Receipt: Model<IReceipt> = mongoose.model<IReceipt>("Receipt", ReceiptSchema);
 
 export default Receipt;
