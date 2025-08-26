@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:5000/api"; // URL ของ backend API
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 // เพิ่มซัพพลายเออร์ใหม่
 export const addSupplier = async (supplierData: any, token: string) => {

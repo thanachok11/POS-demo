@@ -1,107 +1,99 @@
+// Scanner.tsx
 import React, { useEffect, useRef, useState } from "react";
 import { BrowserMultiFormatReader } from "@zxing/browser";
-import { DecodeHintType, BarcodeFormat } from "@zxing/library";
 
-const ZxingScanner = () => {
+const Scanner: React.FC = () => {
     const videoRef = useRef<HTMLVideoElement>(null);
-    const controlsRef = useRef<any>(null);
-    const [result, setResult] = useState("📡 กำลังสแกน...");
-    const [lastScan, setLastScan] = useState("");
-    const [scanTime, setScanTime] = useState<number | null>(null);
+    const [result, setResult] = useState<string>("");
+
+    const streamRef = useRef<MediaStream | null>(null);
 
     useEffect(() => {
-        const hints = new Map();
-        hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-            BarcodeFormat.QR_CODE,
-            BarcodeFormat.CODE_128,
-            BarcodeFormat.EAN_13,
-        ]);
+        const codeReader = new BrowserMultiFormatReader();
 
-        const codeReader = new BrowserMultiFormatReader(hints, {
-            delayBetweenScanAttempts: 150, // ปรับให้สมดุลระหว่างเร็วและเสถียร
-        });
+        const startScanner = async () => {
+            try {
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-        console.log("🎥 เริ่มเปิดกล้อง...");
+                const constraints: MediaStreamConstraints = {
+                    video: isMobile
+                        ? { facingMode: { exact: "environment" } } // กล้องหลังบนมือถือ
+                        : true, // บน desktop ใช้กล้องใดก็ได้
+                };
 
-        codeReader.decodeFromVideoDevice(undefined, videoRef.current!, (res, err, controls) => {
-            if (res) {
-                const text = res.getText();
-                if (text !== lastScan) {
-                    console.log("✅ อ่านได้:", text);
-                    setResult(`✅ พบข้อมูล: ${text}`);
-                    setLastScan(text);
-                    setScanTime(Date.now());
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                streamRef.current = stream;
+
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                    videoRef.current.setAttribute("playsinline", "true"); // สำคัญมากบน iOS
+                    await videoRef.current.play();
                 }
-            }
 
-            if (err && !(err.name === "NotFoundException")) {
-                console.warn("⚠️ ข้อผิดพลาด:", err.message);
-            }
+                const scan = async () => {
+                    if (!videoRef.current) return;
 
-            if (!controlsRef.current && controls) {
-                controlsRef.current = controls;
-            }
-        });
+                    try {
+                        const result = await codeReader.decodeOnceFromVideoElement(videoRef.current);
+                        setResult(result.getText());
+                    } catch {
+                        // ไม่ต้องแจ้ง error ถ้าไม่พบ code ใน frame
+                    }
+                };
 
-        return () => {
-            if (controlsRef.current) {
-                controlsRef.current.stop();
-                controlsRef.current = null;
-                console.log("🛑 ปิดกล้อง");
+                const intervalId = setInterval(scan, 1000); // สแกนทุก 1 วินาที
+
+                // cleanup function
+                return () => {
+                    clearInterval(intervalId);
+                    if (streamRef.current) {
+                        streamRef.current.getTracks().forEach((track) => track.stop());
+                    }
+                };
+            } catch (err) {
+                console.error("เกิดข้อผิดพลาดในการเข้าถึงกล้อง:", err);
+                alert("เกิดข้อผิดพลาดในการเข้าถึงกล้อง");
             }
         };
-    }, [lastScan]);
 
-    // Reset result หลังผ่านไป 5 วิ
-    useEffect(() => {
-        if (scanTime) {
-            const timeout = setTimeout(() => {
-                setResult("📡 กำลังสแกน...");
-            }, 5000);
-            return () => clearTimeout(timeout);
-        }
-    }, [scanTime]);
+        const cleanupPromise = startScanner();
+
+        return () => {
+            cleanupPromise.then((cleanup) => {
+                if (typeof cleanup === "function") cleanup();
+            });
+        };
+    }, []);
 
     return (
-        <div style={{ maxWidth: 600, margin: "0 auto", padding: 20 }}>
-            <h1 style={{ textAlign: "center" }}>📷 ZXing Barcode Scanner</h1>
-
-            <div style={{ position: "relative" }}>
-                <video
-                    ref={videoRef}
-                    style={{
-                        width: "100%",
-                        border: "4px solid #333",
-                        borderRadius: "10px",
-                    }}
-                />
-                {/* กล่องแนะนำตำแหน่ง */}
-                <div
-                    style={{
-                        position: "absolute",
-                        top: "30%",
-                        left: "20%",
-                        width: "60%",
-                        height: "40%",
-                        border: "2px dashed limegreen",
-                        borderRadius: "8px",
-                        pointerEvents: "none",
-                    }}
-                ></div>
-            </div>
-
-            <p
+        <div style={{ textAlign: "center", padding: 20 }}>
+            <h2>📷 สแกนด้วยกล้องหลัง</h2>
+            <video
+                ref={videoRef}
                 style={{
-                    marginTop: "1rem",
-                    fontSize: "1.2rem",
-                    textAlign: "center",
-                    color: result.startsWith("✅") ? "green" : "#666",
+                    width: "100%",
+                    maxWidth: 400,
+                    borderRadius: 8,
+                    backgroundColor: "#000",
                 }}
-            >
-                {result}
-            </p>
+                muted
+                playsInline
+            />
+            <p>📦 ผลลัพธ์ที่สแกนได้:</p>
+            <textarea
+                readOnly
+                value={result}
+                rows={4}
+                style={{
+                    width: "100%",
+                    maxWidth: 400,
+                    borderRadius: 8,
+                    fontSize: 16,
+                    marginTop: 10,
+                }}
+            />
         </div>
     );
 };
 
-export default ZxingScanner;
+export default Scanner;

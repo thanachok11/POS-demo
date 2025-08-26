@@ -1,9 +1,9 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:5000/api"; // เปลี่ยนตาม backend จริง
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 export const getCategories = async (token: string) => {
-  const response = await axios.get(`${BASE_URL}/products/categories/all`, {
+  const response = await axios.get(`${API_BASE_URL}/products/categories/all`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -12,7 +12,7 @@ export const getCategories = async (token: string) => {
 };
 
 export const getProductsByCategory = async (token: string, category: string) => {
-  const response = await axios.get(`${BASE_URL}/products/category/${category}`, {
+  const response = await axios.get(`${API_BASE_URL}/products/category/${category}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -31,7 +31,7 @@ export const createCategory = async (data: CategoryData): Promise<any> => {
   if (!token) throw new Error("No token found");
 
   try {
-    const response = await axios.post(`${BASE_URL}/products/category/create`, data, {
+    const response = await axios.post(`${API_BASE_URL}/products/category/create`, data, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

@@ -14,11 +14,11 @@ export interface ICategory extends Document {
 // ✅ Schema สำหรับ Category
 const CategorySchema: Schema = new Schema(
     {
-        name: { type: String, required: true, unique: true },
+        name: { type: String, required: true },
         description: { type: String },
         adminId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'User', // ✅ ชัดเจนว่าอ้างถึง admin
+            ref: 'User', 
             required: true,
         },
     },

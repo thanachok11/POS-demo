@@ -119,14 +119,14 @@ export const login = async (req: Request, res: Response): Promise<void> => {
           position: employee.position,
           status: employee.status,
           profile_img: employee.profile_img,
-          role: 'employee',
+          role: employee.role,
           adminId: employee.adminId, // สำคัญ! เพื่อให้ใช้ใน getProducts ได้
         },
         process.env.JWT_SECRET as string,
         { expiresIn: '3h' }
       );
 
-      res.status(200).json({ message: 'เข้าสู่ระบบสำเร็จ', token, role: 'employee' });
+      res.status(200).json({ message: 'เข้าสู่ระบบสำเร็จ', token, role: employee.role });
       return;
     }
   } catch (error) {
@@ -134,6 +134,46 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+// ฟังก์ชันต่ออายุ Token
+export const renewToken = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      res.status(401).json({ message: 'Token ไม่ถูกต้องหรือไม่มีการแนบ Token' });
+      return;
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    // ตรวจสอบและถอดรหัส token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as jwt.JwtPayload;
+
+    // สร้าง token ใหม่จากข้อมูลเดิม
+    const newToken = jwt.sign(
+      {
+        userId: decoded.userId,
+        email: decoded.email,
+        firstname: decoded.firstname,
+        lastname: decoded.lastname,
+        username: decoded.username,
+        role: decoded.role,
+        nameStore: decoded.nameStore,
+        profile_img: decoded.profile_img,
+        adminId: decoded.adminId,
+        position: decoded.position,
+        status: decoded.status,
+        name: decoded.name,
+      },
+      process.env.JWT_SECRET as string,
+      { expiresIn: '3h' }
+    );
+
+    res.status(200).json({ message: 'Token ใหม่ถูกสร้างแล้ว', token: newToken });
+  } catch (error) {
+    res.status(401).json({ message: 'ไม่สามารถต่ออายุ Token ได้', error });
+  }
+};
 
 // ฟังก์ชันสำหรับการแก้ไข role ของผู้ใช้
 export const updateUserRole = async (req: Request, res: Response): Promise<void> => {
@@ -164,41 +204,3 @@ export const updateUserRole = async (req: Request, res: Response): Promise<void>
     res.status(500).json({ message: 'Failed to update user role', error });
   }
 };
-export const loginEmployee = async (req: Request, res: Response): Promise<void> => {
-  const { email, password } = req.body;
-
-  try {
-    const employee = await Employee.findOne({ email });
-
-    if (!employee) {
-      res.status(400).json({ message: 'ไม่พบพนักงานนี้ในระบบ' });
-      return;
-    }
-
-    const isMatch = await bcrypt.compare(password, employee.password);
-
-    if (!isMatch) {
-      res.status(400).json({ message: 'รหัสผ่านไม่ถูกต้อง' });
-      return;
-    }
-
-    // สร้าง JWT Token พร้อมข้อมูลเพิ่มเติม
-    const token = jwt.sign(
-      {
-        userId: employee._id,     // ไอดีของพนักงาน
-        email: employee.email,    // อีเมลของพนักงาน
-        name: employee.username, // ชื่อผู้ใช้
-        position: employee.position,
-        status: employee.status,      // บทบาทของพนักงาน
-        profile_img: employee.profile_img, // รูปโปรไฟล์พนักงาน
-      },
-      process.env.JWT_SECRET as string,
-      { expiresIn: '3h' }
-    );
-
-    res.status(200).json({ message: 'เข้าสู่ระบบสำเร็จ', token });
-  } catch (error) {
-    res.status(500).json({ message: 'เข้าสู่ระบบล้มเหลว', error });
-  }
-};
-

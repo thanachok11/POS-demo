@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { register, login, showAllUsers } from "../controllers/authController";
+import { register, login, showAllUsers,renewToken } from "../controllers/authController";
 import  {googleLogin,googleRegister}  from "../controllers/google";  // นำเข้าฟังก์ชันที่สร้างใน controller/google.ts
 
 const router = Router();
@@ -13,5 +13,6 @@ router.post("/register", register);
 
 // เส้นทางสำหรับการล็อกอิน
 router.post("/login", login);
+router.post('/renew-token', renewToken);
 
 export default router;

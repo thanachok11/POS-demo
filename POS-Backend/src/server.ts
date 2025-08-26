@@ -50,7 +50,6 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/suppliers', Supplier)
 app.use('/api/employee', employeeRouter);
 app.use('/api/payment', createPayment);
-app.use("/api/receipts/paymentId", receiptRoutes);
 app.use("/api/receipts", receiptRoutes);
 app.use("/api/warehouses", warehouseRoutes);
 

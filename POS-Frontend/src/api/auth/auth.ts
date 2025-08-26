@@ -2,12 +2,12 @@
 import axios from 'axios';
 
 // กำหนด URL ของ API
-export const API_URL = 'http://localhost:5000/api/auth';
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 // ฟังก์ชันสำหรับการลงทะเบียนผู้ใช้ใหม่
 export const registerUser = async (email: string, password: string, username: string, firstName: string, lastName: string, nameStore: string) => {
   try {
-    const response = await axios.post(`${API_URL}/register`, {
+    const response = await axios.post(`${API_BASE_URL}/register`, {
       nameStore,
       email,
       password,
@@ -47,7 +47,7 @@ export const handleGoogleRegister = async (googleToken: string) => {
 // ฟังก์ชันสำหรับการล็อกอินผู้ใช้
 export const loginUser = async (email: string, password: string) => {
   try {
-    const response = await axios.post(`${API_URL}/login`, {
+    const response = await axios.post(`${API_BASE_URL}/auth/login`, {
       email,
       password
     });
@@ -58,11 +58,30 @@ export const loginUser = async (email: string, password: string) => {
   }
 };
 
+
+export const renewToken = async (token: string) => {
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}/auth/renew-token`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data.token; // คืน token ใหม่
+  } catch (error: any) {
+    console.error("❌ renewToken error:", error);
+    return null;
+  }
+};
 // auth.ts
 
 export const googleLogin = async (googleToken: string) => {
   try {
-    const response = await axios.post(`${API_URL}/google-login`, {
+    const response = await axios.post(`${API_BASE_URL}/google-login`, {
       googleToken
     });
 
