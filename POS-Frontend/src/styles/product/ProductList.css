@@ -95,7 +95,7 @@
   justify-content: start;
   column-gap: 15px;
   row-gap: 10px;
-  margin-top: 40px;
+  margin-top: 10px;
   width: fit-content;
 }
 
@@ -106,7 +106,6 @@
 }
 
 .product-card {
-  margin-top: -30px;
   background: #ffffff;
   border-radius: 8px;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);

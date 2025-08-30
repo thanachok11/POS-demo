@@ -45,6 +45,7 @@ const WarehouseModal: React.FC<WarehouseModalProps> = ({ isOpen, onClose, onSucc
     if (!isOpen) return null;
 
     return (
+        <div className="display">
         <div className="modalwarehouse-overlay" onClick={onClose}>
             <div className="modalwarehouse" onClick={(e) => e.stopPropagation()}>
                 <h2 className="modalwarehouse-title">เพิ่มคลังสินค้า</h2>
@@ -84,6 +85,7 @@ const WarehouseModal: React.FC<WarehouseModalProps> = ({ isOpen, onClose, onSucc
                     </button>
                 </div>
             </div>
+        </div>
         </div>
     );
 };

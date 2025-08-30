@@ -47,7 +47,7 @@ interface Product {
   imageUrl: string;
 }
 
-const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
+const ProductList: React.FC<CartProps> = ({ isSidebarOpen}) => {
   const [user, setUser] = useState<{ userId: string; username: string; role: string; email: string } | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<Product[]>([]);
@@ -422,6 +422,7 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
   );
 
   return (
+    <div className="display-product">
     <div className="product-page">
       {/* ค้นหา + หมวดหมู่ filter */}
       <div className={`search-grid ${!isSidebarOpen ? "sidebar-closed-margin" : ""}`}>
@@ -603,6 +604,7 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen, toggleSidebar }) => {
         </div>
       )}
 
+    </div>
     </div>
   );
 };

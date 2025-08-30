@@ -164,6 +164,7 @@ const OrderPage: React.FC = () => {
 
 
     return (
+        <div className="display">
         <div className="order-container">
             <h1 className="order-title">รายการคำสั่งซื้อของคุณ</h1>
             {orders.length === 0 ? (
@@ -225,6 +226,7 @@ const OrderPage: React.FC = () => {
                     })}
                 </div>
             )}
+        </div>
         </div>
     );
 };

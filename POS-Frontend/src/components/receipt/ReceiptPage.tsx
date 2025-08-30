@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchReceipts } from "../../api/receipt/receiptApi.ts";
 import "../../styles/receipt/ReceiptPage.css";
-import React from "react";
 
 interface Item {
   barcode: string;
@@ -65,6 +64,7 @@ useEffect(() => {
 
 
   return (
+    <div className="display">
   <div className="receipt-container">
     <h1 className="receipt-title">🧾 รายการใบเสร็จ</h1>
 
@@ -110,6 +110,7 @@ useEffect(() => {
       </table>
     )}
   </div>
+    </div>
 );
 
 }

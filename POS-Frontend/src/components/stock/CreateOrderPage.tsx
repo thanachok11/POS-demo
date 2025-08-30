@@ -203,6 +203,7 @@ useEffect(() => {
     const selectedProductData = products.find((p) => p.product._id === productId);
 
     return (
+        <div className="display">
         <div className="create-order-container-suppliers">
             <h2 className="create-order-header-suppliers">สร้างใบสั่งซื้อสินค้า</h2>
 
@@ -384,6 +385,7 @@ useEffect(() => {
                     </div>
                 </div>
             )}
+        </div>
         </div>
     );
 };

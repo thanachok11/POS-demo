@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { googleLogin, loginUser } from "../../api/auth/auth.ts";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 import "../../styles/auth/LoginPageModal.css";
 
 interface LoginProps {
@@ -15,6 +18,8 @@ const Login: React.FC<LoginProps> = ({ isVisible, onClose }) => {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   if (!isVisible) return null;
@@ -75,48 +80,65 @@ const Login: React.FC<LoginProps> = ({ isVisible, onClose }) => {
       setError(err.message || "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
     }
   };
+  const handleClose = () => {
+    setIsClosing(true);
+
+    setTimeout(() => {
+      setIsClosing(false);
+      onClose();
+    }, 300);
+  }; const handleForgotPassword = () => {
+    onClose(); // ปิด modal ก่อน
+    navigate("/forgot-password");
+  };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <button onClick={onClose} className="close-button">
-          X
-        </button>
-        <form onSubmit={handleLogin} className="form">
-          <h1 className="logintitle">เข้าสู่ระบบ</h1>
-          <input
-            type="email"
-            name="email"
-            placeholder="อีเมล"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="input"
-            required
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="รหัสผ่าน"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="input"
-            required
-          />
-          <div className="checkbox-container">
+    <div className="login-modal-overlay">
+      <div className="login-modal-content">
+        <div className={`login-modal ${isClosing ? 'slide-out' : 'slide-in'}`}>
+          <button onClick={handleClose} className="login-close-button">×</button>
+          <form onSubmit={handleLogin} className="login-form">
+            <h2 className="login-title">เข้าสู่ระบบ</h2>
             <input
-              type="checkbox"
-              id="rememberMe"
-              checked={rememberMe}
-              onChange={() => setRememberMe(!rememberMe)}
+              type="email"
+              name="email"
+              placeholder="อีเมล"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="login-input"
+              required
             />
-            <label className="label" htmlFor="rememberMe">
-              จดจำฉัน
-            </label>
-          </div>
-          <button type="submit" className="button">
-            เข้าสู่ระบบ
-          </button>
-        </form>
+            <input
+              type={showPassword ? "text" : "password"} // สลับ type
+              name="password"
+              placeholder="รหัสผ่าน"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="login-input"
+              required
+            />
+            <span
+              className="password-toggle-icon"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+            </span>
+
+            <div className="login-checkbox-container">
+              <input
+                type="checkbox"
+                id="rememberMe"
+                checked={rememberMe}
+                onChange={() => setRememberMe(!rememberMe)}
+              />
+              <label htmlFor="rememberMe" className="login-label">
+                จดจำฉัน
+              </label>
+            </div>
+            <button type="submit" className="login-button">เข้าสู่ระบบ</button>
+          </form>
+        </div>
+
 
         <div className="google-login-container">
           <GoogleOAuthProvider clientId="429542474271-omg13rrfbv9aidi9p7c788gsfe8akfsd.apps.googleusercontent.com">
@@ -128,11 +150,17 @@ const Login: React.FC<LoginProps> = ({ isVisible, onClose }) => {
               text="signin_with"
             />
           </GoogleOAuthProvider>
-          {error && <p className="error">{error}</p>}
-          {successMessage && <p className="success">{successMessage}</p>}
+          {error && <p className="login-error">{error}</p>}
+          {successMessage && <p className="login-success">{successMessage}</p>}
         </div>
+        <p
+          className="login-forgot"
+          onClick={handleForgotPassword}
+        >
+          ลืมรหัสผ่าน?
+        </p>
       </div>
-    </div>
+      </div>
   );
 };
 

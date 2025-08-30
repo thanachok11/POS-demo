@@ -13,16 +13,24 @@ body {
   transition: margin-left 0.3s ease-in-out;
 }
 
-.app-container.sidebar-open .main-content {
+.app-container.sidebar-open .display-product {
+  margin-left: 180px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
+
+.app-container.sidebar-closed .display-product {
+  margin-left: 20px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
+.app-container.sidebar-open .display {
   margin-left: 150px;
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
 
-.app-container.sidebar-closed .main-content {
-  margin-left: 10px;
+.app-container.sidebar-closed .display {
+  margin-left: 0px;
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
-
 /* ปกติ cart จะซ่อน */
 
 .app-container.sidebar-closed .search-grid {
@@ -34,10 +42,17 @@ body {
 .app-container.sidebar-open .search-grid {
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
+.app-container.sidebar-closed .navbar .iconName {
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  right: 20px;
+}
 
 /* เมื่อ sidebar ปิดอยู่ ให้ cart มีขนาด 400px */
 .app-container.sidebar-closed .cart.show-cart {
   width: 450px;
+  top: 30px;
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
 

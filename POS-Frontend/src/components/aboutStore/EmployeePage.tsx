@@ -66,6 +66,7 @@ const EmployeeList: React.FC = () => {
     );
 
     return (
+        <div className="display">
         <div className="employee-container">
             <h2 className="employee-header">
                 <span className="employee-title">👨‍💼</span> จัดการพนักงาน
@@ -127,6 +128,7 @@ const EmployeeList: React.FC = () => {
                     </div>
                 </div>
             )}
+        </div>
         </div>
     );
 };

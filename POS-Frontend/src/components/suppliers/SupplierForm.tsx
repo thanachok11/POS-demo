@@ -158,6 +158,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }
     };
 
     return (
+        <div className="display">
         <div className="supplier-form-container">
             <h2 className="supplier-form-title"> {supplier ? "แก้ไขซัพพลายเออร์" : "เพิ่มซัพพลายเออร์"}</h2>
             {message && <p className="supplier-form-message">{message}</p>}
@@ -271,6 +272,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }
                     {loading ? "⏳ กำลังบันทึก..." : "💾 บันทึก"}
                 </button>
             </form>
+        </div>
         </div>
     );
 };

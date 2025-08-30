@@ -51,6 +51,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onClose, onSucces
     if (!isOpen) return null;
 
     return (
+        <div className="display">
         <div className="modalcategory-overlay" onClick={onClose}>
             <div className="modalcategory" onClick={(e) => e.stopPropagation()}>
                 <h2 className="modalcategory-title">เพิ่มหมวดหมู่สินค้า</h2>
@@ -83,6 +84,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onClose, onSucces
                     </button>
                 </div>
             </div>
+        </div>
         </div>
     );
 };

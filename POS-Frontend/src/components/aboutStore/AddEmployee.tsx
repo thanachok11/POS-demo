@@ -93,6 +93,7 @@ const AddEmployee = ({
   };
 
   return (
+    <div className="display">
     <div className="employee-form-container">
       <h2 className="employee-form-title">เพิ่มพนักงาน</h2>
       {message && <p className="employee-form-message">{message}</p>}
@@ -191,6 +192,7 @@ const AddEmployee = ({
         </div>
       )}
 
+    </div>
     </div>
   );
 };

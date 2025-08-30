@@ -109,6 +109,7 @@ const StockDetail: React.FC = () => {
   if (error) return <p className="error-message-stockDetail">{error}</p>;
 
   return (
+    <div className="display">
     <div className="stock-detail-container">
       <h2 className="stock-detail-header">📦 รายละเอียดสินค้า</h2>
       {product ? (
@@ -139,6 +140,7 @@ const StockDetail: React.FC = () => {
       ) : (
         <p className="error-message-stockDetail">❌ ไม่พบข้อมูลสินค้าสำหรับบาร์โค้ดนี้</p>
       )}
+    </div>
     </div>
   );
 };
