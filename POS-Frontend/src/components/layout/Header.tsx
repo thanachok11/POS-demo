@@ -16,6 +16,8 @@ import { getStockData } from "../../api/stock/stock.ts";
 import { getProducts } from "../../api/product/productApi.ts";
 import LoginPageModal from "../auth/LoginPageModal.tsx";
 import RegisterPageModal from "../auth/RegisterPageModal.tsx";
+import { logoutUser } from '../../api/auth/auth.ts';;
+
 import "../../styles/layout/Header.css";
 import "../../styles/page/Notification.css";
 interface NavbarProps {
@@ -197,8 +199,7 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar, isLoggedI
         navigate("/settingProfile");
     };
     const handleLogout = () => {
-        localStorage.removeItem("token");
-        setUser(null);
+        logoutUser();
         navigate("/");
     };
 

@@ -17,6 +17,7 @@ const StockDetail: React.FC = () => {
   const [user, setUser] = useState<{ userId: string; username: string; role: string; email: string } | null>(null);
 
   const [categories, setCategories] = useState<any[]>([]); // state เก็บหมวดหมู่ทั้งหมด
+  const hasSupplier = Boolean(product?.supplierId);
 
   // decode token และ set user info
   useEffect(() => {
@@ -35,6 +36,34 @@ const StockDetail: React.FC = () => {
       }
     }
   }, []);
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!barcode) {
+        setError("❌ No barcode provided");
+        setLoading(false);
+        return;
+      }
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("❌ No token found");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // ดึงข้อมูล product
+        const productData = await getProductByBarcode(barcode);
+      } catch (err) {
+        console.error(err);
+        setError("❌ เกิดข้อผิดพลาดในการโหลดข้อมูล");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [barcode]);
 
   // โหลด Categories
   useEffect(() => {
@@ -121,21 +150,30 @@ const StockDetail: React.FC = () => {
           <p className="product-info-stockDetail"><strong>ราคา:</strong> {product.price} บาท</p>
           <p className="product-info-stockDetail"><strong>สต็อกคงเหลือ:</strong> {stock?.quantity || "ไม่พบข้อมูล"}</p>
 
-          <div className="stock-detail-buttons">
-            <button className="back-button-stockDetail" onClick={() => navigate(-1)}>
-              ⬅️ กลับ
-            </button>
-            {user?.role !== "employee" && (
-              <>
-                <button className="import-button-stockDetail" onClick={() => navigate(`/createOrder`)}>
-                  📥 นำเข้าสินค้าใหม่
-                </button>
-                <button className="edit-button-stockDetail" onClick={() => navigate(`/edit/${barcode}`)}>
-                  ✏️ ปรับสต็อกสินค้า
-                </button>
-              </>
-            )}
-          </div>
+            <div className="stock-detail-buttons">
+              <button className="back-button-stockDetail" onClick={() => navigate(-1)}>
+                ⬅️ กลับ
+              </button>
+
+              {user?.role !== "employee" && (
+                <>
+                  {hasSupplier && (
+                    <button
+                      className="import-button-stockDetail"
+                      onClick={() => navigate(`/createOrder`)}
+                    >
+                      📥 นำเข้าสินค้าใหม่
+                    </button>
+                  )}
+                  <button
+                    className="edit-button-stockDetail"
+                    onClick={() => navigate(`/edit/${barcode}`)}
+                  >
+                    ✏️ ปรับสต็อกสินค้า
+                  </button>
+                </>
+              )}
+            </div>
         </div>
       ) : (
         <p className="error-message-stockDetail">❌ ไม่พบข้อมูลสินค้าสำหรับบาร์โค้ดนี้</p>
