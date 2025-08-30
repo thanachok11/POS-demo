@@ -10,7 +10,6 @@ import Sidebar from "./components/layout/Sidebar.tsx";
 import Dashboard from "./components/pages/Dashboard.tsx";
 import AddProductForm from "./components/product/AddProduct.tsx";
 import ProductList from "./components/product/ProductList.tsx";
-import ScanBarcode from "./components/product/ScanBarcode.tsx";
 import StockPage from "./components/stock/StockPage.tsx";
 import StockDetailPage from "./components/stock/StockDetailPage.tsx";
 import CreateOrder from "./components/stock/CreateOrderPage.tsx";
@@ -20,7 +19,6 @@ import ReceiptPage from "./components/receipt/ReceiptPage.tsx";
 import ReceiptDetail from "./components/receipt/ReceiptDetail.tsx";
 import Search from "./components/product/BarcodeSearch.tsx";
 import SalePage from "./components/pages/Dashboard.tsx";
-import Scanner from "./components/product/Scanner.tsx";
 import PaymentPage from "./components/payment/PaymentPage.tsx";
 import EmployeeList from "./components/aboutStore/EmployeePage.tsx";
 import OrderPage from "./components/stock/OrderPage.tsx";
@@ -187,9 +185,7 @@ const App: React.FC = () => {
           <Route path="/reports/receipts" element={<ReceiptPage />} />
           <Route path="/products/search" element={<Search />} />
           <Route path="/debt" element={<OrderPage />} />
-          <Route path="/scan" element={<Scanner />} />
           <Route path="/reports/sales" element={<SalePage />} />
-          <Route path="/products/scan" element={<ScanBarcode />} />
           <Route path="/employee-dashboard" element={<EmployeePage />} />
           <Route path="/shop" element={<ProductList isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />} />
           <Route path="/stocks" element={<StockPage />} />
