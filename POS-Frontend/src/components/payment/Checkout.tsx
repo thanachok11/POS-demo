@@ -94,6 +94,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfir
     onClose();
   };
   return (
+    <div className="display">
     <div className="checkout-modal">
       <div className="checkout-content">
 
@@ -275,7 +276,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, totalPrice, onClose, onConfir
       )}
 
     </div>
-
+    </div>
   );
 }
 

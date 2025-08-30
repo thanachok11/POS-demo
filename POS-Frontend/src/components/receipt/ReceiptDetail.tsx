@@ -75,6 +75,7 @@ export default function ReceiptDetail() {
     };
 
     return (
+        <div className="display">
         <div className="receipt-detail-container">
             <div className="receipt-detail-paper">
                 <h2 className="receipt-detail-title">ใบเสร็จรับเงิน</h2>
@@ -123,6 +124,7 @@ export default function ReceiptDetail() {
 
             {/* ปุ่มพิมพ์ใบเสร็จ */}
             <button className="receipt-detail-print-button" onClick={handlePrint}>🖨️ พิมพ์ใบเสร็จ</button>
+        </div>
         </div>
     );
 }

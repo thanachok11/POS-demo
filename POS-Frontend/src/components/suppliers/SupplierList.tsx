@@ -84,6 +84,7 @@ const SupplierList = () => {
     };
 
     return (
+        <div className="display">
         <div className="supplier-list-container">
             {loading && <p className="supplier-list-loading">⏳ กำลังโหลด...</p>}
             <h2 className="supplier-list-title">📋รายชื่อซัพพลายเออร์</h2>
@@ -141,6 +142,7 @@ const SupplierList = () => {
                     </div>
                 </div>
             )}
+        </div>
         </div>
     );
 };

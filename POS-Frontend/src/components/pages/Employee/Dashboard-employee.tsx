@@ -3,6 +3,7 @@ import "../../../styles/page/EmployeePage.css"; // นำเข้า CSS เฉ
 
 const EmployeePage: React.FC = () => {
     return (
+        <div className="display">
         <div className="employee-dashboard">
             <section className="employee-dashboard__text">
                 <h1 className="employee-dashboard__heading">👷‍♂️ แดชบอร์ดพนักงาน</h1>
@@ -34,7 +35,7 @@ const EmployeePage: React.FC = () => {
                 />
             </section>
         </div>
-
+        </div>
     );
 };
 

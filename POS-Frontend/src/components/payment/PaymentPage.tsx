@@ -83,6 +83,7 @@ export default function PaymentPage() {
     }).replace("น.", "").trim() + " น.";
 
   return (
+    <div className="display">
     <div className="payment-container">
       <h1 className="payment-title">💰 รายการการชำระเงิน</h1>
 
@@ -125,6 +126,7 @@ export default function PaymentPage() {
           </tbody>
         </table>
       )}
+    </div>
     </div>
   );
 }

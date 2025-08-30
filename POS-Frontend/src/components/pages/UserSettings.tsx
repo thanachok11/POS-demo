@@ -86,6 +86,7 @@ const UserSettings: React.FC = () => {
   };
 
   return (
+    <div className="display">
     <div className="usersetting-page">
       <div className="usersetting-container">
         <h2 className="usersetting-title">การตั้งค่าโปรไฟล์</h2>
@@ -133,6 +134,7 @@ const UserSettings: React.FC = () => {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 };

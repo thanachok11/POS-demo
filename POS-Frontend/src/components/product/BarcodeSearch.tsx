@@ -54,6 +54,7 @@ const BarcodeUploader = () => {
   };
 
   return (
+    <div className="display">
     <div className="barcode-uploader-container">
       <h1 className="title">📸 อัปโหลดรูปภาพหรือกรอกบาร์โค้ดเพื่อค้นหาสินค้า</h1>
 
@@ -89,6 +90,7 @@ const BarcodeUploader = () => {
           <p><strong>รายละเอียด:</strong> {product.description}</p>
         </div>
       )}
+    </div>
     </div>
   );
 };

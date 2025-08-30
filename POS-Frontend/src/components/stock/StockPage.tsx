@@ -183,6 +183,7 @@ const StockPage: React.FC = () => {
   };
 
   return (
+    <div className="display">
     <div className="stock-container">
       <h2 className="stock-header">📦 จัดการสต็อกสินค้า</h2>
 
@@ -262,6 +263,7 @@ const StockPage: React.FC = () => {
           </tbody>
         </table>
       )}
+    </div>
     </div>
   );
 };

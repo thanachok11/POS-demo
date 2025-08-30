@@ -248,6 +248,7 @@ const AddProductForm = () => {
 
 
   return (
+    <div className="display">
     <div className="add-product-container">
       <h2 className="form-title">เพิ่มสินค้าใหม่</h2>
       <form className="add-product-form" onSubmit={handleSubmit}>
@@ -473,7 +474,7 @@ const AddProductForm = () => {
         </div>
       )}
     </div>
-
+    </div>
   );
 };
 
