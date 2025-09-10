@@ -28,9 +28,16 @@ export const getProducts = async () => {
 
 // ฟังก์ชันเพื่อดึงสินค้าโดยใช้ barcode
 export const getProductByBarcode = async (barcode: string) => {
+  const token = localStorage.getItem('token');
+  if (!token) throw new Error('No token found');
+
   console.log("Fetching product with barcode:", barcode); // Log the barcode
   try {
-    const response = await axios.get(`${API_BASE_URL}/products/barcode/${barcode}`);
+    const response = await axios.get(`${API_BASE_URL}/products/barcode/${barcode}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
     console.log("API response:", response.data); // Log the full response data
     return response.data;
   } catch (error) {
@@ -38,6 +45,7 @@ export const getProductByBarcode = async (barcode: string) => {
     throw error;
   }
 };
+
 
 
 // ฟังก์ชันสำหรับอัปโหลดสินค้าใหม่ (จากตัวอย่างก่อนหน้า)

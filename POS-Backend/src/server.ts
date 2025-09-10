@@ -26,8 +26,84 @@ connectDB();
 
 // สร้าง API สำหรับทดสอบ
 app.get("/", (req, res) => {
-  res.send("API is running...");
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>API Dashboard</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background-color: #121212;
+          color: #f0f0f0;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+        }
+        .container {
+          text-align: center;
+          max-width: 800px;
+          padding: 40px;
+          border-radius: 10px;
+          background: #1e1e1e;
+          box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        h1 {
+          font-size: 2.5rem;
+          margin-bottom: 10px;
+          color: #00d1ff;
+        }
+        p {
+          font-size: 1.2rem;
+          margin-bottom: 20px;
+          color: #aaa;
+        }
+        ul {
+          list-style: none;
+          padding: 0;
+        }
+        li {
+          margin: 10px 0;
+          font-size: 1rem;
+        }
+        a {
+          color: #00d1ff;
+          text-decoration: none;
+          font-weight: bold;
+        }
+        a:hover {
+          text-decoration: underline;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>API is running...</h1>
+        <p>Welcome to the API Dashboard (dark theme)</p>
+        <h3>Available Endpoints:</h3>
+        <ul>
+          <li><a href="/api/products">GET /api/products</a></li>
+          <li>GET /api/products/:id</li>
+          <li>POST /api/product/upload</li>
+          <li>GET /api/stocks</li>
+          <li>GET /api/orders</li>
+          <li>GET /api/suppliers</li>
+          <li>GET /api/employee</li>
+          <li>GET /api/payment</li>
+          <li>GET /api/receipts</li>
+          <li>GET /api/warehouses</li>
+        </ul>
+      </div>
+    </body>
+    </html>
+  `);
 });
+
 app.use(cors({
   origin: ['http://localhost:3000', 'http://192.168.1.153:3000','https://ae80-184-82-100-22.ngrok-free.app'], // อนุญาตหลาย origin
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // อนุญาตเฉพาะ method ที่ระบุ

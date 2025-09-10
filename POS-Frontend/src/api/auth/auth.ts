@@ -111,3 +111,10 @@ export const handleSuccess = async (response: any) => {
     console.error('Error verifying token with backend:', error);
   }
 };
+// auth.ts
+export const logoutUser = () => {
+  // ลบ token ทั้งหมดที่เกี่ยวข้องกับ session ของผู้ใช้
+  localStorage.removeItem('token');       // สำหรับ token ของระบบ
+  localStorage.removeItem('authToken');   // สำหรับ token Google หรืออื่น ๆ
+  console.log("✅ User logged out successfully");
+};
