@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
-import { getSupplierData, deleteSupplier } from "../../api/suppliers/supplierApi.ts";
+import { getSupplierData, deleteSupplier } from "../../api/suppliers/supplierApi";
 import "../../styles/supplier/SupplierList.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUserTie, faSearch, faEnvelope, faBriefcase, faPlus } from "@fortawesome/free-solid-svg-icons";
-import SupplierForm from "./SupplierForm.tsx";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import SupplierForm from "./SupplierForm";
 import React from "react";
 
 interface Supplier {
-    id: number;
+    id?: number;
+    _id?: string;
     companyName: string;
     phoneNumber: string;
     email: string;
@@ -19,12 +20,39 @@ interface Supplier {
     postalCode: string;
 }
 
+interface ModalPopupProps {
+    message: string;
+    type?: "success" | "error";
+    onClose: () => void;
+}
+
+const ModalPopup: React.FC<ModalPopupProps> = ({ message, type = "success", onClose }) => {
+    return (
+        <div className="popup-overlay">
+            <div className={`popup-modal popup-${type}`}>
+                <p>{message}</p>
+                <button onClick={onClose} className="popup-close-btn">
+                    ตกลง
+                </button>
+            </div>
+        </div>
+    );
+};
+
 const SupplierList = () => {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [currentPage, setCurrentPage] = useState(1);
+
+    // ✅ state สำหรับ success/error modal
+    const [popupMessage, setPopupMessage] = useState("");
+    const [popupType, setPopupType] = useState<"success" | "error">("success");
+
+    const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(() => {
         fetchSuppliers();
@@ -37,13 +65,10 @@ const SupplierList = () => {
             setLoading(false);
             return;
         }
-
         try {
             const response = await getSupplierData(token);
-            console.log("📌 API Response:", response);
-
             if (Array.isArray(response)) {
-                setSuppliers(response); // กำหนดค่า suppliers ตรงๆ
+                setSuppliers(response);
             } else if (response.data && Array.isArray(response.data)) {
                 setSuppliers(response.data);
             } else {
@@ -57,16 +82,23 @@ const SupplierList = () => {
         }
     };
 
-
-    const handleDelete = async (id: number) => {
+    const handleDelete = async (supplier: Supplier) => {
+        const id = supplier._id || supplier.id;
+        if (!id) {
+            console.error("❌ No supplier id found");
+            return;
+        }
         if (!window.confirm("คุณต้องการลบซัพพลายเออร์นี้ใช่หรือไม่?")) return;
         const token = localStorage.getItem("token");
         try {
             await deleteSupplier(id, token);
-            setSuppliers((prev) => prev.filter(supplier => supplier.id !== id));
+            setSuppliers((prev) => prev.filter((s) => s._id !== id && s.id !== id));
+            setPopupMessage("🗑️ ลบซัพพลายเออร์สำเร็จ!");
+            setPopupType("success");
         } catch (err) {
             console.error("Error deleting supplier:", err);
-            setError("เกิดข้อผิดพลาดในการลบซัพพลายเออร์");
+            setPopupMessage("❌ เกิดข้อผิดพลาดในการลบซัพพลายเออร์");
+            setPopupType("error");
         }
     };
 
@@ -74,76 +106,180 @@ const SupplierList = () => {
         setSelectedSupplier(supplier || null);
         setModalOpen(true);
     };
+
     const handleSave = () => {
-        console.log("Supplier saved!");
+        fetchSuppliers();
+        setPopupMessage("✅ บันทึกข้อมูลสำเร็จ!");
+        setPopupType("success");
     };
 
     const handleCloseModal = () => {
         setModalOpen(false);
-        fetchSuppliers(); // โหลดข้อมูลใหม่เมื่อปิดโมดอล
+        setSelectedSupplier(null);
     };
+
+    // ✅ ฟิลเตอร์ก่อน paginate
+    const filteredSuppliers = suppliers.filter((s) => {
+        const searchText = searchQuery.toLowerCase();
+        return (
+            s.companyName?.toLowerCase().includes(searchText) ||
+            s.phoneNumber?.toLowerCase().includes(searchText) ||
+            s.email?.toLowerCase().includes(searchText) ||
+            s.address?.toLowerCase().includes(searchText) ||
+            s.subDistrict?.toLowerCase().includes(searchText) ||
+            s.district?.toLowerCase().includes(searchText) ||
+            s.stateOrProvince?.toLowerCase().includes(searchText) ||
+            s.country?.toLowerCase().includes(searchText) ||
+            s.postalCode?.toLowerCase().includes(searchText)
+        );
+    });
+
+    const totalPages = Math.ceil(filteredSuppliers.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const currentSuppliers = filteredSuppliers.slice(startIndex, startIndex + itemsPerPage);
 
     return (
         <div className="display">
-        <div className="supplier-list-container">
-            {loading && <p className="supplier-list-loading">⏳ กำลังโหลด...</p>}
-            <h2 className="supplier-list-title">📋รายชื่อซัพพลายเออร์</h2>
-            <button className="add-supplier-btn" onClick={() => handleOpenModal()}>
-                <FontAwesomeIcon icon={faPlus} /> เพิ่มซัพพลายเออร์
-            </button>
-            {error && <p className="supplier-list-error">{error}</p>}
+            {popupMessage && (
+                <ModalPopup
+                    message={popupMessage}
+                    type={popupType}
+                    onClose={() => setPopupMessage("")}
+                />
+            )}
 
-            <table className="supplier-table">
-                <thead className="supplier-table-head">
-                    <tr className="supplier-table-row">
-                        <th className="supplier-table-header">ชื่อ</th>
-                        <th className="supplier-table-header">เบอร์โทร</th>
-                        <th className="supplier-table-header">อีเมล</th>
-                        <th className="supplier-table-header">ที่อยู่</th>
-                        <th className="supplier-table-header">จัดการ</th>
-                    </tr>
-                </thead>
-                <tbody className="supplier-table-body">
-                    {suppliers.length > 0 ? (
-                        suppliers.map((supplier, index) => (
-                            <tr key={supplier.id || `supplier-${index}`} className="supplier-table-row">
-                                <td className="supplier-table-data">{supplier.companyName}</td>
-                                <td className="supplier-table-data">{supplier.phoneNumber}</td>
-                                <td className="supplier-table-data">{supplier.email}</td>
-                                <td className="supplier-table-data">
-                                    {supplier.address}, {supplier.subDistrict}, {supplier.district}, {supplier.stateOrProvince}, {supplier.country} {supplier.postalCode}
-                                </td>
-                                <td className="supplier-table-data">
-                                    <div className="action-buttons">
-                                        <button className="edit-btn" onClick={() => handleOpenModal(supplier)}>แก้ไข</button>
-                                        <button className="delete-btn" onClick={() => handleDelete(supplier.id)}>ลบ</button>
-                                    </div>
-                                </td>
+                <div className="supplier-container">
+                    {/* Header */}
+                <div className="supplier-header-wrapper">
+                    <h2 className="supplier-header">📋 รายชื่อซัพพลายเออร์</h2>
 
-                            </tr>
-                        ))
-                    ) : (
-                        <tr className="supplier-table-row">
-                            <td colSpan={5} className="supplier-table-no-data">❌ ไม่พบซัพพลายเออร์</td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
+                    {loading && <p className="supplier-list-loading">⏳ กำลังโหลด...</p>}
+                    {error && <p className="supplier-list-error">{error}</p>}
 
-            {modalOpen && (
-                <div className="modal-overlay">
-                    <div className="modal-container">
-                        <button className="modal-close" onClick={handleCloseModal}>❌</button>
-                        <SupplierForm
-                            supplier={selectedSupplier}
-                            onClose={handleCloseModal}
-                            onSave={handleSave}
-                        />
+                    {/* Controls */}
+                    <div className="supplier-controls">
+                        <div className="search-container">
+                            <input
+                                type="text"
+                                placeholder="🔍 ค้นหาซัพพลายเออร์..."
+                                className="search-input"
+                                value={searchQuery}
+                                onChange={(e) => {
+                                    setSearchQuery(e.target.value);
+                                    setCurrentPage(1);
+                                }}
+                            />
+                        </div>
+
+                        <div className="items-per-page">
+                            <label>แสดง: </label>
+                            <select
+                                value={itemsPerPage}
+                                onChange={(e) => {
+                                    setItemsPerPage(Number(e.target.value));
+                                    setCurrentPage(1);
+                                }}
+                            >
+                                <option value={10}>10</option>
+                                <option value={20}>20</option>
+                                <option value={30}>30</option>
+                            </select>
+                            <span> รายการต่อหน้า</span>
+                        </div>
+                    </div>
+
+                    {/* Add Button แยกออกมาเหมือน Stock */}
+                    <button className="supplier-add-btn" onClick={() => handleOpenModal()}>
+                        <FontAwesomeIcon icon={faPlus} /> เพิ่มซัพพลายเออร์
+                    </button>
+                </div>
+                    {/* Table */}
+                    <div className="supplier-table-wrapper">
+                        <table className="supplier-table">
+                            <thead>
+                                <tr>
+                                    <th>ชื่อ</th>
+                                    <th>เบอร์โทร</th>
+                                    <th>อีเมล</th>
+                                    <th>ที่อยู่</th>
+                                    <th>จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {currentSuppliers.length > 0 ? (
+                                    currentSuppliers.map((supplier) => (
+                                        <tr key={supplier._id || supplier.id}>
+                                            <td>{supplier.companyName}</td>
+                                            <td>{supplier.phoneNumber}</td>
+                                            <td>{supplier.email}</td>
+                                            <td>
+                                                {supplier.address}, {supplier.subDistrict}, {supplier.district},{" "}
+                                                {supplier.stateOrProvince}, {supplier.country} {supplier.postalCode}
+                                            </td>
+                                            <td>
+                                                <div className="supplier-action-buttons">
+                                                    <button
+                                                        className="supplier-edit-btn"
+                                                        onClick={() => handleOpenModal(supplier)}
+                                                    >
+                                                        แก้ไข
+                                                    </button>
+                                                    <button
+                                                        className="supplier-delete-btn"
+                                                        onClick={() => handleDelete(supplier)}
+                                                    >
+                                                        ลบ
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={5} className="supplier-no-data">
+                                            ❌ ไม่พบซัพพลายเออร์
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Pagination */}
+                    <div className="pagination">
+                        <button
+                            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                            disabled={currentPage === 1}
+                        >
+                            ◀ ก่อนหน้า
+                        </button>
+                        <span>หน้า {currentPage} จาก {totalPages}</span>
+                        <button
+                            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                        >
+                            ถัดไป ▶
+                        </button>
                     </div>
                 </div>
-            )}
-        </div>
-        </div>
+
+
+                {modalOpen && (
+                    <div className="supplier-modal-overlay">
+                        <div className="supplier-modal-container">
+                            <button className="supplier-modal-close" onClick={handleCloseModal}>
+                                ❌
+                            </button>
+                            <SupplierForm
+                                supplier={selectedSupplier}
+                                onClose={handleCloseModal}
+                                onSave={handleSave}
+                            />
+                        </div>
+                    </div>
+                )}
+            </div>
+       
     );
 };
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { fetchReceiptById } from "../../api/receipt/receiptApi.ts";
+import { fetchReceiptById } from "../../api/receipt/receiptApi";
 import "../../styles/receipt/ReceiptDetail.css";
 import React from "react";
 

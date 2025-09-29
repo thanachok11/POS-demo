@@ -1,16 +1,25 @@
-import express from "express";
-import {getProducts,
-    getAllProducts,
+import { Router } from "express";
+import {
     getProductByBarcode,
+    getProducts,
+    getAllProducts,
     getProductsByCategory,
-    addCategory,
-    fetchCategories
+    updateProduct,
+    deleteProduct,
 } from "../controllers/productController";
-const router = express.Router();
-router.get('/', getAllProducts);
-router.get('/get',getProducts)
+
+const router = Router();
+
+// 📦 Product Routes
+router.get('/get', getProducts)
 router.get('/:barcode', getProductByBarcode);
-router.get('/category/:category', getProductsByCategory);
-router.post('/category/create', addCategory);
-router.get('/categories/all', fetchCategories);
+
+router.get("/all", getAllProducts);        // ✅ ทุก product
+router.get("/category/:category", getProductsByCategory);
+router.put("/:id", updateProduct);
+router.patch("/:id", updateProduct);
+router.delete("/:id", deleteProduct);
+
+
+
 export default router;

@@ -2,6 +2,7 @@ import axios from "axios";
 
 const API_BASE_URL = process.env.REACT_APP_API_URL;
 
+
 // เพิ่มซัพพลายเออร์ใหม่
 export const addSupplier = async (supplierData: any, token: string) => {
     try {
@@ -38,7 +39,7 @@ export const getSupplierData = async (token: string | null) => {
 };
 
 // ลบซัพพลายเออร์
-export const deleteSupplier = async (id: number, token: string | null) => {
+export const deleteSupplier = async (id: string | number, token: string | null) => {
     try {
         if (!token) throw new Error("Unauthorized: No token provided");
 

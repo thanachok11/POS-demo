@@ -3,7 +3,7 @@ import axios from "axios";
 const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 export const getCategories = async (token: string) => {
-  const response = await axios.get(`${API_BASE_URL}/products/categories/all`, {
+  const response = await axios.get(`${API_BASE_URL}/category/all`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -12,7 +12,7 @@ export const getCategories = async (token: string) => {
 };
 
 export const getProductsByCategory = async (token: string, category: string) => {
-  const response = await axios.get(`${API_BASE_URL}/products/category/${category}`, {
+  const response = await axios.get(`${API_BASE_URL}/category/${category}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -31,7 +31,7 @@ export const createCategory = async (data: CategoryData): Promise<any> => {
   if (!token) throw new Error("No token found");
 
   try {
-    const response = await axios.post(`${API_BASE_URL}/products/category/create`, data, {
+    const response = await axios.post(`${API_BASE_URL}/category/create`, data, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -48,5 +48,38 @@ export const createCategory = async (data: CategoryData): Promise<any> => {
       console.error("Error setting up request:", error.message);
       throw new Error(error.message);
     }
+  }
+};
+
+
+// ✅ อัปเดต category
+export const updateCategory = async (id: string, data: any) => {
+  const token = localStorage.getItem('token');
+  if (!token) throw new Error('No token found');
+
+  try {
+    const response = await axios.put(`${API_BASE_URL}/category/${id}`, data, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating category:", error);
+    throw error;
+  }
+};
+
+// ✅ ลบ category
+export const deleteCategory = async (id: string) => {
+  const token = localStorage.getItem('token');
+  if (!token) throw new Error('No token found');
+
+  try {
+    const response = await axios.delete(`${API_BASE_URL}/category/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting category:", error);
+    throw error;
   }
 };

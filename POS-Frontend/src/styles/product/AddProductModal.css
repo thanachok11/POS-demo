@@ -1,0 +1,277 @@
+/* ✅ Overlay มืดเต็มจอ */
+.add-product-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: flex-end;
+    /* ดัน modal ชิดขวา */
+    z-index: 3000;
+}
+
+/* ✅ Modal Slide จากขวา */
+.add-product-modal-content {
+    background: #fff;
+    width: 420px;
+    /* กำหนดความกว้าง drawer */
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    animation: slideInRight 0.3s ease forwards;
+    box-shadow: -3px 0 8px rgba(0, 0, 0, 0.15);
+}
+
+/* ปุ่มปิด */
+.add-product-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: transparent;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #333;
+}
+
+/* Title */
+.add-product-form-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #6c5ce7;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+/* ✅ Scrollable content */
+.add-product-form {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* แยก section */
+.add-product-form-section {
+    margin-bottom: 20px;
+}
+
+.add-product-form-section h3 {
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: #444;
+}
+
+/* Form group */
+.add-product-form-group {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.add-product-form-label {
+    font-size: 14px;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.add-product-form-input {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.add-product-form-input:focus {
+    border-color: #4caf50;
+    outline: none;
+}
+
+/* Preview รูป */
+.add-product-image-preview {
+    margin-top: 10px;
+    max-width: 100%;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+}
+
+/* ✅ ปุ่มล่างสุด fixed */
+.add-product-form-actions {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+}
+
+
+.add-product-submit-btn {
+    padding: 10px 20px;
+    background-color: #2a9d8f;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+    transition: all 0.2s ease-in-out;
+}
+
+.add-product-submit-btn:hover {
+    background: #059669;
+    transform: scale(1.05);
+}
+
+.add-product-submit-btn:disabled {
+    background: #aaa;
+    cursor: not-allowed;
+}
+
+/* Error Message */
+.add-product-error-message {
+    color: #e53935;
+    padding: 10px 20px;
+    font-size: 14px;
+}
+
+/* Popup */
+.add-product-popup {
+    position: fixed;
+    bottom: 20px;
+    right: 440px;
+    /* ให้โผล่ด้านซ้าย modal */
+    padding: 12px 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    z-index: 2100;
+}
+
+.add-product-success {
+    background: #e6f4ea;
+    color: #2e7d32;
+}
+
+.add-product-error {
+    background: #fdecea;
+    color: #c62828;
+}
+
+.product-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2200;
+}
+
+.product-icon {
+    font-size: 50px;
+    color: #4CAF50;
+    /* สีเขียว */
+    animation: bounceIn 0.5s ease-in-out;
+}
+
+.product-popup-content {
+    background-color: white;
+    padding: 20px;
+    margin-bottom: 250px;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.popup-close-btn {
+    padding: 10px;
+    background-color: #135dc6;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.popup-close-btn:hover {
+    background-color: #69bce6;
+}
+
+.product-popup-title {
+    font-size: 1.5em;
+    margin-bottom: 15px;
+}
+
+.error-message {
+    color: red;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.image-preview {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    margin-top: 20px;
+    border-radius: 5px;
+}
+
+.product-popup-error {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2200;
+}
+
+
+.product-title-error {
+    font-size: 1.5em;
+    margin-bottom: 15px;
+}
+
+.product-popup-content-error {
+    background-color: white;
+    padding: 20px;
+    margin-bottom: 250px;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.product-icon-error {
+    font-size: 50px;
+    color: #ee0707;
+    animation: bounceIn 0.5s ease-in-out;
+
+}
+
+/* ✅ Animation */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}

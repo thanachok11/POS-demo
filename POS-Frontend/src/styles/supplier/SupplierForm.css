@@ -1,89 +1,159 @@
-/* SupplierForm.css */
-.supplier-form-container {
-    max-width: 900px;
-    /* เพิ่มความกว้างของฟอร์ม */
-    margin: 50px auto;
-    padding: 40px;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+/* Overlay (พื้นหลัง) */
+.supplier-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
     display: flex;
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
+    z-index: 999;
 }
 
+/* Modal Box */
+.supplier-modal-box {
+    background: #ffffff;
+    width: 100%;
+    max-width: 480px;
+    border-radius: 12px;
+    padding: 28px 24px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    position: relative;
+    animation: slideIn 0.3s ease-in-out;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* ปุ่มปิด */
+.supplier-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #6b7280;
+    transition: color 0.2s;
+}
+
+.supplier-modal-close:hover {
+    color: #ef4444;
+}
+
+/* Title */
 .supplier-form-title {
-    font-size: 24px;
-    font-weight: 600;
-    color: #6c5ce7;
+    font-size: 22px;
+    font-weight: 700;
     margin-bottom: 20px;
     text-align: center;
+    color: #111827;
 }
 
-/* ปรับฟอร์มให้เป็นแนวนอน */
+/* Message */
+.supplier-form-message {
+    text-align: center;
+    font-size: 14px;
+    margin-bottom: 15px;
+    color: #2563eb;
+}
+
+/* Form */
 .supplier-form {
     display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    justify-content: space-between;
-    width: 100%;
+    flex-direction: column;
+    gap: 14px;
 }
 
-/* ปรับขนาด input และ select ให้แสดงเป็น 2 คอลัมน์ */
+/* Input & Select */
 .supplier-input,
 .supplier-select {
-    flex: 1;
-    min-width: 250px;
-    /* กำหนดขนาดขั้นต่ำ */
-    padding: 12px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    transition: 0.3s;
-    background: #f9f9f9;
+    padding: 12px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 14px;
+    background: #f9fafb;
+    transition: all 0.2s;
 }
 
 .supplier-input:focus,
 .supplier-select:focus {
-    outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    border-color: #2563eb;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
-/* ปุ่ม Submit */
+/* Button */
 .supplier-button {
-    width: 100%;
-    max-width: 200px;
-    padding: 12px;
-    font-size: 18px;
-    font-weight: 600;
-    background: linear-gradient(135deg, #007bff, #0056b3);
+    background: #2563eb;
     color: white;
+    padding: 12px;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
     cursor: pointer;
-    transition: 0.3s;
-    align-self: center;
+    transition: background 0.2s, transform 0.2s;
 }
 
-.supplier-button:hover {
-    background: linear-gradient(135deg, #0056b3, #004099);
+.supplier-button:hover:not(:disabled) {
+    background: #1e40af;
+    transform: translateY(-1px);
 }
 
 .supplier-button:disabled {
-    background: #ccc;
+    background: #93c5fd;
     cursor: not-allowed;
 }
 
-/* Responsive สำหรับจอเล็ก */
-@media (max-width: 800px) {
-    .supplier-form {
-        flex-direction: column;
-        align-items: center;
+/* ✅ Popup Success */
+.supplier-popup-success {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(40, 167, 69, 0.95);
+    /* เขียว success */
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    animation: fadeInOut 2.5s ease;
+    z-index: 1000;
+}
+
+@keyframes fadeInOut {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
     }
 
-    .supplier-input,
-    .supplier-select {
-        width: 100%;
+    10% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    90% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { createOrder } from "../../api/product/orderApi.ts";
+import { createOrder } from "../../api/product/orderApi";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faCheckCircle,
@@ -11,9 +11,9 @@ import {
 import {
     getSupplierData,
     getProductsBySupplier,
-} from "../../api/suppliers/supplierApi.ts";
-import { getWarehouses } from "../../api/product/warehousesApi.ts";
-import { getCategories } from "../../api/product/categoryApi.ts";
+} from "../../api/suppliers/supplierApi";
+import { getWarehouses } from "../../api/product/warehousesApi";
+import { getCategories } from "../../api/product/categoryApi";
 
 import "../../styles/stock/CreateOrderPage.css";
 
@@ -143,7 +143,7 @@ useEffect(() => {
 
 
     const getLocationName = (locationId: string) => {
-        const location = Warehouses.find(w => w._id === locationId);
+        const location = Warehouses.find((w: { _id: string; }) => w._id === locationId);
         return location ? location.location : "ไม่ทราบที่เก็บ";
       };
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchReceipts } from "../../api/receipt/receiptApi.ts";
+import { fetchReceipts } from "../../api/receipt/receiptApi";
 import "../../styles/receipt/ReceiptPage.css";
 
 interface Item {

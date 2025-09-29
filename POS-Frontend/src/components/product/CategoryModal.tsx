@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { createCategory } from "../../api/product/categoryApi.ts";
+import { createCategory } from "../../api/product/categoryApi";
 import "../../styles/product/CategoryModal.css";
 
 interface CategoryModalProps {

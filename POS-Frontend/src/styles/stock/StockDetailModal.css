@@ -1,0 +1,273 @@
+/* ==============================
+   Modal Overlay
+============================== */
+.product-detail-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.55);
+    /* dark blur overlay */
+    backdrop-filter: blur(6px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050;
+    animation: fadeIn 0.25s ease-in-out;
+}
+
+/* ==============================
+   Modal Content
+============================== */
+.product-detail-modal-content {
+    background: #ffffff;
+    width: 600px;
+    max-width: 95%;
+    max-height: 90vh;
+    border-radius: 16px;
+    padding: 24px;
+    overflow-y: auto;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+    animation: slideUp 0.3s ease-in-out;
+    position: relative;
+}
+
+/* ==============================
+   Close Button
+============================== */
+.modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: #f3f4f6;
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    color: #374151;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    transition: all 0.25s ease-in-out;
+}
+
+.modal-close:hover {
+    background: #ef4444;
+    color: #fff;
+}
+
+/* ==============================
+   Heading
+============================== */
+.product-detail-modal-content h2 {
+    margin-bottom: 20px;
+    font-size: 22px;
+    font-weight: 600;
+    text-align: center;
+    color: #1f2937;
+}
+
+/* ==============================
+   Tabs
+============================== */
+.tabs {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.tab {
+    padding: 10px 18px;
+    border-radius: 20px;
+    border: none;
+    background: #f3f4f6;
+    color: #4b5563;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab.active {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.35);
+}
+
+.tab:hover:not(.active) {
+    background: #e5e7eb;
+}
+
+/* ==============================
+   Form
+============================== */
+.stock-detail-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.stock-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.stock-form-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    margin-top: 5px;
+}
+
+.stock-form-group input,
+.stock-form-group select,
+.stock-form-group textarea {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    font-size: 14px;
+    color: #1f2937;
+    background: #f9fafb;
+    transition: all 0.25s ease;
+}
+
+.stock-form-group input:focus,
+.stock-form-group select:focus,
+.stock-form-group textarea:focus {
+    border-color: #3b82f6;
+    outline: none;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+/* ==============================
+   Image Preview
+============================== */
+.stock-product-preview {
+    margin-top: 10px;
+    max-width: 150px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ==============================
+   Import Button
+============================== */
+.stock-import-btn {
+    margin-top: 12px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.stock-import-btn:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+}
+
+/* ==============================
+   Form Actions
+============================== */
+.stock-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+/* ปุ่มทั่วไป */
+.stock-form-actions button {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.save-btn {
+    background-color: #4caf50;
+    color: white;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: background 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.save-btn:hover {
+    background-color: #45a049;
+}
+
+/* ขณะกำลังโหลด */
+.save-btn.loading {
+    background-color: #888;
+    cursor: not-allowed;
+}
+
+/* สร้าง spinner */
+.spinner {
+    width: 18px;
+    height: 18px;
+    border: 3px solid #fff;
+    border-top: 3px solid transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ปุ่มลบ */
+.stock-form-actions .delete-btn {
+    background-color: #f44336;
+    /* แดง */
+    color: white;
+}
+
+.stock-form-actions .delete-btn:hover {
+    background-color: #d32f2f;
+    transform: scale(1.05);
+}
+
+/* ==============================
+   Animations
+============================== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}

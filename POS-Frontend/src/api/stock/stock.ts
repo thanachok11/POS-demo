@@ -4,6 +4,18 @@ import axios from "axios";
 const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 
+// ✅ ดึงข้อมูล stock ตาม token
+export const getStockData = async (token: string) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/stocks`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data.data; // คืนค่าเฉพาะข้อมูลสต็อก
+  } catch (error: any) {
+    console.error("Error fetching stock data:", error);
+    throw new Error(error.response?.data?.message || "Error fetching stock data");
+  }
+};
 
 export const getStockByBarcode = async (barcode: string) => {
   try {
@@ -14,7 +26,7 @@ export const getStockByBarcode = async (barcode: string) => {
       return response.data.stockQuantity; // คืนค่าจำนวนสินค้าที่มีในสต็อก
     } else {
       console.error("เกิดข้อผิดพลาดในการดึงข้อมูลสต็อก");
-      return ; // คืนค่า 0 ถ้าผลลัพธ์ไม่สำเร็จ
+      return; // คืนค่า 0 ถ้าผลลัพธ์ไม่สำเร็จ
     }
   } catch (error) {
     console.error('Error fetching stock by barcode:', error);
@@ -47,6 +59,35 @@ export const updateStockByBarcode = async (barcode: string, quantity: number) =>
   }
 };
 
+// api/stock/stock.ts
+export const updateStock = async (
+  barcode: string,
+  updateData: {
+    quantity?: number;
+    supplier?: string;
+    location?: string;
+    threshold?: number;
+    status?: string;
+  }
+) => {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("No token found");
+
+  console.log("📦 [updateStock] Barcode:", barcode);
+  console.log("📦 [updateStock] Data:", updateData);
+
+  try {
+    const response = await axios.patch(`${API_BASE_URL}/stocks/barcode/${barcode}`, updateData, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error("เกิดข้อผิดพลาดในการอัปเดตสต็อก:", error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || "เกิดข้อผิดพลาดในการอัปเดตสต็อก");
+  }
+};
+
 
 export const addStock = async (data: {
   productId: string;
@@ -73,21 +114,6 @@ export const addStock = async (data: {
   }
 };
 
-const API_URL = "http://localhost:5000/api/stocks";
-
-// ✅ ดึงข้อมูล stock ตาม token
-export const getStockData = async (token: string) => {
-  try {
-    const response = await axios.get(API_URL, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return response.data.data; // คืนค่าเฉพาะข้อมูลสต็อก
-  } catch (error: any) {
-    console.error("Error fetching stock data:", error);
-    throw new Error(error.response?.data?.message || "Error fetching stock data");
-  }
-};
-
 // ฟังก์ชันเพื่อดึงรายการสินค้าทั้งหมด
 export const getProducts = async () => {
   const token = localStorage.getItem('token'); // ดึง token จาก localStorage
@@ -108,5 +134,22 @@ export const getProducts = async () => {
   } catch (error) {
     console.error("Error fetching products:", error);
     throw error; // ส่งข้อผิดพลาดออกไปหากเกิดการผิดพลาด
+  }
+};
+
+// ✅ Delete Stock by Barcode
+export const deleteStock = async (barcode: string) => {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("No token found");
+
+  try {
+    const response = await axios.delete(`${API_BASE_URL}/stocks/barcode/${barcode}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error("❌ Error deleting stock:", error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || "เกิดข้อผิดพลาดในการลบสต็อก");
   }
 };
