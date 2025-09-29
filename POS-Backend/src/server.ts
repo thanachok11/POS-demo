@@ -9,12 +9,13 @@ import Stock from "./routes/stockRoutes";
 import orderRoutes from './routes/orderRoutes';
 import testRoute from './routes/testRoutes';
 import Supplier from "./routes/supplierRoutes";
-import employeeRouter from './routes/employeeRouter'; // เชื่อมต่อ router ของพนักงาน
+import employeeRouter from './routes/employeeRoutes'; // เชื่อมต่อ router ของพนักงาน
 import createPayment from './routes/paymentRouter';
 import receiptRoutes from "./routes/receiptRoutes";
 import warehouseRoutes from "./routes/warehouseRoutes";
-
+import categoryRoutes from "./routes/categoryRoutes";
 import cors from "cors";
+
 
 
 dotenv.config();
@@ -105,21 +106,21 @@ app.get("/", (req, res) => {
 });
 
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://192.168.1.153:3000','https://ae80-184-82-100-22.ngrok-free.app'], // อนุญาตหลาย origin
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // อนุญาตเฉพาะ method ที่ระบุ
+  origin: ['http://localhost:3000', 'http://192.168.1.153:3000', 'https://ae80-184-82-100-22.ngrok-free.app'], // อนุญาตหลาย origin
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], // อนุญาตเฉพาะ method ที่ระบุ
   allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
 }));
 // Middleware
 app.use(express.json());  // ใช้ express.json() เท่านั้น
 app.use(bodyParser.json()); // ลบได้
 
-// เปิดใช้งาน CORS
 // หรือระบุเฉพาะ Frontend ของคุณ
 app.use('/api/test', testRoute);
 app.use("/api/products", productRoutes);
 app.use("/api/products/barcode", productRoutes);
-app.use("/api/category", productRoutes);
-app.post("/api/product/upload", uploadRoutes);
+app.use("/api/category", categoryRoutes);
+app.use("/api/product", uploadRoutes);
 app.use("/api/auth", authRoutes);  // ใช้เพียงเส้นทางนี้
 app.use("/api/stocks", Stock);
 app.use('/api/orders', orderRoutes);
@@ -133,4 +134,5 @@ app.use("/api/warehouses", warehouseRoutes);
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
 

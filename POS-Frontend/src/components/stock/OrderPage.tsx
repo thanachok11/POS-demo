@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getOrders, updateOrderStatus } from "../../api/product/orderApi.ts";
+import { getOrders, updateOrderStatus } from "../../api/product/orderApi";
 import "../../styles/order/OrderPage.css";
 
 interface Item {

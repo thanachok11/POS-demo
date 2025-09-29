@@ -156,59 +156,85 @@ export const getStockByBarcode = async (req: Request, res: Response): Promise<vo
 
 export const updateStockByBarcode = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { barcode } = req.params;  // รับ barcode จาก URL params
-    const { quantity, supplier, location, threshold, status } = req.body; // รับข้อมูลที่ต้องการอัปเดต
+    const { barcode } = req.params;
+    const { quantity, supplier, location, threshold, status } = req.body;
 
     // ค้นหาสต็อกจาก Barcode
     const stock = await Stock.findOne({ barcode });
     if (!stock) {
-      res.status(404).json({ message: 'Stock not found' });
+      res.status(404).json({ message: "Stock not found" });
       return;
     }
 
-    // ตรวจสอบว่า quantity ที่ได้รับไม่เป็นลบและไม่เกินจำนวนที่มีอยู่
+    // อัปเดตจำนวนสต็อก (สามารถเพิ่ม/ลด/แก้ตรง ๆ ได้)
     if (quantity !== undefined) {
-      if (typeof quantity !== 'number' || quantity <= 0) {
-        res.status(400).json({ message: 'Quantity must be a positive number' });
+      if (typeof quantity !== "number" || quantity < 0) {
+        res.status(400).json({ message: "Quantity must be a non-negative number" });
         return;
       }
-      const updatedQuantity = stock.quantity - quantity;
-      if (updatedQuantity < 0) {
-        res.status(400).json({ message: 'Not enough stock available' });
-        return;
-      }
-      stock.quantity = updatedQuantity;  // ลดจำนวนสต็อกตามที่ซื้อไป
+      stock.quantity = quantity;
     }
 
-    // อัปเดตข้อมูลอื่น ๆ ถ้ามี
-    stock.supplier = supplier || stock.supplier;
-    stock.location = location || stock.location;
-    stock.threshold = threshold !== undefined ? threshold : stock.threshold;
-    stock.status = status || stock.status;
+    // อัปเดต field อื่น ๆ ถ้ามี
+    if (supplier !== undefined) stock.supplier = supplier;
+    if (location !== undefined) stock.location = location;
+    if (threshold !== undefined) stock.threshold = threshold;
+    if (status !== undefined) stock.status = status;
 
     // บันทึกการเปลี่ยนแปลง
     await stock.save();
 
-    // ส่งข้อมูลที่อัปเดตกลับ
-    res.json({ message: 'Stock updated successfully', stock });
+    res.json({ message: "Stock updated successfully", stock });
+    return;
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Error updating stock:", err);
+    res.status(500).json({ message: "Server error" });
+    return;
   }
 };
 
 
-
-// 📌 ลบรายการสินค้าออกจาก Stock
-export const deleteStock = async (req: Request, res: Response) => {
+// ✅ Update Stock by ID
+export const updateStock = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
-    await Stock.findByIdAndDelete(id);
-    res.json({ message: "ลบสินค้าออกจากสต็อกเรียบร้อย" });
+    const { barcode } = req.params;
+    let { quantity, supplier, location, threshold, status } = req.body;
+
+    const stock = await Stock.findOne({ barcode });
+    if (!stock) {
+      res.status(404).json({ success: false, message: "Stock not found with this barcode" });
+      return;
+    }
+
+    // ✅ แปลง quantity ให้เป็น number ถ้ามาเป็น string
+    if (quantity !== undefined) {
+      const parsedQuantity = Number(quantity);
+      if (isNaN(parsedQuantity) || parsedQuantity < 0) {
+        res.status(400).json({ success: false, message: "Quantity must be a non-negative number" });
+        return;
+      }
+      stock.quantity = parsedQuantity;
+    }
+
+    if (supplier !== undefined) stock.supplier = supplier;
+    if (location !== undefined) stock.location = location;
+    if (threshold !== undefined) stock.threshold = threshold;
+    if (status !== undefined) stock.status = status;
+
+    await stock.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Stock updated successfully by barcode",
+      data: stock,
+    });
   } catch (error) {
-    res.status(500).json({ error: "เกิดข้อผิดพลาดในการลบสต็อกสินค้า" });
+    console.error("Update Stock Error:", error);
+    res.status(500).json({ success: false, message: "Server error while updating stock" });
   }
 };
+
+
 
 
 export const updateQuantityByBarcode = async (req: Request, res: Response): Promise<void> => {
@@ -248,5 +274,22 @@ export const updateQuantityByBarcode = async (req: Request, res: Response): Prom
   } catch (error) {
     console.error("Stock Update Error:", error);
     res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
+  }
+};
+
+export const deleteStockByBarcode = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { barcode } = req.params;
+
+    const deleted = await Stock.findOneAndDelete({ barcode });
+    if (!deleted) {
+      res.status(404).json({ success: false, message: "Stock not found with this barcode" });
+      return;
+    }
+
+    res.status(200).json({ success: true, message: "Stock deleted successfully" });
+  } catch (error) {
+    console.error("❌ Delete Stock Error:", error);
+    res.status(500).json({ success: false, message: "Server error while deleting stock" });
   }
 };

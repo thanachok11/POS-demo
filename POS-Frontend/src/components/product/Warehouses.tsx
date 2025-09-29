@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { createWarehouse } from "../../api/product/warehousesApi.ts";
+import { createWarehouse } from "../../api/product/warehousesApi";
 import "../../styles/product/WarehouseModal.css";
 
 interface WarehouseModalProps {

@@ -14,14 +14,15 @@ body {
 }
 
 .app-container.sidebar-open .display-product {
-  margin-left: 180px;
+  margin-left: 80px;
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
 
 .app-container.sidebar-closed .display-product {
-  margin-left: 20px;
+  margin-right: 200px;
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
+
 .app-container.sidebar-open .display {
   margin-left: 150px;
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
@@ -31,6 +32,7 @@ body {
   margin-left: 0px;
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
+
 /* ปกติ cart จะซ่อน */
 
 .app-container.sidebar-closed .search-grid {
@@ -42,6 +44,7 @@ body {
 .app-container.sidebar-open .search-grid {
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
+
 .app-container.sidebar-closed .navbar .iconName {
   font-size: 24px;
   font-weight: bold;
@@ -68,15 +71,41 @@ body {
 
 /* เมื่อ sidebar ปิด */
 .app-container.sidebar-closed .product-list-wrapper {
-  margin-left: -500px;
+  margin-left: -480px;
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
 
+.app-container.sidebar-open .stock-container {
+  margin-left: 50px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
+.app-container.sidebar-closed .stock-container {
+  margin-left: 50px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
 /* เมื่อ sidebar เปิดอยู่ ให้ cart มีขนาด 0px */
 .app-container.sidebar-open .employee-dashboard {
   margin-left: 150px;
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 
+}
+.app-container.sidebar-open .employee-container {
+  margin-left: 50px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
+
+.app-container.sidebar-closed .employee-container {
+  margin-left: 50px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
+
+.app-container.sidebar-open .supplier-container {
+  margin-left: 50px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
+.app-container.sidebar-closed .supplier-container {
+  margin-left: 50px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
 
 .employee-dashboard {

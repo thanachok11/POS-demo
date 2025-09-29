@@ -4,27 +4,25 @@ import { useNavigate } from "react-router-dom";
 
 import axios from "axios";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Homepage from "./components/pages/Homepage.tsx";
-import Header from "./components/layout/Header.tsx";
-import Sidebar from "./components/layout/Sidebar.tsx";
-import Dashboard from "./components/pages/Dashboard.tsx";
-import AddProductForm from "./components/product/AddProduct.tsx";
-import ProductList from "./components/product/ProductList.tsx";
-import StockPage from "./components/stock/StockPage.tsx";
-import StockDetailPage from "./components/stock/StockDetailPage.tsx";
-import CreateOrder from "./components/stock/CreateOrderPage.tsx";
-import SupplierList from "./components/suppliers/SupplierList.tsx";
-import UserSettings from "./components/pages/UserSettings.tsx";
-import ReceiptPage from "./components/receipt/ReceiptPage.tsx";
-import ReceiptDetail from "./components/receipt/ReceiptDetail.tsx";
-import Search from "./components/product/BarcodeSearch.tsx";
-import SalePage from "./components/pages/Dashboard.tsx";
-import PaymentPage from "./components/payment/PaymentPage.tsx";
-import EmployeeList from "./components/aboutStore/EmployeePage.tsx";
-import OrderPage from "./components/stock/OrderPage.tsx";
-import EmployeePage from "./components/pages/Employee/Dashboard-employee.tsx";
+import Homepage from "./components/pages/Homepage";
+import Header from "./components/layout/Header";
+import Sidebar from "./components/layout/Sidebar";
+import Dashboard from "./components/pages/Dashboard";
+import ProductList from "./components/product/ProductList";
+import StockPage from "./components/stock/StockPage";
+import CreateOrder from "./components/stock/CreateOrderPage";
+import SupplierList from "./components/suppliers/SupplierList";
+import UserSettings from "./components/pages/UserSettings";
+import ReceiptPage from "./components/receipt/ReceiptPage";
+import ReceiptDetail from "./components/receipt/ReceiptDetail";
+import Search from "./components/product/BarcodeSearch";
+import SalePage from "./components/pages/Dashboard";
+import PaymentPage from "./components/payment/PaymentPage";
+import EmployeeList from "./components/aboutStore/EmployeePage";
+import OrderPage from "./components/stock/OrderPage";
+import EmployeePage from "./components/pages/Employee/Dashboard-employee";
 import { jwtDecode } from "jwt-decode";
-import { renewToken } from "./api/auth/auth.ts";
+import { renewToken } from "./api/auth/auth";
 
 import "./App.css";
 
@@ -178,7 +176,6 @@ const App: React.FC = () => {
           <Route path="/" element={<Homepage />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/suppliers" element={<SupplierList />} />
-          <Route path="/add-product" element={<AddProductForm />} />
           <Route path="settingProfile" element={<UserSettings />} />
           <Route path="/reports/salehistory" element={<PaymentPage />} />
           <Route path="setting/employee" element={<EmployeeList />} />
@@ -190,7 +187,6 @@ const App: React.FC = () => {
           <Route path="/shop" element={<ProductList isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />} />
           <Route path="/stocks" element={<StockPage />} />
           <Route path="/receipts/paymentId/:paymentId" element={<ReceiptDetail />} />
-          <Route path="/products/barcode/:barcode" element={<StockDetailPage />} />
           <Route path="/createOrder" element={<CreateOrder />} />
         </Routes>
       </div>

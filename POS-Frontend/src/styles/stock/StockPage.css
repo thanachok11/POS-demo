@@ -1,147 +1,198 @@
-/* 🎨 ตั้งค่าพื้นฐานสำหรับ container */
+/* ===========================
+   Container Layout
+=========================== */
 .stock-container {
-    max-width: 1200px;
-    margin: 20px auto;
-    margin-top: 70px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
     padding: 20px;
-    margin-left: 100px;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.1);}
+    background: #f9fafb;
+    box-sizing: border-box;
+}
 
-/* หัวข้อ */
+/* ===========================
+   Header
+=========================== */
+.stock-header-wrapper {
+    position: sticky;
+    margin-top: 20px;
+    background: #fff;
+    z-index: 20;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
 .stock-header {
     font-size: 24px;
-    text-align: center;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
     color: #6c5ce7;
-    margin-bottom: 20px;
+}
+
+/* ===========================
+   Controls
+=========================== */
+.stock-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
 }
 
 .search-container {
-    margin-bottom: 20px;
-    text-align: center;
+    flex: 1;
+    min-width: 200px;
 }
 
 .search-input {
-    padding: 10px;
-    font-size: 16px;
-    width: 50%;
-    border-radius: 5px;
-    border: 1px solid #ccc;
+    width: 95%;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
     outline: none;
+    transition: border-color 0.2s;
 }
 
 .search-input:focus {
-    border-color: #6c5ce7;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 1px #2563eb;
 }
 
+.items-per-page {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.items-per-page select {
+    padding: 6px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+/* ===========================
+   Buttons
+=========================== */
 .add-product-button {
-    padding: 10px 20px;
-    background-color: #2a9d8f;
-    color: white;
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #2a9d8f;
+    color: #fff;
+    padding: 8px 14px;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.3s;
+    transition: background 0.2s;
+    transition: all 0.2s ease-in-out;
 }
 
 .add-product-button:hover {
-    background-color: #21867a;
+    background: #059669;
+    transform: scale(1.05);
 }
 
-.loading,
-.error-message {
-    text-align: center;
-    font-size: 1.2rem;
-    color: #ffffff;
+/* ===========================
+   Table Wrapper
+=========================== */
+.stock-table-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    margin-top: 12px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.loadingStock {
-    text-align: center;
-    font-size: 1.2rem;
-    color: #9e39e0;
-}
-
+/* ===========================
+   Table
+=========================== */
 .stock-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
-    background-color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.stock-header-row {
-    background-color: #6c5ce7;
-    color: white;
+    font-size: 14px;
 }
 
 .stock-header-cell {
-    padding: 10px;
-    text-align: center;
-    font-size: 1rem;
-    font-weight: bold;
-    border: 1px solid #ddd;
+    position: sticky;
+    top: 0;
+    background: #dddddd;
+    text-align: left;
+    padding: 12px;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 2px solid #e5e7eb;
+    z-index: 5;
 }
 
 .stock-cell {
-    padding: 10px;
-    text-align: center;
-    font-size: 1rem;
-    border: 1px solid #ddd;
-    vertical-align: middle;
+    padding: 12px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #374151;
 }
 
-.product-image {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-    border-radius: 5px;
-}
-
-
-.no-data {
-    text-align: center;
-    font-size: 1.2rem;
-    color: #888;
-}
-
-
-.status-cell span {
-    margin-left: 5px;
-    font-size: 1rem;
-}
 .clickable-row {
+    transition: background 0.15s;
     cursor: pointer;
-    /* ทำให้เมาส์เป็นรูปมือ */
-    transition: background-color 0.2s;
 }
 
 .clickable-row:hover {
-    background-color: #f0f0f0;
-    /* เปลี่ยนสีเมื่อ hover */
+    background: #f9fafb;
 }
-@media (max-width: 768px) {
-    .search-input {
-        width: 200px;
-    }
 
-    .add-product-button {
-        padding: 8px 16px;
-        font-size: 0.9rem;
-    }
+.product-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 1px solid #e5e7eb;
+}
 
-    .stock-table {
-        font-size: 0.9rem;
-    }
+/* ===========================
+   Pagination
+=========================== */
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 12px;
+    padding: 12px 0;
+    background: #fff;
+    border-top: 1px solid #e5e7eb;
+    border-radius: 0 0 8px 8px;
+}
 
-    .stock-header-cell,
-    .stock-cell {
-        padding: 8px;
-    }
+.pagination button {
+    padding: 6px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s, border-color 0.2s;
+}
 
-    .product-image {
-        width: 40px;
-        height: 40px;
-    }
+.pagination button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.pagination button:hover:not(:disabled) {
+    background: #f3f4f6;
+    border-color: #9ca3af;
 }

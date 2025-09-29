@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { getProducts } from "../../api/product/productApi.ts";
-import { updateStockByBarcode, getStockByBarcode, getStockData } from "../../api/stock/stock.ts";
-import { createPayment } from "../../api/payment/paymentApi.ts"; // นำเข้า API ชำระเงิน
-import { getCategories, getProductsByCategory } from "../../api/product/categoryApi.ts"; // Import API ดึงหมวดหมู่สินค้า
-import Checkout from "../payment/Checkout.tsx"; // นำเข้า Checkout Modal
+import { getProducts } from "../../api/product/productApi";
+import { updateStockByBarcode, getStockByBarcode, getStockData } from "../../api/stock/stock";
+import { createPayment } from "../../api/payment/paymentApi"; // นำเข้า API ชำระเงิน
+import { getCategories, getProductsByCategory } from "../../api/product/categoryApi"; // Import API ดึงหมวดหมู่สินค้า
+import Checkout from "../payment/Checkout"; // นำเข้า Checkout Modal
 import "../../styles/product/ProductList.css";
 import {
   FormControl,

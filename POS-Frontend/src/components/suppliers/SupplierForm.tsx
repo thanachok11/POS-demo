@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-import { addSupplier } from "../../api/suppliers/supplierApi.ts";
-import { updateSupplier } from "../../api/suppliers/supplierApi.ts"; // เพิ่ม import
-
+import { addSupplier, updateSupplier } from "../../api/suppliers/supplierApi";
 import axios from "axios";
 import "../../styles/supplier/SupplierForm.css";
 import React from "react";
@@ -25,7 +23,28 @@ interface SupplierFormProps {
     onSave: () => void;
 }
 
-const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }) => {
+// ✅ URL dataset ล่าสุด
+const PROVINCE_URL =
+    "https://raw.githubusercontent.com/kongvut/thai-province-data/refs/heads/master/api/latest/province.json";
+const DISTRICT_URL =
+    "https://raw.githubusercontent.com/kongvut/thai-province-data/refs/heads/master/api/latest/district.json";
+const SUBDISTRICT_URL =
+    "https://raw.githubusercontent.com/kongvut/thai-province-data/refs/heads/master/api/latest/sub_district.json";
+
+// helper
+const isThailand = (country?: string) =>
+    (country || "").toLowerCase().includes("thai") ||
+    (country || "").includes("ประเทศไทย") ||
+    (country || "").includes("ไทย");
+
+const matchByName = (item: any, name: string) =>
+    item?.name_th === name || item?.name_en === name;
+
+const SupplierForm: React.FC<SupplierFormProps> = ({
+    supplier,
+    onClose,
+    onSave,
+}) => {
     const [formData, setFormData] = useState<Supplier>({
         companyName: supplier?.companyName || "",
         phoneNumber: supplier?.phoneNumber || "",
@@ -45,82 +64,152 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
 
+    // sync form เมื่อเปิด modal
+    useEffect(() => {
+        if (!supplier) return;
+        setFormData({
+            id: (supplier as any)._id || supplier.id,   // ✅ รองรับทั้ง _id และ id
+            companyName: supplier.companyName || "",
+            phoneNumber: supplier.phoneNumber || "",
+            email: supplier.email || "",
+            address: supplier.address || "",
+            country: supplier.country || "",
+            stateOrProvince: supplier.stateOrProvince || "",
+            district: supplier.district || "",
+            subDistrict: supplier.subDistrict || "",
+            postalCode: supplier.postalCode || "",
+        });
+        console.log("📌 Edit supplier:", supplier);
+    }, [supplier]);
+
+
+    // โหลด country list
     useEffect(() => {
         const fetchCountries = async () => {
             try {
-                const res = await axios.get("https://restcountries.com/v3.1/all?fields=name");
-                const countryList = res.data.map((c: any) => c.name.common).sort();
-                setCountries(countryList);
-            } catch (error) {
-                console.error("Error fetching countries:", error);
+                const res = await axios.get(
+                    "https://restcountries.com/v3.1/all?fields=name"
+                );
+                const list = res.data.map((c: any) => c.name.common).sort();
+                setCountries(list);
+            } catch (e) {
             }
         };
         fetchCountries();
     }, []);
 
-
+    // โหลดจังหวัด
     useEffect(() => {
-        if (formData.country === "Thailand") {
-            const fetchStates = async () => {
-                try {
-                    const res = await axios.get("https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_province.json");
-                    setStates(res.data);
-                } catch (error) {
-                    console.error("Error fetching states:", error);
-                }
-            };
-            fetchStates();
+        if (!isThailand(formData.country) && !formData.stateOrProvince) {
+            setStates([]);
+            return;
         }
+        (async () => {
+            try {
+                const res = await axios.get(PROVINCE_URL);
+                setStates(res.data);
+            } catch (e) {
+            }
+        })();
     }, [formData.country]);
 
+    // โหลดอำเภอ
     useEffect(() => {
-        if (formData.stateOrProvince) {
-            const selectedState = states.find((s: any) => s.name_th === formData.stateOrProvince);
-            if (!selectedState) return;
+        if (!formData.stateOrProvince || states.length === 0) return;
+        const selectedState = states.find((s: any) =>
+            matchByName(s, formData.stateOrProvince)
+        );
+        if (!selectedState) return;
 
-            const fetchDistricts = async () => {
-                try {
-                    const res = await axios.get("https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_amphure.json");
-                    setDistricts(res.data.filter((d: any) => d.province_id === selectedState.id));
-                } catch (error) {
-                    console.error("Error fetching districts:", error);
-                }
-            };
-            fetchDistricts();
-        }
+        (async () => {
+            try {
+                const res = await axios.get(DISTRICT_URL);
+                const amphures = res.data.filter(
+                    (d: any) => Number(d.province_id) === Number(selectedState.id)
+                );
+                setDistricts(amphures);
+            } catch (e) {
+                console.error("❌ Error fetching districts:", e);
+            }
+        })();
     }, [formData.stateOrProvince, states]);
 
+    // โหลดตำบล
+    // โหลดตำบล
     useEffect(() => {
-        if (formData.district) {
-            const selectedDistrict = districts.find((d: any) => d.name_th === formData.district);
-            if (!selectedDistrict) return;
+        if (!formData.district || districts.length === 0) return;
+        const selectedDistrict = districts.find((d: any) =>
+            matchByName(d, formData.district)
+        );
+        if (!selectedDistrict) return;
 
-            const fetchSubdistricts = async () => {
-                try {
-                    const res = await axios.get("https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_tambon.json");
-                    setSubdistricts(res.data.filter((s: any) => s.amphure_id === selectedDistrict.id));
-                } catch (error) {
-                    console.error("Error fetching subdistricts:", error);
-                }
-            };
-            fetchSubdistricts();
-        }
+        (async () => {
+            try {
+                const res = await axios.get(SUBDISTRICT_URL);
+                const tambons = res.data.filter(
+                    (t: any) => Number(t.district_id) === Number(selectedDistrict.id) // ✅ fix ตรงนี้
+                );
+                setSubdistricts(tambons);
+            } catch (e) {
+                console.error("Error fetching subdistricts:", e);
+            }
+        })();
     }, [formData.district, districts]);
 
+
+    // ตั้งรหัสไปรษณีย์ auto
     useEffect(() => {
-        if (formData.subDistrict) {
-            const selectedSubdistrict = subdistricts.find((s: any) => s.name_th === formData.subDistrict);
-            if (selectedSubdistrict) {
-                setFormData((prevData) => ({
-                    ...prevData,
-                    postalCode: selectedSubdistrict.zip_code || "",
-                }));
-            }
+        if (!formData.subDistrict || subdistricts.length === 0) return;
+        const selectedSub = subdistricts.find((s: any) =>
+            matchByName(s, formData.subDistrict)
+        );
+        console.log("📌 Selected subdistrict:", selectedSub);
+        if (selectedSub) {
+            setFormData((prev) => ({
+                ...prev,
+                postalCode: selectedSub.zip_code?.toString() || "",
+            }));
         }
     }, [formData.subDistrict, subdistricts]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+    // handle change
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    ) => {
+        const { name, value } = e.target;
+
+        if (name === "country") {
+            setFormData((p) => ({
+                ...p,
+                country: value,
+                stateOrProvince: "",
+                district: "",
+                subDistrict: "",
+                postalCode: "",
+            }));
+            return;
+        }
+        if (name === "stateOrProvince") {
+            setFormData((p) => ({
+                ...p,
+                stateOrProvince: value,
+                district: "",
+                subDistrict: "",
+                postalCode: "",
+            }));
+            return;
+        }
+        if (name === "district") {
+            setFormData((p) => ({
+                ...p,
+                district: value,
+                subDistrict: "",
+                postalCode: "",
+            }));
+            return;
+        }
+
+        setFormData({ ...formData, [name]: value });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -135,20 +224,15 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }
                 return;
             }
 
-            if (supplier?.id) {
-                // ถ้าเป็นการแก้ไข
-                await updateSupplier(supplier.id, formData, token);
+            if (formData.id) {
+                await updateSupplier(formData.id, formData, token);
                 setMessage("✅ แก้ไขซัพพลายเออร์สำเร็จ!");
             } else {
-                // ถ้าเป็นการเพิ่มใหม่
                 await addSupplier(formData, token);
                 setMessage("✅ เพิ่มซัพพลายเออร์สำเร็จ!");
             }
 
-            setTimeout(() => {
-                onSave();
-                onClose();
-            }, 1000);
+            setTimeout(() => { onSave(); onClose(); }, 800);
         } catch (error) {
             setMessage("❌ เกิดข้อผิดพลาดในการบันทึกซัพพลายเออร์");
             console.error(error);
@@ -158,121 +242,129 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose, onSave }
     };
 
     return (
-        <div className="display">
         <div className="supplier-form-container">
-            <h2 className="supplier-form-title"> {supplier ? "แก้ไขซัพพลายเออร์" : "เพิ่มซัพพลายเออร์"}</h2>
+            <h2 className="supplier-form-title">
+                {supplier ? "แก้ไขซัพพลายเออร์" : "เพิ่มซัพพลายเออร์"}
+            </h2>
             {message && <p className="supplier-form-message">{message}</p>}
+
             <form onSubmit={handleSubmit} className="supplier-form">
                 <input
+                    className="supplier-input"
                     type="text"
-                    name="companyName" // ต้องตรงกับ key ใน formData
+                    name="companyName"
                     placeholder="ชื่อบริษัท"
                     value={formData.companyName}
                     onChange={handleChange}
                     required
-                    className="supplier-input"
                 />
-
                 <input
+                    className="supplier-input"
                     type="text"
-                    name="phoneNumber" // แก้ให้ตรงกับ formData
+                    name="phoneNumber"
                     placeholder="เบอร์โทรศัพท์"
                     value={formData.phoneNumber}
                     onChange={handleChange}
                     required
-                    className="supplier-input"
                 />
-
                 <input
+                    className="supplier-input"
                     type="email"
                     name="email"
                     placeholder="อีเมล"
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="supplier-input"
                 />
                 <input
+                    className="supplier-input"
                     type="text"
                     name="address"
                     placeholder="ที่อยู่"
                     value={formData.address}
                     onChange={handleChange}
                     required
-                    className="supplier-input"
                 />
 
                 <select
+                    className="supplier-select"
                     name="country"
                     value={formData.country}
                     onChange={handleChange}
                     required
-                    className="supplier-select"
                 >
                     <option value="">เลือกประเทศ</option>
-                    {countries.map((country) => (
-                        <option key={country} value={country}>{country}</option>
+                    {countries.map((c) => (
+                        <option key={c} value={c}>
+                            {c}
+                        </option>
                     ))}
                 </select>
 
-                {formData.country === "Thailand" && (
+                {(isThailand(formData.country) || !!formData.stateOrProvince) && (
                     <select
+                        className="supplier-select"
                         name="stateOrProvince"
                         value={formData.stateOrProvince}
                         onChange={handleChange}
                         required
-                        className="supplier-select"
                     >
                         <option value="">เลือกจังหวัด</option>
-                        {states.map((state) => (
-                            <option key={state.id} value={state.name_th}>{state.name_th}</option>
+                        {states.map((s) => (
+                            <option key={s.id} value={s.name_th}>
+                                {s.name_th}
+                            </option>
                         ))}
                     </select>
                 )}
 
                 {formData.stateOrProvince && (
                     <select
+                        className="supplier-select"
                         name="district"
                         value={formData.district}
                         onChange={handleChange}
                         required
-                        className="supplier-select"
                     >
                         <option value="">เลือกอำเภอ</option>
-                        {districts.map((district) => (
-                            <option key={district.id} value={district.name_th}>{district.name_th}</option>
+                        {districts.map((d) => (
+                            <option key={d.id} value={d.name_th}>
+                                {d.name_th}
+                            </option>
                         ))}
                     </select>
                 )}
 
                 {formData.district && (
                     <select
+                        className="supplier-select"
                         name="subDistrict"
                         value={formData.subDistrict}
                         onChange={handleChange}
                         required
-                        className="supplier-select"
                     >
                         <option value="">เลือกตำบล</option>
-                        {subdistricts.map((subdistrict) => (
-                            <option key={subdistrict.id} value={subdistrict.name_th}>{subdistrict.name_th}</option>
+                        {subdistricts.map((t) => (
+                            <option key={t.id} value={t.name_th}>
+                                {t.name_th}
+                            </option>
                         ))}
                     </select>
                 )}
 
                 <input
+                    className="supplier-input"
                     type="text"
                     name="postalCode"
                     placeholder="รหัสไปรษณีย์"
                     value={formData.postalCode}
                     readOnly
-                    className="supplier-input"
                 />
+
                 <button type="submit" className="supplier-button" disabled={loading}>
                     {loading ? "⏳ กำลังบันทึก..." : "💾 บันทึก"}
                 </button>
             </form>
-        </div>
         </div>
     );
 };

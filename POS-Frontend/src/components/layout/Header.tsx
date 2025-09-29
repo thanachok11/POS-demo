@@ -12,11 +12,11 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import { getStockData } from "../../api/stock/stock.ts";
-import { getProducts } from "../../api/product/productApi.ts";
-import LoginPageModal from "../auth/LoginPageModal.tsx";
-import RegisterPageModal from "../auth/RegisterPageModal.tsx";
-import { logoutUser } from '../../api/auth/auth.ts';;
+import { getStockData } from "../../api/stock/stock";
+import { getProducts } from "../../api/product/productApi";
+import LoginPageModal from "../auth/LoginPageModal";
+import RegisterPageModal from "../auth/RegisterPageModal";
+import { logoutUser } from '../../api/auth/auth';;
 
 import "../../styles/layout/Header.css";
 import "../../styles/page/Notification.css";
@@ -160,8 +160,8 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar, isLoggedI
 
                     // 3. จับคู่สินค้าเหลือน้อยกับชื่อ
                     const lowStock = stock
-                        .filter(item => item.quantity < 5)
-                        .map(item => {
+                        .filter((item: { quantity: number; }) => item.quantity < 5)
+                        .map((item: { productId: { name: any; }; }) => {
                             const matchedProduct = productData.data.find(
                                 (product: any) => product.id === item.productId
                             );
