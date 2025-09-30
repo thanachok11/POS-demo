@@ -3,8 +3,7 @@ import "../../styles/stock/StockPage.css";
 
 interface StockTableProps {
     stock: any[];
-    getProductDetails: (barcode: string) => any;
-    getLocationName: (id: string) => string;
+    getLocationName: (location: any) => string; // ✅ เปลี่ยนเป็นรับ object
     getCategoryNameById: (id: string) => string;
     formatThaiDateTime: (date: string) => string;
     getStatusIcon: (status: string) => string;
@@ -13,7 +12,6 @@ interface StockTableProps {
 
 const StockTable: React.FC<StockTableProps> = ({
     stock,
-    getProductDetails,
     getLocationName,
     getCategoryNameById,
     formatThaiDateTime,
@@ -39,29 +37,45 @@ const StockTable: React.FC<StockTableProps> = ({
             <tbody>
                 {stock.length > 0 ? (
                     stock.map((item, index) => {
-                        const product = getProductDetails(item.barcode);
+                        const product = item.productId;
                         return (
-                            <tr key={item.barcode} className="clickable-row" onClick={() => handleRowClick(item.barcode)}>
+                            <tr
+                                key={item.barcode}
+                                className="clickable-row"
+                                onClick={() => handleRowClick(item.barcode)}
+                            >
                                 <td className="stock-cell">{index + 1}</td>
-                                <td className="stock-cell">{product ? product.name : "ไม่พบสินค้า"}</td>
+                                <td className="stock-cell">{product?.name || "ไม่พบสินค้า"}</td>
                                 <td className="stock-cell">
-                                    {product?.imageUrl ? <img src={product.imageUrl} className="product-image" /> : "ไม่มีรูป"}
+                                    {product?.imageUrl ? (
+                                        <img src={product.imageUrl} className="product-image" />
+                                    ) : (
+                                        "ไม่มีรูป"
+                                    )}
                                 </td>
-                                <td className="stock-cell">{product?.price} บาท</td>
+                                <td className="stock-cell">{product?.price ?? "-"} บาท</td>
                                 <td className="stock-cell">{item.quantity}</td>
-                                <td className="stock-cell">{getLocationName(item.location)}</td>
-                                <td className="stock-cell">{item.supplier}</td>
+                                <td className="stock-cell">
+                                    {item.location ? getLocationName(item.location) : "ไม่ทราบที่เก็บ"}
+                                </td>
+                                <td className="stock-cell">
+                                    {item.supplierId?.companyName || item.supplier || "-"}
+                                </td>
                                 <td className="stock-cell status-cell">
                                     {getStatusIcon(item.status)} {item.status}
                                 </td>
-                                <td className="stock-cell">{getCategoryNameById(product?.category)}</td>
+                                <td className="stock-cell">
+                                    {item.productId?.category?.name || "ไม่ทราบหมวดหมู่"}
+                                </td>
                                 <td className="stock-cell">{formatThaiDateTime(item.updatedAt)}</td>
                             </tr>
                         );
                     })
                 ) : (
                     <tr>
-                        <td colSpan={10} className="no-data">🔍 ไม่พบข้อมูลสินค้าในร้านของคุณ</td>
+                            <td colSpan={10} className="stock-no-data">
+                            🔍 ไม่พบข้อมูลสินค้าในร้านของคุณ
+                        </td>
                     </tr>
                 )}
             </tbody>

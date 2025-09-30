@@ -19,6 +19,9 @@ interface AddProductModalProps {
 
 const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSuccess }) => {
     const [suppliers, setSuppliers] = useState<{ companyName: string; _id: string }[]>([]);
+    const [categories, setCategories] = useState<any[]>([]);
+    const [warehouses, setWarehouses] = useState<any[]>([]);
+
     const [productData, setProductData] = useState({
         name: "",
         description: "",
@@ -26,6 +29,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
         category: "",
         barcode: "",
     });
+
     const [stockData, setStockData] = useState({
         quantity: "",
         supplier: "",
@@ -33,10 +37,15 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
         supplierId: "",
         location: "",
         threshold: "",
-        customSupplier: "",
+        costPrice: "",
+        salePrice: "",
+        lastPurchasePrice: "",
+        batchNumber: "",
+        expiryDate: "",
+        notes: "",
+        isActive: true,
     });
-    const [categories, setCategories] = useState<any[]>([]);
-    const [warehouses, setWarehouses] = useState<any[]>([]);
+
     const [image, setImage] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -77,8 +86,8 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
         })();
     }, []);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const { name, value, type } = e.target;
 
         if (name === "supplierCompany") {
             const selected = suppliers.find((s) => s.companyName === value);
@@ -90,8 +99,11 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
             }));
         } else if (name in productData) {
             setProductData((prev) => ({ ...prev, [name]: value }));
-        } else {
-            setStockData((prev) => ({ ...prev, [name]: value }));
+        } else if (name in stockData) {
+            setStockData((prev) => ({
+                ...prev,
+                [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
+            }));
         }
     };
 
@@ -131,17 +143,15 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
         const formData = new FormData();
         Object.entries(productData).forEach(([k, v]) => formData.append(k, v));
         formData.append("image", image);
-        Object.entries(stockData).forEach(([k, v]) => formData.append(k, v));
+        Object.entries(stockData).forEach(([k, v]) => formData.append(k, String(v)));
 
         try {
             const response = await uploadProduct(formData, token);
             setShowSuccessPopup(true);
 
-            // ✅ เรียก callback ส่งข้อมูล product ที่เพิ่มกลับไป
             if (response?.data) {
                 onSuccess(response.data);
             }
-
         } catch (err) {
             console.error(err);
             setShowErrorPopup(true);
@@ -166,33 +176,15 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
                         <h3>สินค้า</h3>
                         <div className="add-product-form-group">
                             <label className="add-product-form-label">ชื่อสินค้า:</label>
-                            <input
-                                type="text"
-                                name="name"
-                                value={productData.name}
-                                onChange={handleInputChange}
-                                className="add-product-form-input"
-                            />
+                            <input type="text" name="name" value={productData.name} onChange={handleInputChange} className="add-product-form-input" required />
                         </div>
                         <div className="add-product-form-group">
                             <label className="add-product-form-label">รายละเอียด:</label>
-                            <input
-                                type="text"
-                                name="description"
-                                value={productData.description}
-                                onChange={handleInputChange}
-                                className="add-product-form-input"
-                            />
+                            <input type="text" name="description" value={productData.description} onChange={handleInputChange} className="add-product-form-input" required />
                         </div>
                         <div className="add-product-form-group">
                             <label className="add-product-form-label">ราคา:</label>
-                            <input
-                                type="number"
-                                name="price"
-                                value={productData.price}
-                                onChange={handleInputChange}
-                                className="add-product-form-input"
-                            />
+                            <input type="number" name="price" value={productData.price} onChange={handleInputChange} className="add-product-form-input" min="0" required />
                         </div>
                         <div className="add-product-form-group">
                             <label className="add-product-form-label">หมวดหมู่:</label>
@@ -204,6 +196,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
                                     else setProductData({ ...productData, category: e.target.value });
                                 }}
                                 className="add-product-form-input"
+                                required
                             >
                                 <option value="">-- เลือกหมวดหมู่ --</option>
                                 {categories.map((c) => (
@@ -226,34 +219,38 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
                         </div>
                         <div className="add-product-form-group">
                             <label className="add-product-form-label">รูปภาพ:</label>
-                            <input type="file" onChange={handleImageChange} className="add-product-form-input" />
-                            {imagePreview && (
-                                <img src={imagePreview} alt="preview" className="add-product-image-preview" />
-                            )}
+                            <input type="file" onChange={handleImageChange} className="add-product-form-input" accept="image/*" required />
+                            {imagePreview && <img src={imagePreview} alt="preview" className="add-product-image-preview" />}
                         </div>
                     </div>
 
                     {/* คอลัมน์สต็อก */}
                     <div className="add-product-form-column">
                         <h3>สต็อกสินค้า</h3>
+
                         <div className="add-product-form-group">
                             <label className="add-product-form-label">จำนวน:</label>
-                            <input
-                                type="number"
-                                name="quantity"
-                                value={stockData.quantity}
-                                onChange={handleInputChange}
-                                className="add-product-form-input"
-                            />
+                            <input type="number" name="quantity" value={stockData.quantity} onChange={handleInputChange} className="add-product-form-input" min="0" required />
                         </div>
+
+                        <div className="add-product-form-group">
+                            <label className="add-product-form-label">ราคาทุน (Cost Price):</label>
+                            <input type="number" name="costPrice" value={stockData.costPrice} onChange={handleInputChange} className="add-product-form-input" min="0" />
+                        </div>
+
+                        <div className="add-product-form-group">
+                            <label className="add-product-form-label">ราคาขาย (Sale Price):</label>
+                            <input type="number" name="salePrice" value={stockData.salePrice} onChange={handleInputChange} className="add-product-form-input" min="0" />
+                        </div>
+
+                        <div className="add-product-form-group">
+                            <label className="add-product-form-label">ราคาซื้อล่าสุด:</label>
+                            <input type="number" name="lastPurchasePrice" value={stockData.lastPurchasePrice} onChange={handleInputChange} className="add-product-form-input" min="0" />
+                        </div>
+
                         <div className="add-product-form-group">
                             <label className="add-product-form-label">ผู้จำหน่าย:</label>
-                            <select
-                                name="supplierCompany"
-                                value={stockData.supplierCompany}
-                                onChange={handleInputChange}
-                                className="add-product-form-input"
-                            >
+                            <select name="supplierCompany" value={stockData.supplierCompany} onChange={handleInputChange} className="add-product-form-input" required>
                                 <option value="">-- เลือกผู้จำหน่าย --</option>
                                 {suppliers.map((s, i) => (
                                     <option key={i} value={s.companyName}>
@@ -262,6 +259,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
                                 ))}
                             </select>
                         </div>
+
                         <div className="add-product-form-group">
                             <label className="add-product-form-label">คลังจัดเก็บ:</label>
                             <select
@@ -272,6 +270,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
                                     else setStockData({ ...stockData, location: e.target.value });
                                 }}
                                 className="add-product-form-input"
+                                required
                             >
                                 <option value="">-- เลือกคลัง --</option>
                                 {warehouses.map((w) => (
@@ -282,15 +281,32 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
                                 <option value="custom">➕ เพิ่มคลังใหม่</option>
                             </select>
                         </div>
+
                         <div className="add-product-form-group">
                             <label className="add-product-form-label">ค่าขั้นต่ำสต็อก:</label>
-                            <input
-                                type="number"
-                                name="threshold"
-                                value={stockData.threshold}
-                                onChange={handleInputChange}
-                                className="add-product-form-input"
-                            />
+                            <input type="number" name="threshold" value={stockData.threshold} onChange={handleInputChange} className="add-product-form-input" min="0" />
+                        </div>
+
+                        <div className="add-product-form-group">
+                            <label className="add-product-form-label">Batch Number:</label>
+                            <input type="text" name="batchNumber" value={stockData.batchNumber} onChange={handleInputChange} className="add-product-form-input" placeholder="เช่น LOT2025-001" />
+                        </div>
+
+                        <div className="add-product-form-group">
+                            <label className="add-product-form-label">วันหมดอายุ:</label>
+                            <input type="date" name="expiryDate" value={stockData.expiryDate} onChange={handleInputChange} className="add-product-form-input" />
+                        </div>
+
+                        <div className="add-product-form-group">
+                            <label className="add-product-form-label">บันทึกเพิ่มเติม:</label>
+                            <textarea name="notes" value={stockData.notes} onChange={handleInputChange} className="add-product-form-input" rows={3} placeholder="รายละเอียดเพิ่มเติม เช่น วิธีจัดเก็บ" />
+                        </div>
+
+                        <div className="add-product-form-group checkbox">
+                            <label>
+                                <input type="checkbox" name="isActive" checked={stockData.isActive} onChange={handleInputChange} />
+                                ใช้งานอยู่ (Active)
+                            </label>
                         </div>
                     </div>
 
@@ -312,8 +328,8 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
                             <button
                                 onClick={() => {
                                     setShowSuccessPopup(false);
-                                    onClose();       // ✅ ปิด modal
-                                    navigate("/stocks"); // ✅ ไปหน้า stock
+                                    onClose();
+                                    navigate("/stocks");
                                 }}
                                 className="popup-close-btn"
                             >
@@ -323,12 +339,9 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
                     </div>
                 )}
 
-
-                {/* ✅ Error Popup */}
                 {showErrorPopup && (
                     <div className="product-popup-error">
                         <div className="product-popup-content">
-
                             <FontAwesomeIcon icon={faExclamationCircle} className="product-icon-error" />
                             <h3 className="product-popup-title">{errormessage || "เกิดข้อผิดพลาดในการเพิ่มสินค้า"}</h3>
 

@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import "../../styles/stock/StockDetailModal.css";
 import { updateProduct, updateProductImage } from "../../api/product/productApi";
 import { updateStock, deleteStock } from "../../api/stock/stock";
-import { getWarehouses } from "../../api/product/warehousesApi"; // ✅ import api warehouse
+import { getWarehouses } from "../../api/product/warehousesApi";
 import { useNavigate } from "react-router-dom";
+import GlobalPopup from "../layout/GlobalPopup"; // ✅ ใช้ popup กลาง
 
 interface StockDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   barcode: string | null;
-  product: any;
   stock: any;
   onSuccess: () => void;
 }
@@ -18,44 +18,51 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({
   isOpen,
   onClose,
   barcode,
-  product,
   stock,
   onSuccess,
 }) => {
-  const [formData, setFormData] = useState<any>(product || {});
+  const [formData, setFormData] = useState<any>(stock?.productId || {});
   const [stockData, setStockData] = useState<any>(stock || {});
   const [activeTab, setActiveTab] = useState<"product" | "stock">("product");
   const [image, setImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const [warehouseName, setWarehouseName] = useState<string>("ไม่พบข้อมูล"); // ✅ แสดงชื่อคลัง
+  const [warehouseName, setWarehouseName] = useState<string>("ไม่พบข้อมูล");
   const [warehouseId, setWarehouseId] = useState<string>("");
 
+  // ✅ Popup state
+  const [message, setMessage] = useState<string>("");
+  const [isSuccess, setIsSuccess] = useState<boolean>(true);
+  const [showPopup, setShowPopup] = useState<boolean>(false);
+
   const navigate = useNavigate();
-  const isOtherSupplier = stock?.supplierCompany === "อื่นๆ";
 
   useEffect(() => {
-    if (product) setFormData(product);
+    if (stock?.productId) setFormData(stock.productId);
     if (stock) setStockData(stock);
-    // ✅ ดึง warehouse เสมอ ไม่ว่ามี stock หรือไม่
+
     const fetchWarehouse = async () => {
       try {
         const warehouses = await getWarehouses();
-        if (stock?.location) { // ✅ ใช้ location เป็น warehouseId
-          const found = warehouses.find((w: any) => w._id === stock.location);
-          setWarehouseId(found._id);
-          setWarehouseName(found ? found.location : "ไม่พบข้อมูล");
-        } else {
+
+        if (stock?.location?._id) {
+          const found = warehouses.find((w: any) => w._id === stock.location._id);
+          if (found) {
+            setWarehouseId(found._id);
+            setWarehouseName(found.location);
+          }
+        } else if (stock?.location?.location) {
+          setWarehouseId(stock.location._id);
+          setWarehouseName(stock.location.location);
         }
       } catch (err) {
         console.error("❌ Error fetching warehouses:", err);
       }
     };
     fetchWarehouse();
-  }, [product, stock]);
+  }, [stock]);
 
-
-  if (!isOpen || !product) return null;
+  if (!isOpen || !stock) return null;
 
   const handleProductChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -67,27 +74,6 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({
     setStockData((prev: any) => ({ ...prev, [name]: value }));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setImage(e.target.files[0]);
-    }
-  };
-
-  const safeValue = (val: unknown): string => {
-    if (typeof val === "object" && val !== null) {
-      if ("_id" in val) return String((val as any)._id);
-    }
-    return String(val);
-  };
-
-  const appendFormData = (fd: FormData, data: any) => {
-    Object.entries(data).forEach(([k, v]) => {
-      if (v !== undefined && v !== null) {
-        fd.append(k, safeValue(v));
-      }
-    });
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
@@ -96,50 +82,59 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({
     try {
       setLoading(true);
 
-      // ✅ ใช้ ObjectId ของ warehouse แทนชื่อ
       const updatedStockData = { ...stockData, location: warehouseId };
 
-      // --- update product ---
-      await updateProduct(product._id, formData);
-
-      // --- update stock ---
+      await updateProduct(stock.productId._id, formData);
       if (stock?.barcode) {
         await updateStock(stock.barcode, updatedStockData);
       }
-
-      // --- update image ถ้ามี ---
       if (image) {
         const formDataUpload = new FormData();
-        appendFormData(formDataUpload, formData);
-        appendFormData(formDataUpload, updatedStockData);
         formDataUpload.append("image", image);
-
         await updateProductImage(formDataUpload, token);
       }
 
+      setMessage("บันทึกการแก้ไขสำเร็จ ✅");
+      setIsSuccess(true);
+      setShowPopup(true);
       onSuccess();
-      onClose();
     } catch (err) {
       console.error("❌ Update error:", err);
+      setMessage("เกิดข้อผิดพลาดในการบันทึก ❌");
+      setIsSuccess(false);
+      setShowPopup(true);
     } finally {
       setLoading(false);
     }
   };
 
-
-
   const handleDelete = async () => {
-    if (!stock?.barcode) return;
-    if (!window.confirm("คุณแน่ใจหรือไม่ที่จะลบสต็อกนี้?")) return;
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
     try {
+      setLoading(true);
+
       await deleteStock(stock.barcode);
+
+      setMessage("ลบสต็อกสำเร็จ 🗑️");
+      setIsSuccess(true);
+      setShowPopup(true);
       onSuccess();
-      onClose();
+
+      setTimeout(() => {
+        onClose();
+      }, 3000);
     } catch (err) {
       console.error("❌ Delete error:", err);
+      setMessage("ลบสต็อกไม่สำเร็จ ❌");
+      setIsSuccess(false);
+      setShowPopup(true);
+    } finally {
+      setLoading(false);
     }
   };
+
 
   return (
     <div className="product-detail-modal-overlay">
@@ -164,6 +159,7 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="stock-detail-form">
+          {/* --- PRODUCT TAB --- */}
           {activeTab === "product" && (
             <div className="tab-content">
               <div className="stock-form-group">
@@ -180,11 +176,12 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({
               </div>
               <div className="stock-form-group">
                 <label>หมวดหมู่:</label>
-                <input type="text" name="category" value={formData?.category || ""} onChange={handleProductChange} />
+                <input type="text" value={formData?.category?.name || "ไม่พบข้อมูล"} readOnly />
               </div>
+
               <div className="stock-form-group">
                 <label>เปลี่ยนรูปสินค้า:</label>
-                <input type="file" accept="image/*" onChange={handleImageChange} />
+                <input type="file" accept="image/*" onChange={(e) => e.target.files && setImage(e.target.files[0])} />
               </div>
               {(image || formData?.imageUrl) && (
                 <img
@@ -196,56 +193,57 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({
             </div>
           )}
 
+          {/* --- STOCK TAB --- */}
           {activeTab === "stock" && (
             <div className="tab-content">
               <div className="stock-form-group">
                 <label>จำนวนสต็อก:</label>
-                <input
-                  type="number"
-                  name="quantity"
-                  value={stockData?.quantity || 0}
-                  onChange={handleStockChange}
-                />
+                <input type="number" name="quantity" value={stockData?.quantity || 0} onChange={handleStockChange} />
               </div>
               <div className="stock-form-group">
                 <label>ค่าขั้นต่ำสต็อก:</label>
-                <input
-                  type="number"
-                  name="threshold"
-                  value={stockData?.threshold || 0}
-                  onChange={handleStockChange}
-                />
+                <input type="number" name="threshold" value={stockData?.threshold || 0} onChange={handleStockChange} />
               </div>
               <div className="stock-form-group">
                 <label>ซัพพลายเออร์:</label>
-                <input type="text" value={stockData?.supplier || "ไม่พบข้อมูล"} readOnly />
+                <input
+                  type="text"
+                  value={stockData?.supplier || stockData?.supplierId?.companyName || "ไม่พบข้อมูล"}
+                  readOnly
+                />
               </div>
               <div className="stock-form-group">
                 <label>คลังสินค้า:</label>
-                <input type="text" value={warehouseName} readOnly /> {/* ✅ ชื่อ warehouse */}
+                <input type="text" value={warehouseName || "ไม่พบข้อมูล"} readOnly />
               </div>
 
-              {!isOtherSupplier && (
-                <button type="button" className="stock-import-btn" onClick={() => navigate("/createOrder")}>
-                  📥 นำเข้าสินค้าใหม่
-                </button>
-              )}
+              <button type="button" className="stock-import-btn" onClick={() => navigate("/createOrder")}>
+                📥 นำเข้าสินค้าใหม่
+              </button>
             </div>
           )}
 
+          {/* --- ACTIONS --- */}
           <div className="stock-form-actions">
-            <button
-              type="button"
-              className="delete-btn" onClick={handleDelete}>ลบสต็อก
+            <button type="button" className="delete-btn" onClick={handleDelete}>
+              ลบสต็อก
             </button>
-
             <button type="submit" className={`save-btn ${loading ? "loading" : ""}`} disabled={loading}>
               {loading ? <span className="spinner"></span> : "บันทึกการแก้ไข"}
             </button>
-
           </div>
         </form>
       </div>
+
+      {/* ✅ GlobalPopup สำหรับ success/error */}
+      <GlobalPopup
+        message={message}
+        isSuccess={isSuccess}
+        show={showPopup}
+        setShow={setShowPopup}
+        onClose={onClose}   // 👈 เพิ่มตรงนี้
+      />
+
     </div>
   );
 };

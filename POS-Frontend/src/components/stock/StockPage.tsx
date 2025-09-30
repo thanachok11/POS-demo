@@ -14,17 +14,22 @@ import AddProductModal from "../product/AddProductModal";
 import StockTable from "./StockTable";
 
 interface StockItem {
+  _id: string;
   barcode: string;
-  name: string;
-  imageUrl: string;
   quantity: number;
-  updatedAt: string;
-  location: string;
   status: string;
-  supplier: string;
-  supplierCompany: string;
-  category: string;
+  updatedAt: string;
+  productId: {
+    _id: string;
+    name: string;
+    imageUrl?: string;
+    category?: { _id: string; name: string };
+  };
+  supplierId?: { _id: string; companyName: string };
+  location?: { _id: string; name: string; location: string; description?: string };
 }
+
+
 
 const StockPage: React.FC = () => {
   const [stockData, setStockData] = useState<StockItem[]>([]);
@@ -57,14 +62,7 @@ const StockPage: React.FC = () => {
 
     try {
       const stock = await getStockData(token);
-      setStockData(stock);
-
-      const productData = await getProducts();
-      if (productData.success && Array.isArray(productData.data)) {
-        setProducts(productData.data);
-      } else {
-        setError("ไม่พบข้อมูลสินค้า");
-      }
+      setStockData(stock); // stock.data ควรมี productId populated อยู่แล้ว
     } catch (err) {
       console.error("❌ Fetch data error:", err);
     } finally {
@@ -120,11 +118,23 @@ const StockPage: React.FC = () => {
   }, []);
 
   // ✅ helpers
-  const getProductDetails = (barcode: string) => products.find((p) => p.barcode === barcode);
-  const getLocationName = (locationId: string) => {
-    const location = warehouses.find((w) => w._id === locationId);
-    return location ? location.location : "ไม่ทราบที่เก็บ";
+  const getLocationName = (location: any) => {
+    if (!location) return "ไม่ทราบที่เก็บ";
+
+    // ✅ ถ้ามีทั้ง name + location → แสดงสองอัน
+    if (location.name && location.location) {
+      return `${location.name} (${location.location})`;
+    }
+
+    // ✅ ถ้ามีแค่ location
+    if (location.location) return location.location;
+
+    // ✅ fallback หาใน warehouses
+    const found = warehouses.find((w) => w._id === location._id);
+    return found ? found.location : "ไม่ทราบที่เก็บ";
   };
+
+
   const getCategoryNameById = (categoryId: string | undefined) => {
     const category = categories.find((cat) => cat._id === categoryId);
     return category ? category.name : "ไม่ทราบหมวดหมู่";
@@ -154,15 +164,13 @@ const StockPage: React.FC = () => {
     (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   );
 
-  // ✅ filter
   const filteredStock = sortedStock.filter((item) => {
-    const product = getProductDetails(item.barcode);
     const searchText = searchQuery.toLowerCase();
 
-    const productName = product?.name?.toLowerCase() || "";
-    const categoryName = getCategoryNameById(product?.category)?.toLowerCase() || "";
-    const supplierName = item?.supplier?.toLowerCase() || "";
-    const barcode = item?.barcode?.toLowerCase() || "";
+    const productName = item.productId?.name?.toLowerCase() || "";
+    const categoryName = item.productId?.category?.name?.toLowerCase() || ""; // ✅ ใช้ตรง ๆ
+    const supplierName = item.supplierId?.companyName?.toLowerCase() || "";
+    const barcode = item.barcode?.toLowerCase() || "";
 
     return (
       productName.includes(searchText) ||
@@ -230,7 +238,6 @@ const StockPage: React.FC = () => {
         <div className="stock-table-wrapper">
           <StockTable
             stock={paginatedStock}
-            getProductDetails={getProductDetails}
             getLocationName={getLocationName}
             getCategoryNameById={getCategoryNameById}
             formatThaiDateTime={formatThaiDateTime}
@@ -253,11 +260,11 @@ const StockPage: React.FC = () => {
         <StockDetailModal
           isOpen={!!selectedBarcode}
           barcode={selectedBarcode}
-          product={selectedBarcode ? getProductDetails(selectedBarcode) : null}
           stock={selectedBarcode ? stockData.find((s) => s.barcode === selectedBarcode) : null}
           onClose={() => setSelectedBarcode(null)}
           onSuccess={() => fetchData()}
         />
+
 
         <AddProductModal
           isOpen={isModalOpen}

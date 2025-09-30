@@ -613,7 +613,7 @@
 
 @keyframes slideIn {
   from {
-    transform: translateX(120%);
+    transform: translateX(150%);
     opacity: 0;
   }
 

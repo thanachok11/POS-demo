@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import SupplierForm from "./SupplierForm";
 import React from "react";
+import GlobalPopup from "../layout/GlobalPopup"; // ✅ ใช้ popup กลาง
 
 interface Supplier {
     id?: number;
@@ -20,25 +21,6 @@ interface Supplier {
     postalCode: string;
 }
 
-interface ModalPopupProps {
-    message: string;
-    type?: "success" | "error";
-    onClose: () => void;
-}
-
-const ModalPopup: React.FC<ModalPopupProps> = ({ message, type = "success", onClose }) => {
-    return (
-        <div className="popup-overlay">
-            <div className={`popup-modal popup-${type}`}>
-                <p>{message}</p>
-                <button onClick={onClose} className="popup-close-btn">
-                    ตกลง
-                </button>
-            </div>
-        </div>
-    );
-};
-
 const SupplierList = () => {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [loading, setLoading] = useState(true);
@@ -48,9 +30,10 @@ const SupplierList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
 
-    // ✅ state สำหรับ success/error modal
-    const [popupMessage, setPopupMessage] = useState("");
-    const [popupType, setPopupType] = useState<"success" | "error">("success");
+    // ✅ popup state
+    const [showPopup, setShowPopup] = useState(false);
+    const [message, setMessage] = useState("");
+    const [isSuccess, setIsSuccess] = useState(false);
 
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -89,28 +72,25 @@ const SupplierList = () => {
             return;
         }
         if (!window.confirm("คุณต้องการลบซัพพลายเออร์นี้ใช่หรือไม่?")) return;
+
         const token = localStorage.getItem("token");
         try {
             await deleteSupplier(id, token);
             setSuppliers((prev) => prev.filter((s) => s._id !== id && s.id !== id));
-            setPopupMessage("🗑️ ลบซัพพลายเออร์สำเร็จ!");
-            setPopupType("success");
+            setMessage("🗑️ ลบซัพพลายเออร์สำเร็จ!");
+            setIsSuccess(true);
+            setShowPopup(true);
         } catch (err) {
             console.error("Error deleting supplier:", err);
-            setPopupMessage("❌ เกิดข้อผิดพลาดในการลบซัพพลายเออร์");
-            setPopupType("error");
+            setMessage("❌ เกิดข้อผิดพลาดในการลบซัพพลายเออร์");
+            setIsSuccess(false);
+            setShowPopup(true);
         }
     };
 
     const handleOpenModal = (supplier?: Supplier) => {
         setSelectedSupplier(supplier || null);
         setModalOpen(true);
-    };
-
-    const handleSave = () => {
-        fetchSuppliers();
-        setPopupMessage("✅ บันทึกข้อมูลสำเร็จ!");
-        setPopupType("success");
     };
 
     const handleCloseModal = () => {
@@ -140,16 +120,8 @@ const SupplierList = () => {
 
     return (
         <div className="display">
-            {popupMessage && (
-                <ModalPopup
-                    message={popupMessage}
-                    type={popupType}
-                    onClose={() => setPopupMessage("")}
-                />
-            )}
-
-                <div className="supplier-container">
-                    {/* Header */}
+            <div className="supplier-container">
+                {/* Header */}
                 <div className="supplier-header-wrapper">
                     <h2 className="supplier-header">📋 รายชื่อซัพพลายเออร์</h2>
 
@@ -188,98 +160,119 @@ const SupplierList = () => {
                         </div>
                     </div>
 
-                    {/* Add Button แยกออกมาเหมือน Stock */}
+                    {/* Add Button */}
                     <button className="supplier-add-btn" onClick={() => handleOpenModal()}>
                         <FontAwesomeIcon icon={faPlus} /> เพิ่มซัพพลายเออร์
                     </button>
                 </div>
-                    {/* Table */}
-                    <div className="supplier-table-wrapper">
-                        <table className="supplier-table">
-                            <thead>
-                                <tr>
-                                    <th>ชื่อ</th>
-                                    <th>เบอร์โทร</th>
-                                    <th>อีเมล</th>
-                                    <th>ที่อยู่</th>
-                                    <th>จัดการ</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {currentSuppliers.length > 0 ? (
-                                    currentSuppliers.map((supplier) => (
-                                        <tr key={supplier._id || supplier.id}>
-                                            <td>{supplier.companyName}</td>
-                                            <td>{supplier.phoneNumber}</td>
-                                            <td>{supplier.email}</td>
-                                            <td>
-                                                {supplier.address}, {supplier.subDistrict}, {supplier.district},{" "}
-                                                {supplier.stateOrProvince}, {supplier.country} {supplier.postalCode}
-                                            </td>
-                                            <td>
-                                                <div className="supplier-action-buttons">
-                                                    <button
-                                                        className="supplier-edit-btn"
-                                                        onClick={() => handleOpenModal(supplier)}
-                                                    >
-                                                        แก้ไข
-                                                    </button>
-                                                    <button
-                                                        className="supplier-delete-btn"
-                                                        onClick={() => handleDelete(supplier)}
-                                                    >
-                                                        ลบ
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan={5} className="supplier-no-data">
-                                            ❌ ไม่พบซัพพลายเออร์
+
+                {/* Table */}
+                <div className="supplier-table-wrapper">
+                    <table className="supplier-table">
+                        <thead>
+                            <tr>
+                                <th>ชื่อ</th>
+                                <th>เบอร์โทร</th>
+                                <th>อีเมล</th>
+                                <th>ที่อยู่</th>
+                                <th>จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {currentSuppliers.length > 0 ? (
+                                currentSuppliers.map((supplier) => (
+                                    <tr key={supplier._id || supplier.id}>
+                                        <td>{supplier.companyName}</td>
+                                        <td>{supplier.phoneNumber}</td>
+                                        <td>{supplier.email}</td>
+                                        <td>
+                                            {supplier.address}, {supplier.subDistrict}, {supplier.district},{" "}
+                                            {supplier.stateOrProvince}, {supplier.country} {supplier.postalCode}
+                                        </td>
+                                        <td>
+                                            <div className="supplier-action-buttons">
+                                                <button
+                                                    className="supplier-edit-btn"
+                                                    onClick={() => handleOpenModal(supplier)}
+                                                >
+                                                    แก้ไข
+                                                </button>
+                                                <button
+                                                    className="supplier-delete-btn"
+                                                    onClick={() => handleDelete(supplier)}
+                                                >
+                                                    ลบ
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* Pagination */}
-                    <div className="pagination">
-                        <button
-                            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                            disabled={currentPage === 1}
-                        >
-                            ◀ ก่อนหน้า
-                        </button>
-                        <span>หน้า {currentPage} จาก {totalPages}</span>
-                        <button
-                            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                            disabled={currentPage === totalPages}
-                        >
-                            ถัดไป ▶
-                        </button>
-                    </div>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={5} className="supplier-no-data">
+                                        ❌ ไม่พบซัพพลายเออร์
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
 
-
-                {modalOpen && (
-                    <div className="supplier-modal-overlay">
-                        <div className="supplier-modal-container">
-                            <button className="supplier-modal-close" onClick={handleCloseModal}>
-                                ❌
-                            </button>
-                            <SupplierForm
-                                supplier={selectedSupplier}
-                                onClose={handleCloseModal}
-                                onSave={handleSave}
-                            />
-                        </div>
-                    </div>
-                )}
+                {/* Pagination */}
+                <div className="pagination">
+                    <button
+                        onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                        disabled={currentPage === 1}
+                    >
+                        ◀ ก่อนหน้า
+                    </button>
+                    <span>
+                        หน้า {currentPage} จาก {totalPages}
+                    </span>
+                    <button
+                        onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                    >
+                        ถัดไป ▶
+                    </button>
+                </div>
             </div>
-       
+
+            {modalOpen && (
+                <div className="supplier-modal-overlay">
+                    <div className="supplier-modal-container">
+                        <button className="supplier-modal-close" onClick={handleCloseModal}>
+                            ❌
+                        </button>
+                        <SupplierForm
+                            supplier={selectedSupplier}
+                            onClose={handleCloseModal}
+                            onSave={(success, msg) => {
+                                fetchSuppliers();
+                                setMessage(msg);
+                                setIsSuccess(success);
+                                setShowPopup(true);
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* ✅ GlobalPopup สำหรับ success/error */}
+            <GlobalPopup
+                message={message}
+                isSuccess={isSuccess}
+                show={showPopup}
+                setShow={setShowPopup}
+                onClose={() => {
+                    // ✅ ให้ refresh หลังปิด popup
+                    fetchSuppliers();
+                    setModalOpen(false);
+                    setSelectedSupplier(null);
+                }}
+            />
+
+        </div>
     );
 };
 

@@ -1,20 +1,25 @@
-import express from 'express';
-import { getStocks, 
-    getStockByBarcode, 
-    updateStockByBarcode, 
-    updateQuantityByBarcode,
+import express from "express";
+import {
+    getStocks,
+    getStockByBarcode,
     updateStock,
-    deleteStockByBarcode
+    restockProductByBarcode,
+    returnProductByBarcode,
+    adjustStockByBarcode,
+    deleteStockByBarcode,
+} from "../controllers/stockController";
 
-} from '../controllers/stockController';
 const router = express.Router();
 
-router.get('/',getStocks);
-router.get('/:barcode',getStockByBarcode)
-router.put('/:barcode', updateQuantityByBarcode)
-router.patch('/:barcode', updateStockByBarcode)
-router.put('/barcode/:barcode', updateStock)
-router.patch('/barcode/:barcode', updateStock)
-router.delete('/barcode/:barcode', deleteStockByBarcode);
+router.get("/", getStocks);
+router.get("/:barcode", getStockByBarcode);
+router.patch("/:barcode", updateStock);
+
+// Actions
+router.post("/:barcode/restock", restockProductByBarcode);
+router.post("/:barcode/return", returnProductByBarcode);
+router.post("/:barcode/adjust", adjustStockByBarcode);
+
+router.delete("/:barcode", deleteStockByBarcode);
 
 export default router;

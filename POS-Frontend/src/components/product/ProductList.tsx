@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getProducts } from "../../api/product/productApi";
-import { updateStockByBarcode, getStockByBarcode, getStockData } from "../../api/stock/stock";
+import { createOrder, getStockData } from "../../api/stock/stock";
 import { createPayment } from "../../api/payment/paymentApi"; // นำเข้า API ชำระเงิน
 import { getCategories, getProductsByCategory } from "../../api/product/categoryApi"; // Import API ดึงหมวดหมู่สินค้า
 import Checkout from "../payment/Checkout"; // นำเข้า Checkout Modal
@@ -18,14 +18,25 @@ import React from "react";
 
 interface StockItem {
   barcode: string;
-  name: string;
-  imageUrl: string;
   quantity: number;
-  updatedAt: string;
-  location: string;
   status: string;
   supplier: string;
-  category: string;
+  productId: {
+    _id: string;
+    name: string;
+    price: number;
+    barcode: string;
+    imageUrl: string;
+    category: {
+      _id: string;
+      name: string;
+    };
+  };
+  location?: {
+    _id: string;
+    name: string;
+    location: string;
+  };
 }
 
 interface Category {
@@ -43,7 +54,11 @@ interface Product {
   name: string;
   price: number;
   quantity: number;
-  category: string;
+  category: {
+    _id: string;
+    name: string;
+  }
+
   imageUrl: string;
 }
 
@@ -86,24 +101,51 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen}) => {
     }
   }, []);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setErrorMessage("❌ ไม่พบ token");
-        return;
-      }
+ useEffect(() => {
+  const fetchData = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setErrorMessage("❌ ไม่พบ token");
+      return;
+    }
 
-      try {
-        const stock = await getStockData(token);
-        setStockData(stock);
-      } catch (err) {
-        setErrorMessage("❌ ดึงข้อมูล stock ไม่สำเร็จ");
-      }
-    };
+    try {
+      const stock = await getStockData(token);
 
-    fetchData();
-  }, []);
+      // ✅ แปลงข้อมูลจาก API ให้เป็นรูปแบบที่ UI ใช้ได้
+      const mappedStock: StockItem[] = stock.map((item: any) => ({
+        barcode: item.barcode,
+        quantity: item.quantity,
+        status: item.status,
+        supplier: item.supplier,
+        productId: {
+          _id: item.productId?._id,
+          name: item.productId?.name || "",
+          price: item.productId?.price || 0,
+          barcode: item.productId?.barcode || "",
+          imageUrl: item.productId?.imageUrl || "",
+          category: {
+            _id: item.productId?.category?._id,
+            name: item.productId?.category?.name || ""
+          }
+        },
+        location: item.location
+          ? {
+              _id: item.location._id,
+              name: item.location.name,
+              location: item.location.location
+            }
+          : undefined
+      }));
+
+      setStockData(mappedStock);
+    } catch (err) {
+      setErrorMessage("❌ ดึงข้อมูล stock ไม่สำเร็จ");
+    }
+  };
+
+  fetchData();
+}, []);
 
   useEffect(() => {
     document.body.classList.add('noscroll');
@@ -120,7 +162,18 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen}) => {
         console.log("Product data: ", productData);
 
         if (productData.success && Array.isArray(productData.data)) {
-          const allProducts = productData.data;
+          const allProducts: Product[] = productData.data.map((item: any) => ({
+            _id: item.productId?._id,
+            barcode: item.productId?.barcode || "",
+            name: item.productId?.name || "",
+            price: item.productId?.price || 0,
+            quantity: item.quantity || 0,
+            category: {
+              _id: item.productId?.category?._id || "",
+              name: item.productId?.category?.name || "",
+            },
+            imageUrl: item.productId?.imageUrl || "",
+          }));
           setProducts(allProducts);
 
         } else {
@@ -280,76 +333,57 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen}) => {
   };
 
 
-  const checkout = async (amountReceived: number, selectedPaymentMethod: "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code") => {
+  const checkout = async (
+    amountReceived: number,
+    selectedPaymentMethod: "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code"
+  ) => {
     if (!user) {
       setErrorMessage("กรุณาเข้าสู่ระบบก่อนทำการชำระเงิน");
       return;
     }
 
     const validPaymentMethods = ["เงินสด", "โอนเงิน", "บัตรเครดิต", "QR Code"] as const;
-
     if (!validPaymentMethods.includes(selectedPaymentMethod)) {
       setErrorMessage("วิธีการชำระเงินไม่ถูกต้อง");
       return;
     }
 
-    const paymentData = {
-      saleId: new Date().getTime().toString(),
-      employeeName: user.username,
-      paymentMethod: selectedPaymentMethod,
-      amount: getTotalPrice(),
-      amountReceived,
-      change: amountReceived - getTotalPrice(),
+    const orderData = {
+      saleId: new Date().getTime().toString(), // ไว้เป็นเลขใบเสร็จแสดงผล แต่ไม่ใช่ referenceId
+      userId: user.userId,
       items: cart.map(item => ({
+        productId: item._id,         // ✅ ส่ง productId ด้วย
         barcode: item.barcode,
         name: item.name,
         price: item.price,
         quantity: item.quantity,
         subtotal: item.price * item.quantity,
-      }))
+      })),
+      paymentMethod: selectedPaymentMethod,
+      amount: getTotalPrice(),
+      amountReceived,
+      change: amountReceived - getTotalPrice(),
     };
 
     try {
-      const paymentResponse = await createPayment(paymentData);
-      if (!paymentResponse.success) {
-        setErrorMessage(paymentResponse.message);
+      const response = await createOrder(orderData); // ⚡ เปลี่ยนจาก createPayment → createOrder API
+      if (!response.success) {
+        setErrorMessage(response.message);
         return;
       }
-      for (const item of cart) {
-        try {
-          console.log(`👉 กำลังอัปเดตสต็อก:`, {
-            barcode: item.barcode,
-            quantityToReduce: item.quantity,
-            name: item.name,
-          });
 
-          const updatedStock = await updateStockByBarcode(item.barcode, item.quantity);
+      console.log("✅ สร้าง Order สำเร็จ:", response.data);
 
-          if (!updatedStock.success) {
-            console.error(`❌ ไม่สามารถอัปเดตสต็อกของ ${item.name}`, updatedStock);
-            setErrorMessage(`ไม่สามารถอัปเดตสต็อกของ ${item.name}`);
-            return;
-          } else {
-            console.log(`✅ อัปเดตสต็อกของ ${item.name} สำเร็จ`, updatedStock);
-          }
-        } catch (error) {
-          console.error(`💥 เกิดข้อผิดพลาดในการอัปเดตสต็อกของ ${item.name}`, error);
-          setErrorMessage(`เกิดข้อผิดพลาดในการอัปเดตสต็อกของ ${item.name}`);
-          return;
-        }
-      }
-
+      // clear cart
       setCart([]);
       setShowCart(false);
-      setTimeout(() => {
-        setShowCart(false);
-      }, 3000);
+      setTimeout(() => setShowCart(false), 3000);
     } catch (error) {
-      setErrorMessage("เกิดข้อผิดพลาดในการบันทึกข้อมูลชำระเงิน");
-      console.error(error);
-      return;
+      console.error("💥 Checkout error:", error);
+      setErrorMessage("เกิดข้อผิดพลาดในการสร้างออเดอร์");
     }
   };
+
 
 
 
@@ -414,12 +448,14 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen}) => {
 
 
   const productsByCategory = categoryFilter
-    ? products.filter(product => product.category === categoryFilter)
+    ? products.filter(product => product.category?._id === categoryFilter)
     : products;
 
-  const filteredProducts = productsByCategory.filter(product =>
-    product.name.toLowerCase().includes(searchProduct.toLowerCase())
-  );
+  const filteredProducts = productsByCategory.filter(product => {
+    const name = (product?.name || "").toLowerCase();
+    const keyword = (searchProduct || "").toLowerCase();
+    return name.includes(keyword);
+  });
 
   return (
     <div className="display-product">
@@ -481,7 +517,10 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen}) => {
 
                   <img src={product.imageUrl} alt={product.name} className="product-image" />
                   <h2 className="product-title">{product.name}</h2>
-                  <p className="product-price">{product.price.toLocaleString()} ฿</p>
+                  <p className="product-price">
+                    {(product?.price ?? 0).toLocaleString()} ฿
+                  </p>
+
                 </div>
               );
             })
@@ -509,7 +548,7 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen}) => {
                 <p className="cart-item-name">{item.name}</p>
                 <p className="cart-item-quantity">จำนวน: {item.quantity}</p>
                 <p className="cart-item-price">
-                  ราคา: {(item.price * item.quantity).toLocaleString()}฿
+                  ราคา: {((item?.price ?? 0) * item.quantity).toLocaleString()} ฿
                 </p>
                 <button
                   onClick={() => {
@@ -533,9 +572,11 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen}) => {
 
         {/* ✅ แสดงยอดรวมด้านบนปุ่มชำระเงิน ✅ */}
         <div className="cart-total">
-          <p>
-            ยอดรวม: <span>{getTotalPrice().toLocaleString()} ฿</span>
-          </p>
+            <div className="cart-total">
+              <p>
+                ยอดรวม: <span>{(getTotalPrice() ?? 0).toLocaleString()} ฿</span>
+              </p>
+            </div>
         </div>
 
 

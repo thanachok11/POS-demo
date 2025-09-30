@@ -3,6 +3,14 @@ import axios from "axios";
 // Base URL ของ API
 const API_BASE_URL = process.env.REACT_APP_API_URL;
 
+interface SellProductParams {
+  barcode: string;
+  quantity: number;
+  salePrice: number;
+  userId: string;
+  orderId: string;
+}
+
 
 // ✅ ดึงข้อมูล stock ตาม token
 export const getStockData = async (token: string) => {
@@ -19,7 +27,7 @@ export const getStockData = async (token: string) => {
 
 export const getStockByBarcode = async (barcode: string) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/stocks/barcode/${barcode}`);
+    const response = await axios.get(`${API_BASE_URL}/stocks/${barcode}`);
 
     // เช็คสถานะการตอบกลับจาก API ถ้าสำเร็จ
     if (response.status === 200) {
@@ -45,17 +53,14 @@ export const getStockByProductId = async (productId: string) => {
   }
 };
 
-export const updateStockByBarcode = async (barcode: string, quantity: number) => {
-  try {
-    const response = await axios.put(`${API_BASE_URL}/stocks/barcode`, {
-      barcode,
-      quantity,
-    });
 
-    return response.data; // ส่งผลลัพธ์กลับไปให้ใช้ใน Component
+export const createOrder = async (orderData: any) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/orders`, orderData);
+    return response.data;
   } catch (error: any) {
-    console.error("เกิดข้อผิดพลาดในการอัปเดตสต็อก:", error.response?.data || error.message);
-    return { success: false, message: "เกิดข้อผิดพลาดในการอัปเดตสต็อก" };
+    console.error("❌ createOrder error:", error);
+    return { success: false, message: error.response?.data?.message || "API error" };
   }
 };
 
@@ -77,7 +82,7 @@ export const updateStock = async (
   console.log("📦 [updateStock] Data:", updateData);
 
   try {
-    const response = await axios.patch(`${API_BASE_URL}/stocks/barcode/${barcode}`, updateData, {
+    const response = await axios.patch(`${API_BASE_URL}/stocks/${barcode}`, updateData, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -143,7 +148,7 @@ export const deleteStock = async (barcode: string) => {
   if (!token) throw new Error("No token found");
 
   try {
-    const response = await axios.delete(`${API_BASE_URL}/stocks/barcode/${barcode}`, {
+    const response = await axios.delete(`${API_BASE_URL}/stocks/${barcode}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 

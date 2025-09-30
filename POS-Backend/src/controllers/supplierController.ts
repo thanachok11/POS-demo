@@ -4,15 +4,7 @@ import Supplier from "../models/Supplier";
 import Product from "../models/Product";
 import Stock from "../models/Stock";
 import User from "../models/User";
-
-// ===== Helper =====
-const verifyToken = (token: string) => {
-    try {
-        return jwt.verify(token, process.env.JWT_SECRET as string);
-    } catch {
-        throw new Error("Invalid token");
-    }
-};
+import { verifyToken } from "../utils/auth";
 
 const extractUserId = async (req: Request): Promise<string | null> => {
     const token = req.headers["authorization"]?.split(" ")[1];
