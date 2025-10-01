@@ -73,6 +73,7 @@ const AddEmployee: React.FC<AddEmployeeProps> = ({
       setMessage("ไม่พบ Token กรุณาเข้าสู่ระบบอีกครั้ง");
       setIsSuccess(false);
       setShowPopup(true);
+      closeModal(); 
       return;
     }
 
@@ -112,13 +113,15 @@ const AddEmployee: React.FC<AddEmployeeProps> = ({
     } finally {
       setLoading(false);
       setShowPopup(true);
+      closeModal();
     }
   };
+
 
   return (
     <div className="employee-modal-overlay">
       <div className="employee-modal-content">
-        <button className="modal-close" onClick={closeModal}>❌</button>
+        <button className="modal-close" onClick={closeModal}>✖</button>
         <h2 className="employee-form-title">{employee ? "แก้ไขพนักงาน" : "เพิ่มพนักงาน"}</h2>
 
         <form onSubmit={handleSubmit} className="employee-form">

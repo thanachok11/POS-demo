@@ -6,6 +6,8 @@ interface IPurchaseOrderItem {
     quantity: number;
     costPrice: number;   // ราคาซื้อต่อหน่วย
     total: number;       // quantity * costPrice
+    batchNumber: string; // ✅ เลขล็อตสินค้า
+    expiryDate?: Date;   // ✅ วันหมดอายุ (optional)
 }
 
 export interface IPurchaseOrder extends Document {
@@ -31,6 +33,8 @@ const PurchaseOrderItemSchema = new Schema<IPurchaseOrderItem>(
         quantity: { type: Number, required: true },
         costPrice: { type: Number, required: true },
         total: { type: Number, required: true },
+        batchNumber: { type: String, required: true }, // ✅ ต้องมี batch number เสมอ
+        expiryDate: { type: Date }, // ✅ optional
     },
     { _id: false }
 );

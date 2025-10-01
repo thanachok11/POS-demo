@@ -8,7 +8,7 @@ import {
 
 const router = express.Router();
 router.post("/", createTransaction);
-router.get("/", getAllTransactions);
+router.get("/transactions", getAllTransactions);
 router.get("/product/:productId", getTransactionsByProduct);
 router.get("/stock/:stockId", getTransactionsByStock);
 

@@ -7,8 +7,8 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(15, 23, 42, 0.55);
-    /* dark blur overlay */
+    background: rgba(17, 24, 39, 0.55);
+    /* dark overlay */
     backdrop-filter: blur(6px);
     display: flex;
     justify-content: center;
@@ -22,15 +22,18 @@
 ============================== */
 .product-detail-modal-content {
     background: #ffffff;
-    width: 600px;
+    width: 800px;
     max-width: 95%;
-    max-height: 90vh;
-    border-radius: 16px;
-    padding: 24px;
+    max-height: 92vh;
+    margin-top: 20px;
+    border-radius: 18px;
+    padding: 28px 32px;
     overflow-y: auto;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
     animation: slideUp 0.3s ease-in-out;
     position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 /* ==============================
@@ -38,16 +41,16 @@
 ============================== */
 .modal-close {
     position: absolute;
-    top: 16px;
-    right: 16px;
+    top: 14px;
+    right: 14px;
     background: #f3f4f6;
     border: none;
     font-size: 18px;
     font-weight: bold;
     color: #374151;
     border-radius: 50%;
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     cursor: pointer;
     transition: all 0.25s ease-in-out;
 }
@@ -61,11 +64,11 @@
    Heading
 ============================== */
 .product-detail-modal-content h2 {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
     font-size: 22px;
     font-weight: 600;
     text-align: center;
-    color: #1f2937;
+    color: #111827;
 }
 
 /* ==============================
@@ -74,12 +77,12 @@
 .tabs {
     display: flex;
     justify-content: center;
-    gap: 12px;
+    gap: 16px;
     margin-bottom: 20px;
 }
 
 .tab {
-    padding: 10px 18px;
+    padding: 10px 20px;
     border-radius: 20px;
     border: none;
     background: #f3f4f6;
@@ -101,11 +104,17 @@
 }
 
 /* ==============================
-   Form
+   Form Layout (GRID)
 ============================== */
 .stock-detail-form {
     display: flex;
     flex-direction: column;
+    gap: 20px;
+}
+
+.stock-form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 16px;
 }
 
@@ -116,20 +125,31 @@
 }
 
 .stock-form-group label {
-    font-size: 14px;
-    font-weight: 500;
-    color: #374151;
     margin-top: 5px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
 }
 
-.stock-form-group input,
-.stock-form-group select,
 .stock-form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-size: 14px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+    transition: all 0.25s ease;
+}
+
+
+.stock-form-group input,
+.stock-form-group select {
     padding: 10px 12px;
     border-radius: 8px;
     border: 1px solid #d1d5db;
     font-size: 14px;
-    color: #1f2937;
+    color: #111827;
     background: #f9fafb;
     transition: all 0.25s ease;
 }
@@ -147,31 +167,32 @@
    Image Preview
 ============================== */
 .stock-product-preview {
-    margin-top: 10px;
-    max-width: 150px;
-    border-radius: 8px;
+    margin-top: 12px;
+    max-width: 180px;
+    border-radius: 10px;
     border: 1px solid #e5e7eb;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 /* ==============================
    Import Button
 ============================== */
 .stock-import-btn {
-    margin-top: 12px;
+    margin-top: 16px;
     background: linear-gradient(135deg, #10b981, #059669);
     border: none;
-    padding: 10px 16px;
-    border-radius: 8px;
+    padding: 12px 20px;
+    border-radius: 10px;
     color: #fff;
-    font-size: 14px;
+    font-size: 15px;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.25s ease;
 }
 
 .stock-import-btn:hover {
     background: linear-gradient(135deg, #059669, #047857);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
 }
 
 /* ==============================
@@ -180,15 +201,14 @@
 .stock-form-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 12px;
-    margin-top: 20px;
+    gap: 14px;
+    margin-top: 24px;
 }
 
-/* ปุ่มทั่วไป */
 .stock-form-actions button {
-    padding: 10px 18px;
+    padding: 10px 20px;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
@@ -196,30 +216,24 @@
 }
 
 .save-btn {
-    background-color: #4caf50;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
     color: white;
-    padding: 10px 18px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 15px;
-    transition: background 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .save-btn:hover {
-    background-color: #45a049;
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
 }
 
-/* ขณะกำลังโหลด */
 .save-btn.loading {
-    background-color: #888;
+    background: #9ca3af;
     cursor: not-allowed;
 }
 
-/* สร้าง spinner */
+/* Spinner */
 .spinner {
     width: 18px;
     height: 18px;
@@ -235,15 +249,14 @@
     }
 }
 
-/* ปุ่มลบ */
-.stock-form-actions .delete-btn {
-    background-color: #f44336;
-    /* แดง */
+/* Delete Button */
+.delete-btn {
+    background: #ef4444;
     color: white;
 }
 
-.stock-form-actions .delete-btn:hover {
-    background-color: #d32f2f;
+.delete-btn:hover {
+    background: #dc2626;
     transform: scale(1.05);
 }
 

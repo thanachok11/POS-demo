@@ -1,9 +1,9 @@
 import React from "react";
-import "../../styles/stock/StockPage.css";
+
 
 interface StockTableProps {
     stock: any[];
-    getLocationName: (location: any) => string; // ✅ เปลี่ยนเป็นรับ object
+    getLocationName: (location: any) => string;
     getCategoryNameById: (id: string) => string;
     formatThaiDateTime: (date: string) => string;
     getStatusIcon: (status: string) => string;
@@ -25,7 +25,8 @@ const StockTable: React.FC<StockTableProps> = ({
                     <th className="stock-header-cell">ลำดับ</th>
                     <th className="stock-header-cell">สินค้า</th>
                     <th className="stock-header-cell">รูปภาพ</th>
-                    <th className="stock-header-cell">ราคา</th>
+                    <th className="stock-header-cell">ราคาทุน</th>
+                    <th className="stock-header-cell">ราคาขาย</th>
                     <th className="stock-header-cell">จำนวน</th>
                     <th className="stock-header-cell">คลังสินค้า</th>
                     <th className="stock-header-cell">ซัพพลายเออร์</th>
@@ -53,7 +54,13 @@ const StockTable: React.FC<StockTableProps> = ({
                                         "ไม่มีรูป"
                                     )}
                                 </td>
-                                <td className="stock-cell">{product?.price ?? "-"} บาท</td>
+                                {/* ✅ แสดงราคาจาก Stock */}
+                                <td className="stock-cell">
+                                    {item.costPrice ? `${item.costPrice.toLocaleString()} ฿` : "-"}
+                                </td>
+                                <td className="stock-cell">
+                                    {item.salePrice ? `${item.salePrice.toLocaleString()} ฿` : "-"}
+                                </td>
                                 <td className="stock-cell">{item.quantity}</td>
                                 <td className="stock-cell">
                                     {item.location ? getLocationName(item.location) : "ไม่ทราบที่เก็บ"}
@@ -73,7 +80,7 @@ const StockTable: React.FC<StockTableProps> = ({
                     })
                 ) : (
                     <tr>
-                            <td colSpan={10} className="stock-no-data">
+                        <td colSpan={11} className="stock-no-data">
                             🔍 ไม่พบข้อมูลสินค้าในร้านของคุณ
                         </td>
                     </tr>

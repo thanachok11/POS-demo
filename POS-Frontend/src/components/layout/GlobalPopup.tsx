@@ -29,13 +29,7 @@ const GlobalPopup: React.FC<GlobalPopupProps> = ({
                 setProgress((prev) => {
                     if (prev <= 0) {
                         clearInterval(interval);
-                        setShow(false);
-
-                        // ✅ ถ้า success → ปิด modal
-                        if (isSuccess && onClose) {
-                            onClose();
-                        }
-                        return 0;
+                        setShow(false);                     
                     }
                     return prev - step;
                 });

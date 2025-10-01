@@ -212,6 +212,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
             const token = localStorage.getItem("token");
             if (!token) {
                 onSave(false, "❌ No token found");
+                onClose(); // ปิด modal ทันที
                 return;
             }
 
@@ -227,8 +228,11 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
             onSave(false, "❌ เกิดข้อผิดพลาดในการบันทึกซัพพลายเออร์");
         } finally {
             setLoading(false);
+            onClose(); // ✅ ปิด modal เสมอ (ทั้ง success/error)
         }
     };
+
+
 
     return (
         <div className="supplier-form-container">

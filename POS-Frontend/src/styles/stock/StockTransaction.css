@@ -1,0 +1,41 @@
+.stock-transaction-page {
+    padding: 20px;
+}
+
+.filter-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.filter-container input {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.transaction-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background: #fff;
+}
+
+.transaction-table th,
+.transaction-table td {
+    border: 1px solid #e5e7eb;
+    padding: 10px;
+    text-align: center;
+}
+
+.transaction-table th {
+    background: #f9fafb;
+    font-weight: bold;
+}
+
+.loading,
+.no-data {
+    margin-top: 20px;
+    text-align: center;
+    color: #666;
+}

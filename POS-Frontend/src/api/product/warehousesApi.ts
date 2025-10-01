@@ -24,6 +24,7 @@ export const getWarehouses = async () => {
     }
 };
 
+
 // CREATE warehouse
 export const createWarehouse = async (
     data: WarehouseData

@@ -56,13 +56,23 @@ export const addProductWithStock = async (req: Request, res: Response): Promise<
           location,
           threshold,
           supplierId,
-          unit,
+          units,
           costPrice,   // ✅ ราคาทุน
           salePrice,   // ✅ ราคาขาย (optional)
         } = req.body;
 
-        const unitArray = typeof unit === 'string' ? [unit] : Array.isArray(unit) ? unit : [];
-
+        let unitArray: any[] = [];
+        try {
+          if (typeof units === "string") {
+            unitArray = JSON.parse(units);
+          } else if (Array.isArray(units)) {
+            unitArray = units;
+          }
+        } catch (err) {
+          console.error("❌ Error parsing units:", err);
+          unitArray = [];
+        }
+        
         // ✅ ถ้าไม่ได้ส่ง salePrice มา → ใช้ costPrice + 20%
         const finalCostPrice = Number(costPrice) || 0;
         const finalSalePrice =
@@ -70,8 +80,9 @@ export const addProductWithStock = async (req: Request, res: Response): Promise<
             ? Number(salePrice)
             : finalCostPrice * 1.2;
 
-        let finalBarcode = barcode;
-        if (!finalBarcode || finalBarcode.trim() === '') {
+        // ✅ Parse barcode safely
+        let finalBarcode = barcode ? String(barcode) : "";
+        if (!finalBarcode || finalBarcode.trim() === "") {
           finalBarcode = `BC${Date.now().toString().slice(-6)}${Math.floor(100 + Math.random() * 900)}`;
         }
 
@@ -87,11 +98,11 @@ export const addProductWithStock = async (req: Request, res: Response): Promise<
           return;
         }
 
+       
         // ✅ Product
         const newProduct = new Product({
           name,
           description,
-          price: Number(req.body.price),
           category,
           barcode: finalBarcode,
           imageUrl: result.secure_url,
@@ -117,7 +128,7 @@ export const addProductWithStock = async (req: Request, res: Response): Promise<
           lastPurchasePrice: finalCostPrice,
           status: "สินค้าพร้อมขาย",
           lastRestocked: quantity > 0 ? new Date() : undefined,
-          unit: unitArray,
+          units: unitArray,
         });
         await newStock.save();
 
@@ -167,9 +178,9 @@ export const updateProductWithStock = async (req: Request, res: Response): Promi
       location,
       threshold,
       supplierId,
-      unit,
-      costPrice,   // ✅ ราคาทุน
-      salePrice,   // ✅ ราคาขาย (optional)
+      units,
+      costPrice,
+      salePrice,
     } = req.body;
 
     const productId = String(rawProductId);
@@ -188,6 +199,27 @@ export const updateProductWithStock = async (req: Request, res: Response): Promi
     if (!stock) {
       res.status(404).json({ success: false, message: 'ไม่พบสต็อกของสินค้า' });
       return;
+    }
+
+    // ✅ parse barcode ให้เป็น string เสมอ
+    let finalBarcode = barcode ? String(barcode) : product.barcode;
+    if (!finalBarcode || finalBarcode.trim() === '') {
+      finalBarcode = product.barcode || `BC${Date.now().toString().slice(-6)}${Math.floor(100 + Math.random() * 900)}`;
+    }
+
+    // ✅ parse units ให้แน่นอน
+    let unitArray: any[] = [];
+    try {
+      if (typeof units === "string") {
+        unitArray = JSON.parse(units);
+      } else if (Array.isArray(units)) {
+        unitArray = units;
+      } else {
+        unitArray = stock.units || [];
+      }
+    } catch (err) {
+      console.error("❌ Error parsing units:", err);
+      unitArray = stock.units || [];
     }
 
     const supplierDoc = await Supplier.findById(supplierId || product.supplierId);
@@ -211,18 +243,11 @@ export const updateProductWithStock = async (req: Request, res: Response): Promi
       warehouseDoc = foundWarehouse._id;
     }
 
-    const unitArray =
-      typeof unit === 'string'
-        ? [unit]
-        : Array.isArray(unit)
-          ? unit
-          : stock.unit || [];
-
     const updateProductData = async (imageUrl?: string, public_id?: string) => {
       product.name = name || product.name;
       product.description = description || product.description;
       product.category = category || product.category;
-      product.barcode = barcode ? String(barcode) : product.barcode;
+      product.barcode = finalBarcode;
       product.supplierId = supplierDoc._id;
 
       if (imageUrl && public_id) {
@@ -235,7 +260,7 @@ export const updateProductWithStock = async (req: Request, res: Response): Promi
 
       await product.save();
 
-      // ✅ คำนวณ costPrice / salePrice
+      // ✅ อัปเดต stock
       if (costPrice !== undefined) {
         stock.costPrice = Number(costPrice);
         stock.lastPurchasePrice = Number(costPrice);
@@ -243,7 +268,7 @@ export const updateProductWithStock = async (req: Request, res: Response): Promi
       if (salePrice !== undefined) {
         stock.salePrice = Number(salePrice);
       } else if (costPrice !== undefined) {
-        stock.salePrice = Number(costPrice) * 1.2; // auto markup 20%
+        stock.salePrice = Number(costPrice) * 1.2;
       }
 
       stock.quantity = quantity !== undefined ? Number(quantity) : stock.quantity;
@@ -251,7 +276,7 @@ export const updateProductWithStock = async (req: Request, res: Response): Promi
       stock.supplierId = supplierDoc._id;
       stock.supplier = supplierDoc.companyName;
       stock.location = warehouseDoc;
-      stock.unit = unitArray;
+      stock.units = unitArray;
       stock.barcode = product.barcode;
 
       if (quantity !== undefined && Number(quantity) > 0) {

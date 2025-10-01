@@ -241,8 +241,8 @@ const SupplierList = () => {
             {modalOpen && (
                 <div className="supplier-modal-overlay">
                     <div className="supplier-modal-container">
-                        <button className="supplier-modal-close" onClick={handleCloseModal}>
-                            ❌
+                        <button className="modal-close" onClick={handleCloseModal}>
+                            ✖
                         </button>
                         <SupplierForm
                             supplier={selectedSupplier}

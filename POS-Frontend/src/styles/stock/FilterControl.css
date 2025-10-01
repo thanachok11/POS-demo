@@ -1,0 +1,121 @@
+/* === Filter Control wrapper === */
+.filter-control {
+    position: relative;
+    display: inline-block;
+}
+
+/* ปุ่มหลัก "กรอง" */
+.filter-toggle-btn {
+    background: #2563eb;
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s ease;
+}
+
+.filter-toggle-btn:hover {
+    background: #1d4ed8;
+}
+
+/* Badge บอกจำนวน filter ที่เลือก */
+.filter-badge {
+position: absolute;
+    bottom: 20px;
+    right: -3px;
+    background-color: red;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+/* === Dropdown หลัก === */
+.filter-bar-dropdown {
+    position: absolute;
+    top: 110%;
+    left: 0;
+    min-width: 220px;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.12);
+    padding: 10px;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+/* === แต่ละ filter group === */
+.filter-dropdown {
+    position: relative;
+}
+
+.filter-label {
+    cursor: pointer;
+    padding: 6px 10px;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+.filter-label:hover {
+    background: #e5e7eb;
+}
+
+/* === เมนูย่อยของแต่ละ group (dropdown ย่อย) === */
+.filter-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 200px;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.08);
+    padding: 8px;
+    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 250;
+    animation: fadeIn 0.15s ease-in-out;
+}
+
+/* checkbox + label */
+.filter-option {
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    color: #374151;
+}
+
+.filter-option input {
+    accent-color: #2563eb;
+}
+
+/* === Animation === */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -1,4 +1,4 @@
-import express from "express";
+import { Router } from "express";
 import {
     createPurchaseOrder,
     getPurchaseOrders,
@@ -7,11 +7,21 @@ import {
     cancelPurchaseOrder,
 } from "../controllers/purchaseOrderController";
 
-const router = express.Router();
-router.post("/", createPurchaseOrder);
-router.get("/", getPurchaseOrders);
-router.get("/:id", getPurchaseOrderById);
-router.post("/:id/confirm", confirmPurchaseOrder);
-router.post("/:id/cancel", cancelPurchaseOrder);
+const router = Router();
+
+// สร้าง Purchase Order
+router.post("/purchase-orders", createPurchaseOrder);
+
+// ดึง Purchase Orders ทั้งหมด
+router.get("/purchase-orders", getPurchaseOrders);
+
+// ดึง PO ตาม ID
+router.get("/purchase-orders/:id", getPurchaseOrderById);
+
+// ยืนยันรับสินค้า (Confirm PO → update stock + log transaction)
+router.put("/purchase-orders/:id/confirm", confirmPurchaseOrder);
+
+// ยกเลิก PO
+router.put("/purchase-orders/:id/cancel", cancelPurchaseOrder);
 
 export default router;

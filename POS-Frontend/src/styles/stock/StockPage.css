@@ -35,12 +35,14 @@
     gap: 10px;
     color: #6c5ce7;
 }
+
 .stock-no-data {
     text-align: center;
     font-size: 1.2rem;
     color: #888;
     padding: 20px;
 }
+
 /* ===========================
    Controls
 =========================== */
@@ -200,4 +202,17 @@
 .pagination button:hover:not(:disabled) {
     background: #f3f4f6;
     border-color: #9ca3af;
+}
+
+
+.expired-container {
+    padding: 20px;
+}
+
+.expired-header {
+    font-size: 20px;
+    font-weight: 700;
+    color: #dc2626;
+    /* red-600 */
+    margin-bottom: 16px;
 }

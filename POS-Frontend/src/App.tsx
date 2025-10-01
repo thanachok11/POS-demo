@@ -21,6 +21,9 @@ import PaymentPage from "./components/payment/PaymentPage";
 import EmployeeList from "./components/aboutStore/EmployeePage";
 import OrderPage from "./components/stock/OrderPage";
 import EmployeePage from "./components/pages/Employee/Dashboard-employee";
+import StockTransaction from "./components/stock/StockTransaction";
+import ExpiredPage from "./components/stock/ExpiredPage";
+
 import { jwtDecode } from "jwt-decode";
 import { renewToken } from "./api/auth/auth";
 
@@ -186,8 +189,10 @@ const App: React.FC = () => {
           <Route path="/employee-dashboard" element={<EmployeePage />} />
           <Route path="/shop" element={<ProductList isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />} />
           <Route path="/stocks" element={<StockPage />} />
+          <Route path="/stockTransaction" element={<StockTransaction />} />
           <Route path="/receipts/paymentId/:paymentId" element={<ReceiptDetail />} />
           <Route path="/createOrder" element={<CreateOrder />} />
+          <Route path="/expired" element={<ExpiredPage />} />
         </Routes>
       </div>
     </div>

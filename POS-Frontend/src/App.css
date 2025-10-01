@@ -98,7 +98,15 @@ body {
   margin-left: 50px;
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
+.app-container.sidebar-open .expired-container {
+  margin-left: 50px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
 
+.app-container.sidebar-closed .expired-container {
+  margin-left: 50px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
 .app-container.sidebar-open .supplier-container {
   margin-left: 50px;
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;

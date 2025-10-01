@@ -3,8 +3,9 @@ import PurchaseOrder from "../models/PurchaseOrder";
 import Stock from "../models/Stock";
 import StockTransaction from "../models/StockTransaction";
 import { verifyToken } from "../utils/auth";
+import { generateInvoiceNumber } from "../utils/generateInvoice";
 
-// ✅ สร้าง Purchase Order
+// สร้าง Purchase Order
 export const createPurchaseOrder = async (req: Request, res: Response): Promise<void> => {
     try {
         const token = req.header("Authorization")?.split(" ")[1];
@@ -18,7 +19,7 @@ export const createPurchaseOrder = async (req: Request, res: Response): Promise<
             return;
         }
 
-        const { purchaseOrderNumber, supplierId, supplierCompany, location, items } = req.body;
+        const { purchaseOrderNumber, supplierId, supplierCompany, location, items, invoiceNumber } = req.body;
 
         // คำนวณยอดรวม
         const totalAmount = items.reduce(
@@ -33,6 +34,7 @@ export const createPurchaseOrder = async (req: Request, res: Response): Promise<
             location,
             items,
             totalAmount,
+            invoiceNumber,
             createdBy: decoded.userId,
         });
 
@@ -46,7 +48,10 @@ export const createPurchaseOrder = async (req: Request, res: Response): Promise<
 // ดึง Purchase Orders ทั้งหมด
 export const getPurchaseOrders = async (req: Request, res: Response): Promise<void> => {
     try {
-        const orders = await PurchaseOrder.find().populate("supplierId").populate("createdBy");
+        const orders = await PurchaseOrder.find()
+            .populate("supplierId")
+            .populate("createdBy")
+            .sort({ createdAt: -1 });
         res.status(200).json({ success: true, data: orders });
     } catch (error) {
         console.error("Get PO Error:", error);
@@ -58,7 +63,10 @@ export const getPurchaseOrders = async (req: Request, res: Response): Promise<vo
 export const getPurchaseOrderById = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const po = await PurchaseOrder.findById(id).populate("supplierId").populate("createdBy");
+        const po = await PurchaseOrder.findById(id)
+            .populate("supplierId")
+            .populate("createdBy")
+            .populate("updatedBy");
 
         if (!po) {
             res.status(404).json({ success: false, message: "ไม่พบ PurchaseOrder" });
@@ -88,10 +96,13 @@ export const confirmPurchaseOrder = async (req: Request, res: Response): Promise
             res.status(400).json({ success: false, message: "PO นี้ถูกยืนยันไปแล้ว" });
             return;
         }
-
+        // สร้าง invoiceNumber อัตโนมัติถ้าไม่มี
+        if (!po.invoiceNumber) {
+            po.invoiceNumber = generateInvoiceNumber();
+        }
         // loop items เพื่อ update stock
         for (const item of po.items) {
-            const stock = await Stock.findOne({ productId: item.productId });
+            let stock = await Stock.findOne({ productId: item.productId, location: po.location });
 
             if (stock) {
                 // ถ้ามี stock เดิม → update
@@ -99,11 +110,13 @@ export const confirmPurchaseOrder = async (req: Request, res: Response): Promise
                 stock.lastPurchasePrice = item.costPrice;
                 stock.costPrice = item.costPrice;
                 stock.lastRestocked = new Date();
+                stock.batchNumber = item.batchNumber; // เพิ่ม batch number
+                stock.expiryDate = item.expiryDate;   // เพิ่ม expiry date
                 await stock.updateStatus();
                 await stock.save();
             } else {
                 // ถ้ายังไม่มี stock → สร้างใหม่
-                await Stock.create({
+                stock = await Stock.create({
                     productId: item.productId,
                     userId, // ผูกกับ admin/user ที่รับเข้า
                     supplierId: po.supplierId,
@@ -112,20 +125,23 @@ export const confirmPurchaseOrder = async (req: Request, res: Response): Promise
                     costPrice: item.costPrice,
                     salePrice: item.costPrice * 1.2, // markup auto 20% (ตัวอย่าง)
                     location: po.location,
+                    batchNumber: item.batchNumber,
+                    expiryDate: item.expiryDate,
                     lastRestocked: new Date(),
                 });
             }
 
             // สร้าง StockTransaction log
             await StockTransaction.create({
-                stockId: stock?._id,
+                stockId: stock._id,
                 productId: item.productId,
                 type: "RESTOCK",
                 quantity: item.quantity,
                 referenceId: po._id,
                 userId,
                 costPrice: item.costPrice,
-                notes: `นำเข้าสินค้าจาก PO ${po.purchaseOrderNumber}`,
+                notes: `นำเข้าสินค้าจาก PO ${po.purchaseOrderNumber}, Batch: ${item.batchNumber || "N/A"}`,
+                source: "SUPPLIER"
             });
         }
 

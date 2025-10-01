@@ -83,11 +83,34 @@ export const getStockByBarcode = async (req: Request, res: Response): Promise<vo
   }
 };
 
-//อัปเดต Stock (กรณีแก้ไขข้อมูลโดยตรง เช่น threshold, location)
 export const updateStock = async (req: Request, res: Response): Promise<void> => {
   try {
+    const token = req.headers["authorization"]?.split(" ")[1];
+    if (!token) {
+      res.status(401).json({ success: false, message: "No token provided" });
+      return;
+    }
+    const decoded = verifyToken(token);
+    if (typeof decoded === "string" || !("userId" in decoded)) {
+      res.status(401).json({ success: false, message: "Invalid token" });
+      return;
+    }
+
     const { barcode } = req.params;
-    const { quantity, supplier, location, threshold, status } = req.body;
+    const {
+      quantity,
+      supplier,
+      location,
+      purchaseOrderId,
+      threshold,
+      status,
+      notes,
+      costPrice,
+      salePrice,
+      lastPurchasePrice,
+      batchNumber,
+      expiryDate,
+    } = req.body;
 
     const stock = await Stock.findOne({ barcode });
     if (!stock) {
@@ -95,19 +118,51 @@ export const updateStock = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
+    // เก็บค่าเดิมก่อนแก้ไข
+    const oldQuantity = stock.quantity;
+
+    // ✅ ถ้ามีการแก้ไขจำนวน → log Transaction ADJUSTMENT
     if (quantity !== undefined) {
       const parsedQuantity = Number(quantity);
       if (isNaN(parsedQuantity) || parsedQuantity < 0) {
         res.status(400).json({ success: false, message: "Quantity must be non-negative number" });
         return;
       }
+
       stock.quantity = parsedQuantity;
+
+      if (parsedQuantity !== oldQuantity) {
+        const adjustmentTransaction = new StockTransaction({
+          stockId: stock._id,
+          productId: stock.productId,
+          type: "ADJUSTMENT",
+          quantity: parsedQuantity,
+          referenceId: purchaseOrderId,
+          userId: decoded.userId,
+          notes: notes || `ปรับปรุงสต็อกจาก ${oldQuantity} → ${parsedQuantity}`,
+          source: "SELF",
+        });
+        await adjustmentTransaction.save();
+      }
     }
 
+    // ✅ อัพเดท field อื่น ๆ
     if (supplier !== undefined) stock.supplier = supplier;
     if (location !== undefined) stock.location = location;
     if (threshold !== undefined) stock.threshold = threshold;
     if (status !== undefined) stock.status = status;
+    if (notes !== undefined) stock.notes = notes;
+
+    if (costPrice !== undefined) stock.costPrice = Number(costPrice);
+    if (salePrice !== undefined) stock.salePrice = Number(salePrice);
+    if (lastPurchasePrice !== undefined) stock.lastPurchasePrice = Number(lastPurchasePrice);
+
+    if (batchNumber !== undefined) stock.batchNumber = batchNumber;
+    if (expiryDate !== undefined) stock.expiryDate = new Date(expiryDate);
+
+    if (quantity !== undefined && Number(quantity) > 0) {
+      stock.lastRestocked = new Date();
+    }
 
     await stock.updateStatus();
     await stock.save();
@@ -128,7 +183,7 @@ export const updateStock = async (req: Request, res: Response): Promise<void> =>
 export const restockProductByBarcode = async (req: Request, res: Response): Promise<void> => {
   try {
     const { barcode } = req.params;
-    const { quantity, costPrice, userId, purchaseOrderId } = req.body;
+    const { quantity, costPrice, userId, orderId } = req.body;
 
     const stock = await Stock.findOne({ barcode });
     if (!stock) {
@@ -148,7 +203,7 @@ export const restockProductByBarcode = async (req: Request, res: Response): Prom
       productId: stock.productId,
       type: "RESTOCK",
       quantity,
-      referenceId: purchaseOrderId,
+      referenceId: orderId,
       userId,
       costPrice,
       notes: "นำเข้าสินค้าใหม่",
