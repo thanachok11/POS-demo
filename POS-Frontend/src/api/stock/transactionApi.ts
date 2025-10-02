@@ -41,7 +41,7 @@ export const createTransaction = async (
     },
     token: string
 ) => {
-    const res = await axios.post(`${API_BASE_URL}/stock/transactions`, data, {
+    const res = await axios.post(`${API_BASE_URL}/stock/createtransactions`, data, {
         headers: { Authorization: `Bearer ${token}` },
     });
     return res.data;

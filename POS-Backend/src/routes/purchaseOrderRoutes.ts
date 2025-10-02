@@ -5,7 +5,8 @@ import {
     getPurchaseOrderById,
     confirmPurchaseOrder,
     cancelPurchaseOrder,
-    updateQCStatus,   // ✅ เพิ่ม QC
+    updateQCStatus,
+    returnPurchaseOrder,
 } from "../controllers/purchaseOrderController";
 
 const router = Router();
@@ -26,6 +27,7 @@ router.put("/purchase-orders/:id/confirm", confirmPurchaseOrder);
 router.put("/purchase-orders/:id/qc", updateQCStatus);
 
 // ✅ ยกเลิก PO
-router.put("/purchase-orders/:id/cancel", cancelPurchaseOrder);
+router.patch("/purchase-orders/:id/cancel", cancelPurchaseOrder);
+router.patch("/purchase-orders/:id/returnPO", returnPurchaseOrder);
 
 export default router;

@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import PurchaseOrder from "../models/PurchaseOrder";
 import { verifyToken } from "../utils/auth";
 import { generateInvoiceNumber } from "../utils/generateInvoice";
+import StockTransaction from "../models/StockTransaction";
+import Stock from "../models/Stock";
 
 // ✅ สร้าง Purchase Order
 export const createPurchaseOrder = async (req: Request, res: Response): Promise<void> => {
@@ -125,6 +127,7 @@ export const confirmPurchaseOrder = async (req: Request, res: Response): Promise
 };
 
 // ✅ Update QC Status
+// ✅ Update QC Status
 export const updateQCStatus = async (req: Request, res: Response): Promise<void> => {
     try {
         const token = req.header("Authorization")?.split(" ")[1];
@@ -150,9 +153,19 @@ export const updateQCStatus = async (req: Request, res: Response): Promise<void>
 
         po.qcStatus = qcStatus;
         po.updatedBy = decoded.userId;
+
+        // ✅ ถ้า QC ไม่ผ่าน → เปลี่ยน status เป็น "ไม่ผ่าน QC - ส่งคืนสินค้า"
+        if (qcStatus === "ไม่ผ่าน") {
+            po.status = "ไม่ผ่าน QC - ส่งคืนสินค้า";
+        }
+
         await po.save();
 
-        res.status(200).json({ success: true, message: "อัปเดต QC สำเร็จ", data: po });
+        res.status(200).json({
+            success: true,
+            message: "อัปเดต QC สำเร็จ",
+            data: po
+        });
     } catch (error) {
         console.error("Update QC Error:", error);
         res.status(500).json({ success: false, message: "Server error while updating QC" });
@@ -160,9 +173,21 @@ export const updateQCStatus = async (req: Request, res: Response): Promise<void>
 };
 
 // ✅ Cancel PO
-export const cancelPurchaseOrder = async (req: Request, res: Response): Promise<void> => {
+// ✅ คืนสินค้า
+export const returnPurchaseOrder = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
+        const token = req.header("Authorization")?.split(" ")[1];
+        if (!token) {
+            res.status(401).json({ success: false, message: "Unauthorized" });
+            return;
+        }
+
+        const decoded = verifyToken(token);
+        if (typeof decoded === "string" || !("userId" in decoded)) {
+            res.status(401).json({ success: false, message: "Invalid token" });
+            return;
+        }
 
         const po = await PurchaseOrder.findById(id);
         if (!po) {
@@ -170,12 +195,68 @@ export const cancelPurchaseOrder = async (req: Request, res: Response): Promise<
             return;
         }
 
-        if (po.status === "ได้รับสินค้าแล้ว") {
-            res.status(400).json({ success: false, message: "ไม่สามารถยกเลิก PO ที่รับสินค้าแล้วได้" });
+        if (po.status !== "ไม่ผ่าน QC - รอส่งคืนสินค้า") {
+            res.status(400).json({ success: false, message: "PO นี้ไม่สามารถคืนสินค้าได้" });
             return;
         }
 
+        // ✅ สร้าง StockTransaction RETURN
+        for (const item of po.items) {
+            await StockTransaction.create({
+                stockId: item.productId,
+                productId: item.productId,
+                type: "RETURN",
+                quantity: item.quantity,
+                costPrice: item.costPrice,
+                userId: decoded.userId,
+                notes: `คืนสินค้า PO ${po.purchaseOrderNumber}`,
+            });
+        }
+
+        po.status = "ไม่ผ่าน QC - คืนสินค้าแล้ว";
+        po.updatedBy = decoded.userId;
+        await po.save();
+
+        res.status(200).json({ success: true, message: "คืนสินค้าเรียบร้อย", data: po });
+    } catch (error) {
+        console.error("Return PO Error:", error);
+        res.status(500).json({ success: false, message: "Server error while returning PO" });
+    }
+};
+
+
+// ✅ Cancel PO (ใช้ได้เฉพาะตอนยังไม่ Confirm)
+export const cancelPurchaseOrder = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const token = req.header("Authorization")?.split(" ")[1];
+        if (!token) {
+            res.status(401).json({ success: false, message: "Unauthorized, no token" });
+            return;
+        }
+
+        const decoded = verifyToken(token);
+        if (typeof decoded === "string" || !("userId" in decoded)) {
+            res.status(401).json({ success: false, message: "Invalid token" });
+            return;
+        }
+
+        const { id } = req.params;
+        const po = await PurchaseOrder.findById(id);
+
+        if (!po) {
+            res.status(404).json({ success: false, message: "ไม่พบ PurchaseOrder" });
+            return;
+        }
+
+        // ❌ ถ้า PO ถูก confirm แล้ว → ห้ามยกเลิก
+        if (po.status !== "รอดำเนินการ") {
+            res.status(400).json({ success: false, message: "ไม่สามารถยกเลิก PO ที่ได้รับสินค้าแล้วหรืออยู่ในขั้นตอน QC ได้" });
+            return;
+        }
+
+        // ✅ ยกเลิกได้เฉพาะ "รอดำเนินการ"
         po.status = "ยกเลิก";
+        po.updatedBy = decoded.userId;
         await po.save();
 
         res.status(200).json({ success: true, message: "ยกเลิก PO สำเร็จ", data: po });
@@ -184,3 +265,4 @@ export const cancelPurchaseOrder = async (req: Request, res: Response): Promise<
         res.status(500).json({ success: false, message: "Server error while cancelling PO" });
     }
 };
+

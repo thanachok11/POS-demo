@@ -1,133 +1,218 @@
-.order-container {
-    max-width: 900px;
-    margin: 20px auto;
-    margin-top: 70px;
+/* =============================
+   Purchase Order Page (Modern Clean UI)
+============================= */
+
+/* Container */
+.po-display {
     padding: 20px;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.1);
+    background: #f8fafc;
+    /* light gray bg */
+    min-height: 100vh;
+    font-family: "Segoe UI", "Prompt", sans-serif;
+    color: #1e293b;
+    /* slate-800 */
 }
 
-.order-title {
-    font-size: 24px;
-    text-align: center;
-    color: #6c5ce7;
-    margin-bottom: 20px;
+.po-container {
+    max-width: 1100px;
+    margin: 0 auto;
 }
 
-.order-list {
+/* Header */
+.po-header-wrapper {
     display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.order-card {
-    background: #fff;
-    padding: 1.5rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.1);
-    transition: 0.3s ease;
-}
-
-
-.order-card-header {
-    display: flex;
+    align-items: center;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.8rem;
+    margin-bottom: 24px;
 }
 
-.order-status {
-    padding: 0.4rem 0.8rem;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: bold;
+.po-header {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #0f172a;
+    /* slate-900 */
+}
+
+/* States */
+.po-loading,
+.po-error,
+.po-empty {
     text-align: center;
+    font-size: 1rem;
+    color: #475569;
+    margin-top: 20px;
 }
 
-/* สีสถานะ */
-.status-รอการชำระเงิน {
-    background-color: #fff3cd;
-    color: #856404;
+/* Card List */
+.po-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
 }
 
-.status-ชำระเงินแล้ว {
-    background-color: #d4edda;
-    color: #155724;
+/* Card */
+.po-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.status-ยกเลิกรายการ {
-    background-color: #f8d7da;
-    color: #721c24;
+.po-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
 }
 
-.order-actions {
-    margin-top: 1rem;
+.po-card-header {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: space-between;
+    margin-bottom: 12px;
 }
 
-.order-actions select {
-    padding: 0.4rem 0.6rem;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 0.9rem;
-}
-
-.order-loading,
-.order-error,
-.order-empty {
-    text-align: center;
+.po-card-header h2 {
     font-size: 1.2rem;
-    color: #888;
+    font-weight: 600;
+    color: #1e293b;
 }
 
-/* ✅ เพิ่มสไตล์ใหม่สำหรับรายการสินค้า */
-.order-items {
-    margin: 12px 0;
-    background: #f9f9f9;
-    padding: 10px 14px;
-    border-radius: 8px;
-    border-left: 4px solid #6c5ce7;
-}
-
-.order-items h4 {
-    margin-bottom: 6px;
-    color: #333;
-    font-size: 1rem;
-}
-
-.order-items ul {
-    list-style: disc;
-    padding-left: 20px;
-    margin: 0;
-}
-
-.order-items li {
-    margin-bottom: 4px;
-    color: #555;
-    font-size: 0.95rem;
-}
-
-/* ✅ เพิ่มเมื่อกำลังอัปเดต */
-.updating-text {
-    font-size: 0.85rem;
-    color: #999;
-}
-
-.print-button {
-    background-color: #6c5ce7;
+/* Status Badge */
+.po-status {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
     color: white;
-    border: none;
-    padding: 0.4rem 0.8rem;
-    margin-top: 20px;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
 }
 
-.print-button:hover {
-    background-color: #5a4cd4;
+/* แยกสีแต่ละสถานะ */
+.po-status.pending {
+    background-color: #3b82f6;
+    /* blue */
+}
+
+.po-status.received {
+    background-color: #22c55e;
+    /* green */
+}
+
+.po-status.cancelled {
+    background-color: #ef4444;
+    /* red */
+}
+
+.po-status.qc-pending-return {
+    background-color: #f97316;
+    /* orange */
+}
+
+.po-status.qc-returned {
+    background-color: #a855f7;
+    /* purple */
+}
+
+/* Info Section */
+.po-card p {
+    margin: 4px 0;
+    font-size: 0.95rem;
+    color: #334155;
+}
+
+.po-items {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.po-items h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.po-items ul {
+    margin: 0;
+    padding: 0 0 0 16px;
+}
+
+.po-items li {
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+    color: #475569;
+}
+
+/* Actions */
+.po-actions {
+    margin-top: 14px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Buttons */
+.po-actions button,
+.po-actions select {
+    font-size: 0.9rem;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+/* Confirm */
+.po-actions button:not(.po-cancel-button):not(.po-return-button) {
+    background: #22c55e;
+    /* green */
+    color: white;
+}
+
+.po-actions button:not(.po-cancel-button):not(.po-return-button):hover {
+    background: #16a34a;
+}
+
+/* Cancel */
+.po-cancel-button {
+    background: #ef4444;
+    /* red */
+    color: white;
+}
+
+.po-cancel-button:hover {
+    background: #dc2626;
+}
+
+/* Return */
+.po-return-button {
+    background: #f97316;
+    /* orange */
+    color: white;
+}
+
+.po-return-button:hover {
+    background: #ea580c;
+}
+
+/* Disabled state */
+.po-actions button:disabled,
+.po-actions select:disabled {
+    background: #cbd5e1 !important;
+    /* gray */
+    color: #475569 !important;
+    cursor: not-allowed;
+}
+
+/* Dropdown QC */
+.po-actions select {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #1e293b;
+}
+
+.po-actions select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
 }

@@ -39,7 +39,6 @@ const PurchaseOrderItemSchema = new Schema<IPurchaseOrderItem>(
     },
     { _id: false }
 );
-
 const PurchaseOrderSchema = new Schema<IPurchaseOrder>(
     {
         purchaseOrderNumber: { type: String, unique: true, required: true },
@@ -49,7 +48,14 @@ const PurchaseOrderSchema = new Schema<IPurchaseOrder>(
         orderDate: { type: Date, default: Date.now },
         status: {
             type: String,
-            enum: ["รอดำเนินการ", "ได้รับสินค้าแล้ว", "ยกเลิก"],
+            enum: [
+                "รอดำเนินการ",
+                "ได้รับสินค้าแล้ว",
+                "QC ผ่าน",
+                "ไม่ผ่าน QC - รอส่งคืนสินค้า",
+                "ไม่ผ่าน QC - คืนสินค้าแล้ว",
+                "ยกเลิก"
+            ],
             default: "รอดำเนินการ",
         },
         qcStatus: {

@@ -338,6 +338,7 @@ const CreatePurchaseOrderPage: React.FC = () => {
                                     setShowSuccessPopup(false);
                                     navigate("/purchase-orders");
                                 }}
+                                className="popup-close-btn"
                             >
                                 ปิด
                             </button>
