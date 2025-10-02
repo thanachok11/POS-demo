@@ -10,7 +10,7 @@ import Sidebar from "./components/layout/Sidebar";
 import Dashboard from "./components/pages/Dashboard";
 import ProductList from "./components/product/ProductList";
 import StockPage from "./components/stock/StockPage";
-import CreateOrder from "./components/stock/CreateOrderPage";
+import CreateOrder from "./components/purchaseOrder/CreatePurchaseOrderPage";
 import SupplierList from "./components/suppliers/SupplierList";
 import UserSettings from "./components/pages/UserSettings";
 import ReceiptPage from "./components/receipt/ReceiptPage";
@@ -19,8 +19,12 @@ import Search from "./components/product/BarcodeSearch";
 import SalePage from "./components/pages/Dashboard";
 import PaymentPage from "./components/payment/PaymentPage";
 import EmployeeList from "./components/aboutStore/EmployeePage";
-import OrderPage from "./components/stock/OrderPage";
+import OrderPage from "./components/purchaseOrder/PurchaseOrderPage";
 import EmployeePage from "./components/pages/Employee/Dashboard-employee";
+import StockTransaction from "./components/stock/StockTransaction";
+import ExpiredPage from "./components/stock/ExpiredPage";
+import BarcodePage from "./components/barcode/BarcodeStockPage";
+
 import { jwtDecode } from "jwt-decode";
 import { renewToken } from "./api/auth/auth";
 
@@ -186,8 +190,12 @@ const App: React.FC = () => {
           <Route path="/employee-dashboard" element={<EmployeePage />} />
           <Route path="/shop" element={<ProductList isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />} />
           <Route path="/stocks" element={<StockPage />} />
+          <Route path="/stockTransaction" element={<StockTransaction />} />
           <Route path="/receipts/paymentId/:paymentId" element={<ReceiptDetail />} />
           <Route path="/createOrder" element={<CreateOrder />} />
+          <Route path="/expired" element={<ExpiredPage />} />
+          <Route path="/barcode" element={<BarcodePage />} />
+
         </Routes>
       </div>
     </div>

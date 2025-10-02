@@ -19,24 +19,34 @@ interface AddProductModalProps {
 
 const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSuccess }) => {
     const [suppliers, setSuppliers] = useState<{ companyName: string; _id: string }[]>([]);
+    const [categories, setCategories] = useState<any[]>([]);
+    const [warehouses, setWarehouses] = useState<any[]>([]);
+
     const [productData, setProductData] = useState({
         name: "",
         description: "",
-        price: "",
         category: "",
         barcode: "",
     });
+
     const [stockData, setStockData] = useState({
-        quantity: "",
-        supplier: "",
-        supplierCompany: "",
-        supplierId: "",
-        location: "",
-        threshold: "",
-        customSupplier: "",
+        quantity: 0,              // จำนวนสินค้า
+        threshold: 5,             // สต็อกขั้นต่ำ
+        costPrice: 0,             // ราคาทุน
+        salePrice: 0,             // ราคาขาย
+        lastPurchasePrice: 0,     // ราคาซื้อล่าสุด
+        units: [] as { name: string; quantity: number }[], // multi-unit conversion
+        barcode: "",              // บาร์โค้ด
+        batchNumber: "",          // เลขล็อตสินค้า
+        expiryDate: "",           // วันหมดอายุ
+        notes: "",                // หมายเหตุ
+        isActive: true,           // ใช้งานอยู่หรือไม่
+        supplierId: "",           // อ้างอิง Supplier
+        supplierName: "",         // ชื่อ Supplier (เพื่อโชว์)
+        location: "",             // คลังสินค้า
     });
-    const [categories, setCategories] = useState<any[]>([]);
-    const [warehouses, setWarehouses] = useState<any[]>([]);
+
+
     const [image, setImage] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -77,8 +87,8 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
         })();
     }, []);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const { name, value, type } = e.target;
 
         if (name === "supplierCompany") {
             const selected = suppliers.find((s) => s.companyName === value);
@@ -90,8 +100,11 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
             }));
         } else if (name in productData) {
             setProductData((prev) => ({ ...prev, [name]: value }));
-        } else {
-            setStockData((prev) => ({ ...prev, [name]: value }));
+        } else if (name in stockData) {
+            setStockData((prev) => ({
+                ...prev,
+                [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
+            }));
         }
     };
 
@@ -113,7 +126,6 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
         if (
             !productData.name ||
             !productData.description ||
-            !productData.price ||
             !productData.category ||
             !image ||
             !stockData.quantity ||
@@ -129,19 +141,32 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
         setErrorMessage("");
 
         const formData = new FormData();
-        Object.entries(productData).forEach(([k, v]) => formData.append(k, v));
+        // ✅ Product fields
+        Object.entries(productData).forEach(([k, v]) => {
+            if (v !== undefined && v !== null) {
+                formData.append(k, String(v));
+            }
+        });
+
+        // ✅ Image
         formData.append("image", image);
-        Object.entries(stockData).forEach(([k, v]) => formData.append(k, v));
+
+        // ✅ Stock fields
+        Object.entries(stockData).forEach(([k, v]) => {
+            if (k === "units" && Array.isArray(v)) {
+                formData.append("units", JSON.stringify(v)); // serialize array
+            } else {
+                formData.append(k, String(v));
+            }
+        });
 
         try {
             const response = await uploadProduct(formData, token);
             setShowSuccessPopup(true);
 
-            // ✅ เรียก callback ส่งข้อมูล product ที่เพิ่มกลับไป
             if (response?.data) {
                 onSuccess(response.data);
             }
-
         } catch (err) {
             console.error(err);
             setShowErrorPopup(true);
@@ -149,6 +174,29 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
             setLoading(false);
         }
     };
+
+    // เพิ่มหน่วยสินค้า
+    const addUnit = () => {
+        setStockData((prev) => ({
+            ...prev,
+            units: [...(prev.units || []), { name: "", quantity: 1 }],
+        }));
+    };
+
+
+    const removeUnit = (index: number) => {
+        setStockData((prev) => ({
+            ...prev,
+            units: prev.units.filter((_, i) => i !== index),
+        }));
+    };
+
+    const handleUnitChange = (index: number, field: "name" | "quantity", value: any) => {
+        const newUnits = [...stockData.units];
+        newUnits[index] = { ...newUnits[index], [field]: value };
+        setStockData({ ...stockData, units: newUnits });
+    };
+
 
     if (!isOpen) return null;
 
@@ -166,33 +214,11 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
                         <h3>สินค้า</h3>
                         <div className="add-product-form-group">
                             <label className="add-product-form-label">ชื่อสินค้า:</label>
-                            <input
-                                type="text"
-                                name="name"
-                                value={productData.name}
-                                onChange={handleInputChange}
-                                className="add-product-form-input"
-                            />
+                            <input type="text" name="name" value={productData.name} onChange={handleInputChange} className="add-product-form-input" required />
                         </div>
                         <div className="add-product-form-group">
                             <label className="add-product-form-label">รายละเอียด:</label>
-                            <input
-                                type="text"
-                                name="description"
-                                value={productData.description}
-                                onChange={handleInputChange}
-                                className="add-product-form-input"
-                            />
-                        </div>
-                        <div className="add-product-form-group">
-                            <label className="add-product-form-label">ราคา:</label>
-                            <input
-                                type="number"
-                                name="price"
-                                value={productData.price}
-                                onChange={handleInputChange}
-                                className="add-product-form-input"
-                            />
+                            <input type="text" name="description" value={productData.description} onChange={handleInputChange} className="add-product-form-input" required />
                         </div>
                         <div className="add-product-form-group">
                             <label className="add-product-form-label">หมวดหมู่:</label>
@@ -204,6 +230,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
                                     else setProductData({ ...productData, category: e.target.value });
                                 }}
                                 className="add-product-form-input"
+                                required
                             >
                                 <option value="">-- เลือกหมวดหมู่ --</option>
                                 {categories.map((c) => (
@@ -222,20 +249,21 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
                                 value={productData.barcode}
                                 onChange={handleInputChange}
                                 className="add-product-form-input"
+                                placeholder="ถ้าไม่มี barcode ระบบจะสร้างให้"
                             />
                         </div>
                         <div className="add-product-form-group">
                             <label className="add-product-form-label">รูปภาพ:</label>
-                            <input type="file" onChange={handleImageChange} className="add-product-form-input" />
-                            {imagePreview && (
-                                <img src={imagePreview} alt="preview" className="add-product-image-preview" />
-                            )}
+                            <input type="file" onChange={handleImageChange} className="add-product-form-input" accept="image/*" required />
+                            {imagePreview && <img src={imagePreview} alt="preview" className="add-product-image-preview" />}
                         </div>
                     </div>
 
                     {/* คอลัมน์สต็อก */}
+                    {/* คอลัมน์สต็อก */}
                     <div className="add-product-form-column">
                         <h3>สต็อกสินค้า</h3>
+
                         <div className="add-product-form-group">
                             <label className="add-product-form-label">จำนวน:</label>
                             <input
@@ -244,24 +272,93 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
                                 value={stockData.quantity}
                                 onChange={handleInputChange}
                                 className="add-product-form-input"
+                                min="0"
+                                required
                             />
                         </div>
+
+                        <div className="add-product-form-group">
+                            <label className="add-product-form-label">ราคาทุน (Cost Price):</label>
+                            <input
+                                type="number"
+                                name="costPrice"
+                                value={stockData.costPrice}
+                                onChange={handleInputChange}
+                                className="add-product-form-input"
+                                min="0"
+                            />
+                        </div>
+
+                        <div className="add-product-form-group">
+                            <label className="add-product-form-label">ราคาขาย (Sale Price):</label>
+                            <input
+                                type="number"
+                                name="salePrice"
+                                value={stockData.salePrice}
+                                onChange={handleInputChange}
+                                className="add-product-form-input"
+                                min="0"
+                            />
+                        </div>
+
+                        {/* ✅ Units (multi-unit conversion) */}
+                        <div className="add-product-form-group">
+                            <label className="add-product-form-label">หน่วยสินค้า (Units):</label>
+                            {stockData.units?.map((u, index) => (
+                                <div key={index} className="unit-row">
+                                    <input
+                                        type="text"
+                                        placeholder="ชื่อหน่วย เช่น กล่อง"
+                                        value={u.name}
+                                        onChange={(e) => handleUnitChange(index, "name", e.target.value)}
+                                        className="add-product-form-input small"
+                                    />
+                                    <input
+                                        type="number"
+                                        placeholder="จำนวน เช่น 12"
+                                        value={u.quantity}
+                                        onChange={(e) =>
+                                            handleUnitChange(index, "quantity", Number(e.target.value))
+                                        }
+                                        className="add-product-form-input small"
+                                        min="1"
+                                    />
+                                    <button type="button" onClick={() => removeUnit(index)} className="remove-unit-btn">
+                                        ✖
+                                    </button>
+                                </div>
+                            ))}
+                            <button type="button" onClick={addUnit} className="add-unit-btn">
+                                เพิ่มหน่วย
+                            </button>
+                        </div>
+
                         <div className="add-product-form-group">
                             <label className="add-product-form-label">ผู้จำหน่าย:</label>
                             <select
-                                name="supplierCompany"
-                                value={stockData.supplierCompany}
-                                onChange={handleInputChange}
+                                name="supplierId"
+                                value={stockData.supplierId}
+                                onChange={(e) => {
+                                    const supplier = suppliers.find(s => s._id === e.target.value);
+                                    setStockData({
+                                        ...stockData,
+                                        supplierId: e.target.value,
+                                        supplierName: supplier?.companyName || "",
+                                    });
+                                }}
                                 className="add-product-form-input"
+                                required
                             >
                                 <option value="">-- เลือกผู้จำหน่าย --</option>
-                                {suppliers.map((s, i) => (
-                                    <option key={i} value={s.companyName}>
+                                {suppliers.map((s) => (
+                                    <option key={s._id} value={s._id}>
                                         {s.companyName}
                                     </option>
                                 ))}
                             </select>
+
                         </div>
+
                         <div className="add-product-form-group">
                             <label className="add-product-form-label">คลังจัดเก็บ:</label>
                             <select
@@ -272,6 +369,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
                                     else setStockData({ ...stockData, location: e.target.value });
                                 }}
                                 className="add-product-form-input"
+                                required
                             >
                                 <option value="">-- เลือกคลัง --</option>
                                 {warehouses.map((w) => (
@@ -282,6 +380,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
                                 <option value="custom">➕ เพิ่มคลังใหม่</option>
                             </select>
                         </div>
+
                         <div className="add-product-form-group">
                             <label className="add-product-form-label">ค่าขั้นต่ำสต็อก:</label>
                             <input
@@ -290,9 +389,58 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
                                 value={stockData.threshold}
                                 onChange={handleInputChange}
                                 className="add-product-form-input"
+                                min="0"
                             />
                         </div>
+
+                        <div className="add-product-form-group">
+                            <label className="add-product-form-label">Batch Number:</label>
+                            <input
+                                type="text"
+                                name="batchNumber"
+                                value={stockData.batchNumber}
+                                onChange={handleInputChange}
+                                className="add-product-form-input"
+                                placeholder="เช่น LOT2025-001"
+                            />
+                        </div>
+
+                        <div className="add-product-form-group">
+                            <label className="add-product-form-label">วันหมดอายุ:</label>
+                            <input
+                                type="date"
+                                name="expiryDate"
+                                value={stockData.expiryDate}
+                                onChange={handleInputChange}
+                                className="add-product-form-input"
+                            />
+                        </div>
+
+                        <div className="add-product-form-group">
+                            <label className="add-product-form-label">บันทึกเพิ่มเติม:</label>
+                            <textarea
+                                name="notes"
+                                value={stockData.notes}
+                                onChange={handleInputChange}
+                                className="add-product-form-input"
+                                rows={3}
+                                placeholder="รายละเอียดเพิ่มเติม เช่น วิธีจัดเก็บ"
+                            />
+                        </div>
+
+                        <div className="add-product-form-group checkbox">
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    name="isActive"
+                                    checked={stockData.isActive}
+                                    onChange={handleInputChange}
+                                />
+                                ใช้งานอยู่ (Active)
+                            </label>
+                        </div>
                     </div>
+
 
                     <div className="add-product-form-actions">
                         <button type="submit" disabled={loading} className="add-product-submit-btn">
@@ -312,8 +460,8 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
                             <button
                                 onClick={() => {
                                     setShowSuccessPopup(false);
-                                    onClose();       // ✅ ปิด modal
-                                    navigate("/stocks"); // ✅ ไปหน้า stock
+                                    onClose();
+                                    navigate("/stocks");
                                 }}
                                 className="popup-close-btn"
                             >
@@ -323,12 +471,9 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
                     </div>
                 )}
 
-
-                {/* ✅ Error Popup */}
                 {showErrorPopup && (
                     <div className="product-popup-error">
                         <div className="product-popup-content">
-
                             <FontAwesomeIcon icon={faExclamationCircle} className="product-icon-error" />
                             <h3 className="product-popup-title">{errormessage || "เกิดข้อผิดพลาดในการเพิ่มสินค้า"}</h3>
 

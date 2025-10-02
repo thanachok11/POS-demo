@@ -123,7 +123,7 @@
 }
 
 .employee-table thead {
-    background: #f3f4f6;
+    background: #dddddd;
 }
 
 .employee-table th {
@@ -230,4 +230,3 @@
     z-index: 2000;
     animation: fadeIn 0.25s ease-in-out;
 }
-

@@ -9,13 +9,14 @@ import Stock from "./routes/stockRoutes";
 import orderRoutes from './routes/orderRoutes';
 import testRoute from './routes/testRoutes';
 import Supplier from "./routes/supplierRoutes";
+import StockTransaction from "./routes/stockTransactionRoutes";
 import employeeRouter from './routes/employeeRoutes'; // เชื่อมต่อ router ของพนักงาน
 import createPayment from './routes/paymentRouter';
 import receiptRoutes from "./routes/receiptRoutes";
 import warehouseRoutes from "./routes/warehouseRoutes";
 import categoryRoutes from "./routes/categoryRoutes";
+import purchaseOrderRouter from "./routes/purchaseOrderRoutes";
 import cors from "cors";
-
 
 
 dotenv.config();
@@ -123,12 +124,15 @@ app.use("/api/category", categoryRoutes);
 app.use("/api/product", uploadRoutes);
 app.use("/api/auth", authRoutes);  // ใช้เพียงเส้นทางนี้
 app.use("/api/stocks", Stock);
-app.use('/api/orders', orderRoutes);
+app.use('/api/', orderRoutes);
 app.use('/api/suppliers', Supplier)
 app.use('/api/employee', employeeRouter);
 app.use('/api/payment', createPayment);
 app.use("/api/receipts", receiptRoutes);
 app.use("/api/warehouses", warehouseRoutes);
+app.use("/api/stock", StockTransaction);
+app.use("/api/",purchaseOrderRouter);
+
 
 // เริ่มเซิร์ฟเวอร์
 app.listen(PORT, '0.0.0.0', () => {

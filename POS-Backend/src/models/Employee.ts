@@ -9,7 +9,7 @@ export interface IEmployee extends Document {
   password: string;
   phoneNumber: string;
   position: string;
-  adminId: mongoose.Schema.Types.ObjectId; // ✅ เปลี่ยนจาก managerId
+  adminId: mongoose.Schema.Types.ObjectId; //  เปลี่ยนจาก managerId
   role: 'employee';
   status: 'active' | 'inactive';
   profile_img?: string;
@@ -55,7 +55,7 @@ const employeeSchema = new Schema<IEmployee>(
     },
     adminId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User', // ✅ ชัดเจนว่าอ้างถึง admin
+      ref: 'User', 
       required: true,
     },
     status: {

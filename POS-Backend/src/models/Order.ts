@@ -1,59 +1,47 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-interface IOrderItem {
-  productId: mongoose.Schema.Types.ObjectId;
-  productName: string;
-  quantity: number;
-}
-
 export interface IOrder extends Document {
-  userId: mongoose.Schema.Types.ObjectId;
-  supplierId: mongoose.Schema.Types.ObjectId;
-  supplierCompany: string;
-  location: string;
-  orderDate: Date;
-  status:
-  | "รอการชำระเงิน"
-  | "ชำระเงินแล้ว"
-  | "ยกเลิกรายการ"
-  | "กำลังเตรียมจัดส่ง"
-  | "จัดส่งแล้ว";
-  items: IOrderItem[];
+  saleId: string;                // รหัสอ้างอิงการขาย (string ไว้แสดงในใบเสร็จ เช่น timestamp หรือ running no.)
+  userId: mongoose.Types.ObjectId; // พนักงานที่ขาย
+  items: {
+    productId: mongoose.Types.ObjectId;
+    barcode: string;
+    name: string;
+    price: number;
+    quantity: number;
+    subtotal: number;
+  }[];
+  paymentMethod: "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code";
+  amount: number;          // ราคารวม
+  amountReceived: number;  // จำนวนเงินที่ลูกค้าจ่ายมา
+  change: number;          // เงินทอน
   createdAt: Date;
-  updatedAt: Date;
 }
 
-const OrderItemSchema = new Schema<IOrderItem>(
+const OrderSchema: Schema = new Schema<IOrder>(
   {
-    productId: { type: Schema.Types.ObjectId, ref: "Product", required: true },
-    productName: { type: String, required: true },
-    quantity: { type: Number, required: true },
-  },
-  { _id: false } // ไม่ต้องสร้าง _id สำหรับ item แต่ละอัน
-);
-
-const OrderSchema = new Schema<IOrder>(
-  {
+    saleId: { type: String, required: true },
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    supplierId: { type: Schema.Types.ObjectId, ref: "Supplier", required: true },
-    supplierCompany: { type: String, required: true },
-    location: { type: String, required: true },
-    orderDate: { type: Date, default: Date.now },
-    status: {
+    items: [
+      {
+        productId: { type: Schema.Types.ObjectId, ref: "Product", required: true },
+        barcode: { type: String, required: true },
+        name: { type: String, required: true },
+        price: { type: Number, required: true },
+        quantity: { type: Number, required: true },
+        subtotal: { type: Number, required: true },
+      },
+    ],
+    paymentMethod: {
       type: String,
-      enum: [
-        "รอการชำระเงิน",
-        "ชำระเงินแล้ว",
-        "ยกเลิกรายการ",
-        "กำลังเตรียมจัดส่ง",
-        "จัดส่งแล้ว",
-      ],
-      default: "รอการชำระเงิน",
+      enum: ["เงินสด", "โอนเงิน", "บัตรเครดิต", "QR Code"],
+      required: true,
     },
-    items: { type: [OrderItemSchema], required: true },
+    amount: { type: Number, required: true },
+    amountReceived: { type: Number, required: true },
+    change: { type: Number, required: true },
   },
   { timestamps: true }
 );
 
-const Order = mongoose.model<IOrder>("Order", OrderSchema);
-export default Order;
+export default mongoose.model<IOrder>("Order", OrderSchema);

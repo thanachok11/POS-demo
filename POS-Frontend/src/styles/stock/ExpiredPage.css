@@ -1,0 +1,152 @@
+.expired-container {
+    padding: 20px;
+}
+
+.expired-header-wrapper {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.expired-header {
+    font-size: 24px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #e63e3e;
+}
+
+.expired-loading {
+    color: #2563eb;
+    /* blue */
+}
+
+.expired-error {
+    color: #dc2626;
+    /* red */
+}
+
+.expired-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.expired-search-container {
+    flex: 1;
+}
+
+.expired-search-input {
+    width: 95%;
+    padding: 8px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.expired-items-per-page {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.expired-items-per-page select {
+    padding: 6px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.expired-table-wrapper {
+    margin-top: 20px;
+}
+
+.expired-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.expired-pagination button {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.expired-pagination button:hover:not(:disabled) {
+    background: #e5e7eb;
+}
+
+.expired-pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
+.expired-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    background: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* thead */
+.expired-table thead {
+    background-color: #dddddd;
+    /* เทาอ่อน */
+}
+
+.expired-table thead th {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    /* text-gray-700 */
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+/* tbody */
+.expired-table tbody td {
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 20px;
+}
+
+/* รูปสินค้า */
+.expired-img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+/* Highlight Rows */
+.expired-row {
+    background-color: #fee2e2;
+    /* แดงอ่อน */
+}
+
+.near-expired-row {
+    background-color: #fef3c7;
+    /* เหลืองอ่อน */
+}
+
+.low-stock-row {
+    background-color: #dbeafe;
+    /* ฟ้าอ่อน */
+}

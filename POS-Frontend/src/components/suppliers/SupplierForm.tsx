@@ -20,7 +20,7 @@ interface Supplier {
 interface SupplierFormProps {
     supplier: Supplier | null;
     onClose: () => void;
-    onSave: () => void;
+    onSave: (success: boolean, message: string) => void; // ✅ ส่งผลลัพธ์กลับ parent
 }
 
 // ✅ URL dataset ล่าสุด
@@ -62,13 +62,12 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
     const [districts, setDistricts] = useState<any[]>([]);
     const [subdistricts, setSubdistricts] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState("");
 
     // sync form เมื่อเปิด modal
     useEffect(() => {
         if (!supplier) return;
         setFormData({
-            id: (supplier as any)._id || supplier.id,   // ✅ รองรับทั้ง _id และ id
+            id: (supplier as any)._id || supplier.id,
             companyName: supplier.companyName || "",
             phoneNumber: supplier.phoneNumber || "",
             email: supplier.email || "",
@@ -79,9 +78,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
             subDistrict: supplier.subDistrict || "",
             postalCode: supplier.postalCode || "",
         });
-        console.log("📌 Edit supplier:", supplier);
     }, [supplier]);
-
 
     // โหลด country list
     useEffect(() => {
@@ -92,8 +89,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
                 );
                 const list = res.data.map((c: any) => c.name.common).sort();
                 setCountries(list);
-            } catch (e) {
-            }
+            } catch (e) { }
         };
         fetchCountries();
     }, []);
@@ -108,8 +104,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
             try {
                 const res = await axios.get(PROVINCE_URL);
                 setStates(res.data);
-            } catch (e) {
-            }
+            } catch (e) { }
         })();
     }, [formData.country]);
 
@@ -135,7 +130,6 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
     }, [formData.stateOrProvince, states]);
 
     // โหลดตำบล
-    // โหลดตำบล
     useEffect(() => {
         if (!formData.district || districts.length === 0) return;
         const selectedDistrict = districts.find((d: any) =>
@@ -147,7 +141,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
             try {
                 const res = await axios.get(SUBDISTRICT_URL);
                 const tambons = res.data.filter(
-                    (t: any) => Number(t.district_id) === Number(selectedDistrict.id) // ✅ fix ตรงนี้
+                    (t: any) => Number(t.district_id) === Number(selectedDistrict.id)
                 );
                 setSubdistricts(tambons);
             } catch (e) {
@@ -156,14 +150,12 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
         })();
     }, [formData.district, districts]);
 
-
     // ตั้งรหัสไปรษณีย์ auto
     useEffect(() => {
         if (!formData.subDistrict || subdistricts.length === 0) return;
         const selectedSub = subdistricts.find((s: any) =>
             matchByName(s, formData.subDistrict)
         );
-        console.log("📌 Selected subdistrict:", selectedSub);
         if (selectedSub) {
             setFormData((prev) => ({
                 ...prev,
@@ -215,38 +207,38 @@ const SupplierForm: React.FC<SupplierFormProps> = ({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        setMessage("");
 
         try {
             const token = localStorage.getItem("token");
             if (!token) {
-                setMessage("❌ No token found");
+                onSave(false, "❌ No token found");
+                onClose(); // ปิด modal ทันที
                 return;
             }
 
             if (formData.id) {
                 await updateSupplier(formData.id, formData, token);
-                setMessage("✅ แก้ไขซัพพลายเออร์สำเร็จ!");
+                onSave(true, "✅ แก้ไขซัพพลายเออร์สำเร็จ!");
             } else {
                 await addSupplier(formData, token);
-                setMessage("✅ เพิ่มซัพพลายเออร์สำเร็จ!");
+                onSave(true, "✅ เพิ่มซัพพลายเออร์สำเร็จ!");
             }
-
-            setTimeout(() => { onSave(); onClose(); }, 800);
         } catch (error) {
-            setMessage("❌ เกิดข้อผิดพลาดในการบันทึกซัพพลายเออร์");
             console.error(error);
+            onSave(false, "❌ เกิดข้อผิดพลาดในการบันทึกซัพพลายเออร์");
         } finally {
             setLoading(false);
+            onClose(); // ✅ ปิด modal เสมอ (ทั้ง success/error)
         }
     };
+
+
 
     return (
         <div className="supplier-form-container">
             <h2 className="supplier-form-title">
                 {supplier ? "แก้ไขซัพพลายเออร์" : "เพิ่มซัพพลายเออร์"}
             </h2>
-            {message && <p className="supplier-form-message">{message}</p>}
 
             <form onSubmit={handleSubmit} className="supplier-form">
                 <input

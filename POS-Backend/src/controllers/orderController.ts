@@ -88,160 +88,48 @@ export const getOrderById = async (req: Request, res: Response): Promise<void> =
 };
 
 export const createOrder = async (req: Request, res: Response): Promise<void> => {
-  const { items, location, supplierCompany, supplierId } = req.body;
-
-  // ตรวจสอบ token
-  const token = req.headers.authorization?.split(" ")[1];
-  if (!token) {
-    res.status(403).json({ message: "กรุณาเข้าสู่ระบบก่อน" });
-    return;
-  }
-
-  if (!Array.isArray(items) || items.length === 0) {
-    res.status(400).json({ success: false, message: "Order ไม่มีรายการสินค้า" });
-    return;
-  }
-
   try {
-    const decoded = verifyToken(token);
+    const { saleId, userId, items, paymentMethod, amount, amountReceived, change } = req.body;
 
-    if (typeof decoded !== "string" && "userId" in decoded) {
-      const decodedToken = decoded as jwt.JwtPayload;
+    // 1. สร้าง Order
+    const order = await Order.create({
+      saleId,
+      userId,
+      items,
+      paymentMethod,
+      amount,
+      amountReceived,
+      change,
+    });
 
-      const user = await User.findById(decodedToken.userId);
-      if (!user) {
-        res.status(404).json({ success: false, message: "User not found" });
-        return;
+    // 2. ลดสต็อก + log
+    for (const item of items) {
+      const stock = await Stock.findOne({ barcode: item.barcode });
+      if (!stock) continue;
+
+      if (stock.quantity < item.quantity) {
+        throw new Error(`สินค้า ${item.name} ไม่พอขาย (คงเหลือ ${stock.quantity})`);
       }
 
-      // ตรวจสอบสินค้าแต่ละรายการใน items
-      // map items เป็น array ที่เก็บข้อมูล productId, productName, quantity
-      const processedItems = [];
-      for (const item of items) {
-        const product = await Product.findById(item.productId);
-        if (!product) {
-          res.status(404).json({ success: false, message: `Product ไม่พบ id: ${item.productId}` });
-          return;
-        }
+      stock.quantity -= item.quantity;
+      await stock.updateStatus();
+      await stock.save();
 
-        if (!item.quantity || item.quantity <= 0) {
-          res.status(400).json({ success: false, message: `จำนวนสินค้าไม่ถูกต้องสำหรับ id: ${item.productId}` });
-          return;
-        }
-
-        processedItems.push({
-          productId: product._id,
-          productName: product.name,
-          quantity: item.quantity,
-        });
-      }
-
-      // สร้าง order ใหม่
-      const newOrder = new Order({
-        userId: user._id,
-        supplierId,
-        supplierCompany,
-        location,
-        items: processedItems,  // ใส่ array รายการสินค้า
-        status: "รอการชำระเงิน",
-        orderDate: new Date(),
+      await StockTransaction.create({
+        stockId: stock._id,
+        productId: stock.productId,
+        type: "SALE",
+        quantity: item.quantity,
+        referenceId: order._id, // ✅ ใช้ ObjectId ของ Order
+        userId,
+        salePrice: item.price,
+        notes: `ขายสินค้าออก (Order ${saleId})`,
       });
-
-      await newOrder.save();
-
-      res.status(201).json({
-        success: true,
-        message: "Order created successfully",
-        order: newOrder,
-      });
-    } else {
-      res.status(401).json({ message: "Token payload is invalid" });
     }
-  } catch (error) {
-    console.error("Create order error:", error);
-    res.status(401).json({ message: "Invalid or expired token" });
-  }
-};
 
-export const updateOrderStatus = async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
-  const { status } = req.body;
-
-  const validStatuses = [
-    "รอการชำระเงิน",
-    "ชำระเงินแล้ว",
-    "จัดส่งแล้ว",
-    "ยกเลิกแล้ว",
-    "กำลังเตรียมจัดส่ง",
-  ];
-
-  if (!validStatuses.includes(status)) {
-    res.status(400).json({ message: "Invalid status value" });
-    return;
-  }
-
-  const token = req.headers.authorization?.split(" ")[1];
-  if (!token) {
-    res.status(403).json({ message: "กรุณาเข้าสู่ระบบก่อน" });
-    return;
-  }
-
-  try {
-    const decoded = verifyToken(token);
-
-    if (typeof decoded !== "string" && "userId" in decoded) {
-      const order = await Order.findById(id);
-      if (!order) {
-        res.status(404).json({ success: false, message: "Order not found" });
-        return;
-      }
-
-      // ถ้าสถานะเปลี่ยนเป็น "ชำระเงินแล้ว" ให้เพิ่ม stock ตามรายการสินค้า
-      if (status === "ชำระเงินแล้ว") {
-        // กรณี order มี items เป็น array (แบบใหม่)
-        if (!order.items || order.items.length === 0) {
-          res.status(400).json({ success: false, message: "Order ไม่มีรายการสินค้า" });
-          return;
-        }
-
-        for (const item of order.items) {
-          const stock = await Stock.findOne({
-            productId: item.productId,
-            userId: order.userId,
-          });
-
-          if (stock) {
-            stock.quantity += item.quantity;
-            stock.lastRestocked = new Date();
-            await stock.updateStatus();
-          } else {
-            const newStock = new Stock({
-              productId: item.productId,
-              userId: order.userId,
-              quantity: item.quantity,
-              supplier: order.supplierCompany,
-              supplierId: order.supplierId.toString(),
-              location: order.location,
-              lastRestocked: new Date(),
-            });
-            await newStock.updateStatus();
-          }
-        }
-      }
-
-      order.status = status;
-      await order.save();
-
-      res.status(200).json({
-        success: true,
-        message: "อัปเดตสถานะคำสั่งซื้อเรียบร้อยแล้ว",
-        order,
-      });
-    } else {
-      res.status(401).json({ message: "Token payload is invalid" });
-    }
-  } catch (error) {
-    console.error("Update order status error:", error);
-    res.status(401).json({ message: "Invalid or expired token" });
+    res.status(201).json({ success: true, message: "สร้าง Order สำเร็จ", data: order });
+  } catch (error: any) {
+    console.error("❌ Create Order Error:", error);
+    res.status(500).json({ success: false, message: error.message || "Server error while creating order" });
   }
 };

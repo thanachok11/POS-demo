@@ -1,0 +1,393 @@
+/* ===========================
+   Container Layout
+=========================== */
+.barcode-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 20px;
+    background: #f9fafb;
+    box-sizing: border-box;
+}
+
+/* ===========================
+   Header
+=========================== */
+.barcode-header-wrapper {
+    position: sticky;
+    top: 0;
+    margin-top: 20px;
+    background: #fff;
+    z-index: 20;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.barcode-header {
+    font-size: 24px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #6c5ce7;
+    /* สี header */
+}
+
+/* ===========================
+   Controls
+=========================== */
+.barcode-controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.search-container {
+    flex: 1;
+    min-width: 200px;
+}
+
+.search-input {
+    width: 95%;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.search-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 1px #2563eb;
+}
+
+.items-per-page {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.items-per-page select {
+    padding: 6px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+/* ===========================
+   Grid (แทน Table)
+=========================== */
+.barcode-grid {
+    flex: 1;
+    overflow-y: auto;
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    padding: 12px;
+}
+
+/* Card */
+.barcode-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+    transition: all 0.25s ease-in-out;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.barcode-card:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    transform: scale(1.02);
+}
+
+.barcode-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
+
+.barcode-category {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+
+.barcode-wrapper {
+    margin: 10px auto;
+    display: flex;
+    justify-content: center;
+}
+
+.barcode-price {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1e3a8a;
+    margin-top: 8px;
+}
+
+.barcode-price span {
+    color: #3b82f6;
+    font-size: 1rem;
+}
+
+/* ===========================
+   No Data / Error / Loading
+=========================== */
+.barcode-no-data,
+.barcode-error,
+.barcode-loading {
+    text-align: center;
+    padding: 20px;
+    font-size: 14px;
+    font-style: italic;
+    color: #6b7280;
+}
+
+/* ===========================
+   Pagination (fixed bottom)
+=========================== */
+.pagination {
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    border-top: 1px solid #e5e7eb;
+    padding: 12px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    z-index: 10;
+}
+
+.pagination button {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination button:hover:not(:disabled) {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+/* ===========================
+   Modal
+=========================== */
+
+.barcode-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(6px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050;
+    animation: fadeIn 0.25s ease-in-out;
+}
+
+.barcode-modal-containerr {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    width: 500px;
+    max-width: 90%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    animation: fadeIn 0.25s ease;
+    position: relative;
+}
+
+
+.barcode-modal-box {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    width: 450px;
+    max-width: 95%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.barcode-modal-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.barcode-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.barcode-modal-preview {
+    text-align: center;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.barcode-modal-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.barcode-modal-quantity {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.barcode-modal-quantity input {
+    width: 60px;
+    text-align: center;
+}
+
+.barcode-modal-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.barcode-btn {
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    background: #e5e7eb;
+}
+
+.barcode-btn.primary {
+    background: #2563eb;
+    color: white;
+}
+
+.barcode-btn-link {
+    background: none;
+    border: none;
+    color: #2563eb;
+    cursor: pointer;
+}
+
+/* ===========================
+   Barcode Setting
+=========================== */
+.barcode-settings-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(6px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1200;
+}
+
+.barcode-settings-box {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    width: 420px;
+    max-width: 95%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.barcode-settings-preview {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+}
+
+.barcode-settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+
+
+.barcode-settings-form input,
+.barcode-settings-form select {
+    margin-left: 8px;
+    padding: 4px 6px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    flex: 1;
+}
+
+.barcode-settings-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.barcode-settings-form label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    gap: 8px;
+    /* เพิ่มระยะห่างเล็กน้อย */
+}
+
+.barcode-settings-form label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.barcode-modal-close {
+    position: absolute;
+    top: 115px;
+    right: 505px;
+    background: #f3f4f6;
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    color: #374151;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    cursor: pointer;
+    transition: all 0.25s ease-in-out;
+}
+
+.barcode-modal-close:hover {
+    background: #ef4444;
+    color: #fff;
+    transform: scale(1.1);
+}

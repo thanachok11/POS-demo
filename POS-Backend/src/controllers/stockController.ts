@@ -1,204 +1,116 @@
-import { Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
-import User from '../models/User';
-import Stock from '../models/Stock';  // Assuming you have a Stock model
-import Employee from '../models/Employee'; // แก้ path ตามโฟลเดอร์ของคุณ
+import { Request, Response } from "express";
+import User from "../models/User";
+import Employee from "../models/Employee";
+import Stock from "../models/Stock";
+import Product from "../models/Product";
+import StockTransaction from "../models/StockTransaction";
+import { verifyToken } from "../utils/auth";
 
-// ฟังก์ชันสำหรับการตรวจสอบ JWT Token
-const verifyToken = (token: string) => {
-  try {
-    return jwt.verify(token, process.env.JWT_SECRET as string);
-  } catch (error) {
-    throw new Error('Invalid token');
+
+//หาค่า ownerId จาก userId (รองรับ admin / employee)
+const getOwnerId = async (userId: string): Promise<string> => {
+  let user = await User.findById(userId);
+  if (!user) {
+    user = await Employee.findById(userId);
+  }
+  if (!user) throw new Error("User not found");
+
+  if (user.role === "admin") {
+    return user._id.toString();
+  } else if (user.role === "employee") {
+    if (!user.adminId) throw new Error("Employee does not have admin assigned");
+    return user.adminId.toString();
+  } else {
+    throw new Error("Invalid user role");
   }
 };
 
-// ฟังก์ชันเพื่อดึงข้อมูลสต็อกสินค้าตาม userId
+// ดึง stock ทั้งหมด
 export const getStocks = async (req: Request, res: Response): Promise<void> => {
-  const token = req.header('Authorization')?.split(' ')[1];
-
-  if (!token) {
-    res.status(401).json({
-      success: false,
-      message: 'Unauthorized, no token provided',
-    });
-    return;
-  }
-
   try {
-    const decoded = verifyToken(token);
-
-    if (typeof decoded !== 'string' && 'userId' in decoded) {
-      const userId = decoded.userId;
-
-      // ลองหาใน User ก่อน ถ้าไม่เจอค่อยหาใน Employee
-      let user = await User.findById(userId);
-      if (!user) {
-        user = await Employee.findById(userId);
-      }
-
-      if (!user) {
-        res.status(404).json({
-          success: false,
-          message: 'User not found',
-        });
-        return;
-      }
-
-      let ownerId: string;
-
-      if (user.role === 'admin') {
-        ownerId = user._id.toString();
-      } else if (user.role === 'employee') {
-        if (!user.adminId) {
-          res.status(400).json({
-            success: false,
-            message: 'Employee does not have an admin assigned',
-          });
-          return;
-        }
-        ownerId = user.adminId.toString();
-      } else {
-        res.status(403).json({
-          success: false,
-          message: 'Invalid user role',
-        });
-        return;
-      }
-
-      // ดึงสต็อกสินค้าจาก userId ของ admin
-      const stocks = await Stock.find({ userId: ownerId }).populate('productId');
-
-      res.status(200).json({
-        success: true,
-        data: stocks,
-      });
-    } else {
-      res.status(401).json({
-        success: false,
-        message: 'Invalid token',
-      });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(403).json({
-      success: false,
-      message: 'Forbidden, invalid token',
-    });
-  }
-};
-export const getStockByBarcode = async (req: Request, res: Response): Promise<void> => {
-  const token = req.header('Authorization')?.split(' ')[1];
-
-  if (!token) {
-    res.status(401).json({ message: 'Unauthorized, no token provided' });
-    return;
-  }
-
-  try {
-    const decoded = verifyToken(token);
-    if (typeof decoded !== 'string' && 'userId' in decoded) {
-      const userId = decoded.userId;
-
-      // ลองหาใน User ก่อน ถ้าไม่เจอค่อยหาใน Employee
-      let user = await User.findById(userId);
-      if (!user) {
-        user = await Employee.findById(userId);
-      }
-
-      if (!user) {
-        res.status(404).json({
-          success: false,
-          message: 'User not found',
-        });
-        return;
-      }
-
-      let ownerId: string;
-
-      if (user.role === 'admin') {
-        ownerId = user._id.toString();
-      } else if (user.role === 'employee') {
-        if (!user.adminId) {
-          res.status(400).json({ message: 'Employee does not have an admin assigned' });
-          return;
-        }
-        ownerId = user.adminId.toString();
-      } else {
-        res.status(403).json({ message: 'Invalid user role' });
-        return;
-      }
-
-      const { barcode } = req.params;
-
-      // ค้นหา stock ที่ตรงกับ barcode และเป็นของเจ้าของ (admin)
-      const stock = await Stock.findOne({ barcode, userId: ownerId }).populate('productId');
-
-      if (!stock) {
-        res.status(404).json({ message: 'Stock not found' });
-        return;
-      }
-
-      res.json({
-        barcode: stock.barcode,
-        stockQuantity: stock.quantity,
-        product: stock.productId,
-      });
-    } else {
-      res.status(401).json({ message: 'Invalid token' });
-    }
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-
-export const updateStockByBarcode = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { barcode } = req.params;
-    const { quantity, supplier, location, threshold, status } = req.body;
-
-    // ค้นหาสต็อกจาก Barcode
-    const stock = await Stock.findOne({ barcode });
-    if (!stock) {
-      res.status(404).json({ message: "Stock not found" });
+    const token = req.header("Authorization")?.split(" ")[1];
+    if (!token) {
+      res.status(401).json({ success: false, message: "Unauthorized, no token provided" });
       return;
     }
 
-    // อัปเดตจำนวนสต็อก (สามารถเพิ่ม/ลด/แก้ตรง ๆ ได้)
-    if (quantity !== undefined) {
-      if (typeof quantity !== "number" || quantity < 0) {
-        res.status(400).json({ message: "Quantity must be a non-negative number" });
-        return;
-      }
-      stock.quantity = quantity;
+    const decoded = verifyToken(token);
+    if (typeof decoded === "string" || !("userId" in decoded)) {
+      res.status(401).json({ success: false, message: "Invalid token" });
+      return;
     }
 
-    // อัปเดต field อื่น ๆ ถ้ามี
-    if (supplier !== undefined) stock.supplier = supplier;
-    if (location !== undefined) stock.location = location;
-    if (threshold !== undefined) stock.threshold = threshold;
-    if (status !== undefined) stock.status = status;
+    const ownerId = await getOwnerId(decoded.userId);
 
-    // บันทึกการเปลี่ยนแปลง
-    await stock.save();
+    const stocks = await Stock.find({ userId: ownerId })
+      .populate({
+        path: "productId",
+        populate: { path: "category" }
+      })
+      .populate("supplierId")
+      .populate("location");
 
-    res.json({ message: "Stock updated successfully", stock });
-    return;
-  } catch (err) {
-    console.error("Error updating stock:", err);
-    res.status(500).json({ message: "Server error" });
-    return;
+    res.status(200).json({ success: true, data: stocks });
+  } catch (error) {
+    console.error("Get Stocks Error:", error);
+    res.status(500).json({ success: false, message: "Server error while fetching stocks" });
   }
 };
 
 
-// ✅ Update Stock by ID
-export const updateStock = async (req: Request, res: Response): Promise<void> => {
+//ดึง stock ตาม barcode
+export const getStockByBarcode = async (req: Request, res: Response): Promise<void> => {
   try {
     const { barcode } = req.params;
-    let { quantity, supplier, location, threshold, status } = req.body;
+    const stock = await Stock.findOne({ barcode }).populate("productId");
+
+    if (!stock) {
+      res.status(404).json({ success: false, message: "Stock not found" });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        barcode: stock.barcode,
+        stockQuantity: stock.quantity,
+        product: stock.productId,
+      },
+    });
+  } catch (error) {
+    console.error("Get Stock By Barcode Error:", error);
+    res.status(500).json({ success: false, message: "Server error while fetching stock" });
+  }
+};
+
+export const updateStock = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const token = req.headers["authorization"]?.split(" ")[1];
+    if (!token) {
+      res.status(401).json({ success: false, message: "No token provided" });
+      return;
+    }
+    const decoded = verifyToken(token);
+    if (typeof decoded === "string" || !("userId" in decoded)) {
+      res.status(401).json({ success: false, message: "Invalid token" });
+      return;
+    }
+
+    const { barcode } = req.params;
+    const {
+      quantity,
+      supplier,
+      location,
+      purchaseOrderId,
+      threshold,
+      status,
+      notes,
+      costPrice,
+      salePrice,
+      lastPurchasePrice,
+      batchNumber,
+      expiryDate,
+    } = req.body;
 
     const stock = await Stock.findOne({ barcode });
     if (!stock) {
@@ -206,26 +118,58 @@ export const updateStock = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    // ✅ แปลง quantity ให้เป็น number ถ้ามาเป็น string
+    // เก็บค่าเดิมก่อนแก้ไข
+    const oldQuantity = stock.quantity;
+
+    // ✅ ถ้ามีการแก้ไขจำนวน → log Transaction ADJUSTMENT
     if (quantity !== undefined) {
       const parsedQuantity = Number(quantity);
       if (isNaN(parsedQuantity) || parsedQuantity < 0) {
-        res.status(400).json({ success: false, message: "Quantity must be a non-negative number" });
+        res.status(400).json({ success: false, message: "Quantity must be non-negative number" });
         return;
       }
+
       stock.quantity = parsedQuantity;
+
+      if (parsedQuantity !== oldQuantity) {
+        const adjustmentTransaction = new StockTransaction({
+          stockId: stock._id,
+          productId: stock.productId,
+          type: "ADJUSTMENT",
+          quantity: parsedQuantity,
+          referenceId: purchaseOrderId,
+          userId: decoded.userId,
+          notes: notes || `ปรับปรุงสต็อกจาก ${oldQuantity} → ${parsedQuantity}`,
+          source: "SELF",
+        });
+        await adjustmentTransaction.save();
+      }
     }
 
+    // ✅ อัพเดท field อื่น ๆ
     if (supplier !== undefined) stock.supplier = supplier;
     if (location !== undefined) stock.location = location;
     if (threshold !== undefined) stock.threshold = threshold;
     if (status !== undefined) stock.status = status;
+    if (notes !== undefined) stock.notes = notes;
 
+    if (costPrice !== undefined) stock.costPrice = Number(costPrice);
+    if (salePrice !== undefined) stock.salePrice = Number(salePrice);
+    if (lastPurchasePrice !== undefined) stock.lastPurchasePrice = Number(lastPurchasePrice);
+
+    if (batchNumber !== undefined) stock.batchNumber = batchNumber;
+    if (expiryDate !== undefined) stock.expiryDate = new Date(expiryDate);
+
+    if (quantity !== undefined && Number(quantity) > 0) {
+      stock.lastRestocked = new Date();
+    }
+
+    await stock.updateStatus();
     await stock.save();
 
     res.status(200).json({
       success: true,
-      message: "Stock updated successfully by barcode",
+      message: "Stock updated successfully",
       data: stock,
     });
   } catch (error) {
@@ -235,61 +179,128 @@ export const updateStock = async (req: Request, res: Response): Promise<void> =>
 };
 
 
-
-
-export const updateQuantityByBarcode = async (req: Request, res: Response): Promise<void> => {
+//ใช้เวลานำเข้าสินค้า → เพิ่มสต็อก + log ลง StockTransaction
+export const restockProductByBarcode = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { barcode } = req.body;  // รับ barcode จาก URL params
+    const { barcode } = req.params;
+    const { quantity, costPrice, userId, orderId } = req.body;
 
-    const { quantity } = req.body;
-
-    // ค้นหาสต็อกจาก barcode
     const stock = await Stock.findOne({ barcode });
-
     if (!stock) {
-      res.status(404).json({ success: false, message: "ไม่พบข้อมูลสต็อก" });
+      res.status(404).json({ success: false, message: "Stock not found" });
       return;
     }
 
-    // ตรวจสอบว่าสินค้ามีจำนวนพอหรือไม่
-    if (stock.quantity < quantity) {
-      res.status(400).json({
-        success: false,
-        message: `สินค้าในสต็อกไม่เพียงพอ (เหลือ ${stock.quantity} ชิ้น)`
-      });
-      return;
-    }
-
-    // ลดจำนวนสต็อก
-    stock.quantity -= quantity;
+    stock.quantity += quantity;
+    stock.lastPurchasePrice = costPrice;
+    stock.costPrice = costPrice;
+    stock.lastRestocked = new Date();
+    await stock.updateStatus();
     await stock.save();
 
-    res.status(200).json({
-      success: true,
-      message: "อัปเดตสต็อกสำเร็จ",
-      data: stock
+    await StockTransaction.create({
+      stockId: stock._id,
+      productId: stock.productId,
+      type: "RESTOCK",
+      quantity,
+      referenceId: orderId,
+      userId,
+      costPrice,
+      notes: "นำเข้าสินค้าใหม่",
     });
-    return;
 
+    res.status(200).json({ success: true, message: "นำเข้าสินค้าสำเร็จ", data: stock });
   } catch (error) {
-    console.error("Stock Update Error:", error);
-    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
+    console.error("Restock Product Error:", error);
+    res.status(500).json({ success: false, message: "Server error while restocking product" });
   }
 };
 
+// คืนสินค้า
+export const returnProductByBarcode = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { barcode } = req.params;
+    const { quantity, userId, orderId } = req.body;
+
+    const stock = await Stock.findOne({ barcode });
+    if (!stock) {
+      res.status(404).json({ success: false, message: "Stock not found" });
+      return;
+    }
+
+    stock.quantity += quantity;
+    await stock.updateStatus();
+    await stock.save();
+
+    await StockTransaction.create({
+      stockId: stock._id,
+      productId: stock.productId,
+      type: "RETURN",
+      quantity,
+      referenceId: orderId,
+      userId,
+      notes: "คืนสินค้า",
+    });
+
+    res.status(200).json({ success: true, message: "คืนสินค้าสำเร็จ", data: stock });
+  } catch (error) {
+    console.error("Return Product Error:", error);
+    res.status(500).json({ success: false, message: "Server error while returning product" });
+  }
+};
+
+// ปรับสต็อก (เช่น ตรวจนับใหม่)
+export const adjustStockByBarcode = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { barcode } = req.params;
+    const { newQuantity, userId, notes } = req.body;
+
+    const stock = await Stock.findOne({ barcode });
+    if (!stock) {
+      res.status(404).json({ success: false, message: "Stock not found" });
+      return;
+    }
+
+    stock.quantity = newQuantity;
+    await stock.updateStatus();
+    await stock.save();
+
+    await StockTransaction.create({
+      stockId: stock._id,
+      productId: stock.productId,
+      type: "ADJUSTMENT",
+      quantity: newQuantity,
+      userId,
+      notes: notes || "ปรับยอดสต็อก",
+    });
+
+    res.status(200).json({ success: true, message: "ปรับสต็อกสำเร็จ", data: stock });
+  } catch (error) {
+    console.error("Adjust Stock Error:", error);
+    res.status(500).json({ success: false, message: "Server error while adjusting stock" });
+  }
+};
+
+//ลบ Stock (พร้อมลบ Product ที่ผูก)
 export const deleteStockByBarcode = async (req: Request, res: Response): Promise<void> => {
   try {
     const { barcode } = req.params;
 
-    const deleted = await Stock.findOneAndDelete({ barcode });
-    if (!deleted) {
+    const deletedStock = await Stock.findOneAndDelete({ barcode });
+    if (!deletedStock) {
       res.status(404).json({ success: false, message: "Stock not found with this barcode" });
       return;
     }
 
-    res.status(200).json({ success: true, message: "Stock deleted successfully" });
+    const deletedProduct = await Product.findOneAndDelete({ barcode });
+
+    res.status(200).json({
+      success: true,
+      message: "Stock deleted successfully",
+      productDeleted: !!deletedProduct,
+    });
   } catch (error) {
-    console.error("❌ Delete Stock Error:", error);
-    res.status(500).json({ success: false, message: "Server error while deleting stock" });
+    console.error("Delete Stock Error:", error);
+    res.status(500).json({ success: false, message: "Server error while deleting stock and product" });
   }
 };

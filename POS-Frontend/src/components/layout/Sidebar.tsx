@@ -143,6 +143,11 @@ const Sidebar: React.FC<SidebarProps> = ({
               <FontAwesomeIcon icon={faExclamationTriangle} className="icon" />{" "}
               <span className="dropdown-text-expired">สินค้าเหลือน้อย</span>
             </li>
+            {/* ✅ เพิ่มเมนู StockTransaction */}
+            <li onClick={() => handleMenuClick("/stockTransaction", "ประวัติ Stock")}>
+              <FontAwesomeIcon icon={faHistory} className="icon" />{" "}
+              <span className="dropdown-text-transaction">ประวัติ Stock</span>
+            </li>
           </ul>
 
           {/* การตั้งค่า (เฉพาะ role ไม่ใช่ employee) */}

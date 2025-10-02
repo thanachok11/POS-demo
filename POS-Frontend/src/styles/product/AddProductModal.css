@@ -265,6 +265,91 @@
 
 }
 
+
+/* ==========================
+   Unit Rows
+========================== */
+/* กล่องรวมแถวของ unit */
+.unit-row {
+    position: relative;
+    /* ให้ปุ่มปิดอ้างอิงตำแหน่งจากกล่องนี้ */
+    display: flex;
+    flex-direction: row;
+    /* แนวตั้ง */
+    gap: 8px;
+    margin-bottom: 10px;
+    width: 80%;
+}
+
+/* input หน่วย และ จำนวน */
+.unit-row .add-product-form-input.small {
+    width: 100%;
+    padding: 8px 36px 8px 10px;
+    /* เผื่อที่ด้านขวาให้ปุ่ม ✖ */
+    font-size: 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+}
+
+/* ปุ่มลบ (✖) */
+.unit-row .remove-unit-btn {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    font-size: 14px;
+    color: #ef4444;
+    cursor: pointer;
+    transition: color 0.25s;
+}
+
+.unit-row .remove-unit-btn:hover {
+    color: #dc2626;
+}
+
+/* ปุ่มเพิ่มหน่วย */
+.add-unit-btn {
+    display: inline-block;
+    margin-top: 6px;
+    width: 100px;
+    padding: 6px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.25s, transform 0.2s;
+    transition: all 0.2s ease-in-out;
+}
+
+.add-unit-btn:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: scale(1.05);
+}
+
+/* ช่องกรอกเล็ก */
+.add-product-form-input.small {
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 13px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #f9fafb;
+    transition: all 0.2s ease;
+}
+
+.add-product-form-input.small:focus {
+    border-color: #3b82f6;
+    outline: none;
+    background: #fff;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+}
+
+
 /* ✅ Animation */
 @keyframes slideInRight {
     from {

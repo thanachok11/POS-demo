@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { getStockData } from "../../api/stock/stock";
-import { getProducts } from "../../api/product/productApi";
+import { getSupplierData } from "../../api/suppliers/supplierApi";
+
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { jwtDecode } from "jwt-decode";
@@ -8,45 +9,68 @@ import { getWarehouses } from "../../api/product/warehousesApi";
 import { getCategories } from "../../api/product/categoryApi";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import "../../styles/stock/StockPage.css";
-import StockDetailModal from "../stock/StockDetailModal";
+import "../../styles/stock/FilterControl.css";
+import "../../styles/stock/StockDetailModal.css";
 
+import StockDetailModal from "./component/StockDetailModal";
+import GlobalPopup from "../layout/GlobalPopup";
 import AddProductModal from "../product/AddProductModal";
-import StockTable from "./StockTable";
+import StockTable from "./component/StockTable";
+
+import Pagination from "./component/Pagination";
+import FilterControl from "./component/FilterControl";
 
 interface StockItem {
+  _id: string;
   barcode: string;
-  name: string;
-  imageUrl: string;
   quantity: number;
-  updatedAt: string;
-  location: string;
   status: string;
-  supplier: string;
-  supplierCompany: string;
-  category: string;
+  updatedAt: string;
+  productId: {
+    _id: string;
+    name: string;
+    imageUrl?: string;
+    category?: { _id: string; name: string };
+  };
+  supplierId?: { _id: string; companyName: string };
+  location?: { _id: string; name: string; location: string; description?: string };
+  expiryDate?: string;
+  isActive?: boolean;
 }
 
 const StockPage: React.FC = () => {
   const [stockData, setStockData] = useState<StockItem[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+
   const [selectedBarcode, setSelectedBarcode] = useState<string | null>(null);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [selectedWarehouses, setSelectedWarehouses] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedSuppliers, setSelectedSuppliers] = useState<string[]>([]);
+  const [selectedExpiry, setSelectedExpiry] = useState<string[]>([]);
+  const [activeFilter, setActiveFilter] = useState<("active" | "inactive")[]>([]);
 
   const [user, setUser] = useState<{ userId: string; username: string; role: string; email: string } | null>(null);
   const [warehouses, setWarehouses] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [suppliers, setSuppliers] = useState<any[]>([]);
+
+  //  Popup
+  const [popupMessage, setPopupMessage] = useState<string>("");
+  const [popupSuccess, setPopupSuccess] = useState<boolean>(true);
+  const [showPopup, setShowPopup] = useState<boolean>(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // ✅ Pagination
+  //  Pagination
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   const navigate = useNavigate();
 
-  // ✅ fetchData reusable
+  //  fetchData reusable
   const fetchData = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -54,17 +78,9 @@ const StockPage: React.FC = () => {
       setLoading(false);
       return;
     }
-
     try {
       const stock = await getStockData(token);
       setStockData(stock);
-
-      const productData = await getProducts();
-      if (productData.success && Array.isArray(productData.data)) {
-        setProducts(productData.data);
-      } else {
-        setError("ไม่พบข้อมูลสินค้า");
-      }
     } catch (err) {
       console.error("❌ Fetch data error:", err);
     } finally {
@@ -72,7 +88,6 @@ const StockPage: React.FC = () => {
     }
   };
 
-  // ✅ fetch warehouses
   const fetchWarehouses = async () => {
     try {
       const warehouseList = await getWarehouses();
@@ -82,7 +97,6 @@ const StockPage: React.FC = () => {
     }
   };
 
-  // ✅ fetch categories
   const fetchCategories = async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -94,7 +108,19 @@ const StockPage: React.FC = () => {
     }
   };
 
-  // ✅ decode user
+  const fetchSuppliers = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const supplierList = await getSupplierData(token);
+      setSuppliers(supplierList);
+    } catch (err) {
+      console.error("Supplier Fetch Error:", err);
+    }
+  };
+
+
+  //  decode user
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -112,19 +138,23 @@ const StockPage: React.FC = () => {
     }
   }, []);
 
-  // ✅ load initial data
+  //  load initial data
   useEffect(() => {
     fetchData();
     fetchWarehouses();
     fetchCategories();
+    fetchSuppliers();
   }, []);
 
-  // ✅ helpers
-  const getProductDetails = (barcode: string) => products.find((p) => p.barcode === barcode);
-  const getLocationName = (locationId: string) => {
-    const location = warehouses.find((w) => w._id === locationId);
-    return location ? location.location : "ไม่ทราบที่เก็บ";
+  //  helpers
+  const getLocationName = (location: any) => {
+    if (!location) return "ไม่ทราบที่เก็บ";
+    if (location.name && location.location) return `${location.name} (${location.location})`;
+    if (location.location) return location.location;
+    const found = warehouses.find((w) => w._id === location._id);
+    return found ? found.location : "ไม่ทราบที่เก็บ";
   };
+
   const getCategoryNameById = (categoryId: string | undefined) => {
     const category = categories.find((cat) => cat._id === categoryId);
     return category ? category.name : "ไม่ทราบหมวดหมู่";
@@ -143,42 +173,106 @@ const StockPage: React.FC = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "สินค้าพร้อมขาย": return "✅";
+      case "สินค้าพร้อมขาย": return "";
       case "สินค้าหมด": return "❌";
       default: return "⚠️";
     }
   };
 
-  // ✅ sort ใหม่สุดก่อน
+  //  sort ใหม่สุดก่อน
   const sortedStock = [...stockData].sort(
     (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   );
 
-  // ✅ filter
+  //  filter
   const filteredStock = sortedStock.filter((item) => {
-    const product = getProductDetails(item.barcode);
     const searchText = searchQuery.toLowerCase();
+    const productName = item.productId?.name?.toLowerCase() || "";
+    const categoryName = item.productId?.category?.name?.toLowerCase() || "";
+    const supplierName = item.supplierId?.companyName?.toLowerCase() || "";
+    const barcode = item.barcode?.toLowerCase() || "";
 
-    const productName = product?.name?.toLowerCase() || "";
-    const categoryName = getCategoryNameById(product?.category)?.toLowerCase() || "";
-    const supplierName = item?.supplier?.toLowerCase() || "";
-    const barcode = item?.barcode?.toLowerCase() || "";
-
-    return (
+    // 🔍 ค้นหาข้อความ
+    let matchesSearch =
       productName.includes(searchText) ||
       categoryName.includes(searchText) ||
       supplierName.includes(searchText) ||
-      barcode.includes(searchText)
-    );
+      barcode.includes(searchText);
+
+    let matchesFilter = true;
+
+    //  สถานะสินค้า (เลือกได้หลายอัน)
+    if (selectedStatuses.length > 0) {
+      let statusMatch = false;
+
+      if (selectedStatuses.includes("low10") && item.quantity < 10) {
+        statusMatch = true;
+      }
+      if (selectedStatuses.includes(item.status)) {
+        statusMatch = true;
+      }
+
+      matchesFilter = matchesFilter && statusMatch;
+    }
+
+    //  คลังสินค้า
+    if (selectedWarehouses.length > 0) {
+      matchesFilter =
+        matchesFilter && selectedWarehouses.includes(item.location?._id || "");
+    }
+
+    //  หมวดหมู่
+    if (selectedCategories.length > 0) {
+      matchesFilter =
+        matchesFilter && selectedCategories.includes(item.productId?.category?._id || "");
+    }
+
+    //  ซัพพลายเออร์
+    if (selectedSuppliers.length > 0) {
+      matchesFilter =
+        matchesFilter && selectedSuppliers.includes(item.supplierId?._id || "");
+    }
+
+    //  วันหมดอายุ
+    if (selectedExpiry.length > 0) {
+      const now = new Date();
+      const expiryThreshold = new Date();
+      expiryThreshold.setDate(now.getDate() + 30);
+      const exp = item.expiryDate ? new Date(item.expiryDate) : null;
+
+      let expiryMatch = false;
+
+      if (selectedExpiry.includes("expired") && exp !== null && exp < now) {
+        expiryMatch = true;
+      }
+      if (
+        selectedExpiry.includes("nearExpiry") &&
+        exp !== null &&
+        exp >= now &&
+        exp <= expiryThreshold
+      ) {
+        expiryMatch = true;
+      }
+
+      matchesFilter = matchesFilter && expiryMatch;
+    }
+
+    //  Active / Inactive
+    if (activeFilter.length > 0) {
+      const currentStatus = item.isActive ? "active" : "inactive";
+      matchesFilter = matchesFilter && activeFilter.includes(currentStatus);
+    }
+
+    return matchesSearch && matchesFilter;
   });
 
-  // ✅ pagination
+
+  //  pagination
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedStock = filteredStock.slice(startIndex, startIndex + itemsPerPage);
   const totalPages = Math.ceil(filteredStock.length / itemsPerPage);
-  const handleRowClick = (barcode: string) => {
-    setSelectedBarcode(barcode);
-  };
+
+  const handleRowClick = (barcode: string) => setSelectedBarcode(barcode);
 
   return (
     <div className="display">
@@ -186,11 +280,11 @@ const StockPage: React.FC = () => {
         {/* Header */}
         <div className="stock-header-wrapper">
           <h2 className="stock-header">📦 จัดการสต็อกสินค้า</h2>
-
           {loading && <p className="loadingStock">⏳ Loading...</p>}
           {error && <p className="error-message">{error}</p>}
 
-          {/* Controls */}
+
+
           <div className="stock-controls">
             <div className="search-container">
               <input
@@ -198,9 +292,24 @@ const StockPage: React.FC = () => {
                 placeholder="🔍 ค้นหาสินค้า..."
                 className="search-input"
                 value={searchQuery}
-                onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
               />
             </div>
+
+            {/* ปุ่ม Filter อยู่ข้างๆช่องค้นหา */}
+            <FilterControl
+              selectedStatuses={selectedStatuses} setSelectedStatuses={setSelectedStatuses}
+              selectedWarehouses={selectedWarehouses} setSelectedWarehouses={setSelectedWarehouses}
+              selectedCategories={selectedCategories} setSelectedCategories={setSelectedCategories}
+              selectedSuppliers={selectedSuppliers} setSelectedSuppliers={setSelectedSuppliers}
+              selectedExpiry={selectedExpiry} setSelectedExpiry={setSelectedExpiry}
+              activeFilter={activeFilter} setActiveFilter={setActiveFilter}
+              warehouses={warehouses} categories={categories} suppliers={suppliers}
+            />
+
 
             <div className="items-per-page">
               <label>แสดง: </label>
@@ -218,19 +327,17 @@ const StockPage: React.FC = () => {
               <span> รายการต่อหน้า</span>
             </div>
           </div>
-
+          {/*  Add Product */}
           {user?.role !== "employee" && (
             <button className="add-product-button" onClick={() => setIsModalOpen(true)}>
               <FontAwesomeIcon icon={faPlus} /> เพิ่มสินค้า
             </button>
           )}
         </div>
-
-        {/* Scrollable Table */}
+        {/*  Table */}
         <div className="stock-table-wrapper">
           <StockTable
             stock={paginatedStock}
-            getProductDetails={getProductDetails}
             getLocationName={getLocationName}
             getCategoryNameById={getCategoryNameById}
             formatThaiDateTime={formatThaiDateTime}
@@ -239,30 +346,40 @@ const StockPage: React.FC = () => {
           />
         </div>
 
-        {/* Pagination */}
-        <div className="pagination">
-          <button onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} disabled={currentPage === 1}>
-            ◀ ก่อนหน้า
-          </button>
-          <span>หน้า {currentPage} จาก {totalPages}</span>
-          <button onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages}>
-            ถัดไป ▶
-          </button>
-        </div>
+        {/*  Pagination */}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          setCurrentPage={setCurrentPage}
+        />
 
+        {/*  Modals */}
         <StockDetailModal
           isOpen={!!selectedBarcode}
           barcode={selectedBarcode}
-          product={selectedBarcode ? getProductDetails(selectedBarcode) : null}
           stock={selectedBarcode ? stockData.find((s) => s.barcode === selectedBarcode) : null}
           onClose={() => setSelectedBarcode(null)}
-          onSuccess={() => fetchData()}
+          onSuccess={(msg, success) => {
+            fetchData();
+            if (msg) {
+              setPopupMessage(msg);
+              setPopupSuccess(success ?? true);
+              setShowPopup(true);
+            }
+          }}
         />
 
         <AddProductModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onSuccess={() => fetchData()}
+        />
+
+        <GlobalPopup
+          message={popupMessage}
+          isSuccess={popupSuccess}
+          show={showPopup}
+          setShow={setShowPopup}
         />
       </div>
     </div>

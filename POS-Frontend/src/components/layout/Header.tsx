@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-    faBell,
     faSignOutAlt,
     faSignInAlt,
     faUserPlus,
@@ -16,18 +15,21 @@ import { getStockData } from "../../api/stock/stock";
 import { getProducts } from "../../api/product/productApi";
 import LoginPageModal from "../auth/LoginPageModal";
 import RegisterPageModal from "../auth/RegisterPageModal";
-import { logoutUser } from '../../api/auth/auth';;
+import { logoutUser } from "../../api/auth/auth";
+
+import NotificationDropdown from "../layout/NotificationDropdown";
+import UserDropdown from "../layout/UserDropdown";
 
 import "../../styles/layout/Header.css";
 import "../../styles/page/Notification.css";
+
 interface NavbarProps {
     isSidebarOpen: boolean;
     toggleSidebar: () => void;
-    isLoggedIn: boolean; 
-    activeMenu: string; 
-
-
+    isLoggedIn: boolean;
+    activeMenu: string;
 }
+
 interface StockItem {
     id: string;
     barcode: string;
@@ -40,7 +42,13 @@ interface StockItem {
     supplier: string;
     category: string;
 }
-const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar, isLoggedIn, activeMenu }) => {
+
+const Header: React.FC<NavbarProps> = ({
+    isSidebarOpen,
+    toggleSidebar,
+    isLoggedIn,
+    activeMenu,
+}) => {
     const [user, setUser] = useState<{
         name: string;
         username: string;
@@ -49,17 +57,15 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar, isLoggedI
         profileImg: string;
         nameStore: string;
     } | null>(null);
+
     const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
     const [isRegisterModalVisible, setIsRegisterModalVisible] = useState(false);
     const [userdropdown, setUserDropdown] = useState(false);
-    const [openDropdown, setOpenDropdown] = useState(null);
-    const [notificationOpen, setNotificationOpen] = useState(false);
-    const notificationRef = useRef<HTMLDivElement>(null);
+
     const userRef = useRef<HTMLDivElement>(null);
-    //const [showLoginAlert, setShowLoginAlert] = useState(false);
 
     const [hasSeenLowStock, setHasSeenLowStock] = useState(
-        localStorage.getItem('hasSeenLowStock') === 'true'
+        localStorage.getItem("hasSeenLowStock") === "true"
     );
     const [lowStockItems, setLowStockItems] = useState<StockItem[]>([]);
     const [showLowStockList, setShowLowStockList] = useState(false);
@@ -68,8 +74,11 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar, isLoggedI
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [notificationOpen, setNotificationOpen] = useState(false);
+
     const navigate = useNavigate();
 
+    // ✅ Decode token
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (token) {
@@ -89,56 +98,31 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar, isLoggedI
         }
     }, []);
 
+    // ✅ เมื่อเปิดดู low stock แล้ว ถือว่า seen
     useEffect(() => {
         if (showLowStockList) {
             setHasSeenLowStock(true);
-            localStorage.setItem('hasSeenLowStock', 'true');
+            localStorage.setItem("hasSeenLowStock", "true");
         }
     }, [showLowStockList]);
 
-
+    // ✅ เช็คว่ามีสินค้า low stock ใหม่หรือไม่
     useEffect(() => {
         if (lowStockItems.length > 0) {
-            const lastItemIds = localStorage.getItem('lastLowStockIds');
-            const newItemIds = JSON.stringify(lowStockItems.map(item => item.id || item.name)); // ใช้ id ถ้ามี
+            const lastItemIds = localStorage.getItem("lastLowStockIds");
+            const newItemIds = JSON.stringify(
+                lowStockItems.map((item) => item.id || item.name)
+            );
 
             if (lastItemIds !== newItemIds) {
                 setHasSeenLowStock(false);
-                localStorage.setItem('hasSeenLowStock', 'false');
-                localStorage.setItem('lastLowStockIds', newItemIds);
+                localStorage.setItem("hasSeenLowStock", "false");
+                localStorage.setItem("lastLowStockIds", newItemIds);
             }
         }
     }, [lowStockItems]);
 
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            const target = event.target as HTMLElement;
-
-            // ตรวจว่าคลิกอยู่นอก notification dropdown จริงหรือไม่
-            if (
-                notificationRef.current &&
-                !notificationRef.current.contains(target)
-            ) {
-                setNotificationOpen(false);
-            }
-
-            if (!target.closest(".item-dropdown")) {
-                setOpenDropdown(null);
-            }
-
-            if (!target.closest(".user-dropdown")) {
-                setUserDropdown(false);
-            }
-        };
-
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
-
-
+    // ✅ Fetch Stock + Product
     useEffect(() => {
         const fetchData = async () => {
             const token = localStorage.getItem("token");
@@ -149,25 +133,19 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar, isLoggedI
             }
 
             try {
-                // 1. ดึงข้อมูล stock
                 const stock = await getStockData(token);
                 setStockData(stock);
 
-                // 2. ดึงข้อมูลสินค้า
                 const productData = await getProducts();
                 if (productData.success && Array.isArray(productData.data)) {
                     setProducts(productData.data);
 
-                    // 3. จับคู่สินค้าเหลือน้อยกับชื่อ
                     const lowStock = stock
-                        .filter((item: { quantity: number; }) => item.quantity < 5)
-                        .map((item: { productId: { name: any; }; }) => {
-                            const matchedProduct = productData.data.find(
-                                (product: any) => product.id === item.productId
-                            );
+                        .filter((item: { quantity: number }) => item.quantity < 5)
+                        .map((item: any) => {
                             return {
                                 ...item,
-                                name: item.productId?.name || "ไม่พบชื่อสินค้า"
+                                name: item.productId?.name || "ไม่พบชื่อสินค้า",
                             };
                         });
 
@@ -185,19 +163,10 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar, isLoggedI
         fetchData();
     }, []);
 
-
-    const handleMenuClick = (path: string, menuName: string) => {
-        if (!user) {
-            //setShowLoginAlert(true);
-            return;
-        }
-
-        navigate(path);
-    };
-
     const handleUserSettings = () => {
         navigate("/settingProfile");
     };
+
     const handleLogout = () => {
         logoutUser();
         navigate("/");
@@ -205,21 +174,16 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar, isLoggedI
 
     return (
         <>
-            {/* {showLoginAlert && (
-                <div className="Alert-modal-overlay">
-                    <div className="Alert-modal">
-                        <p className="Alert-title-login">กรุณาเข้าสู่ระบบก่อนใช้งานเมนูนี้</p>
-                        <button className="Alert-modal-close" onClick={() => setShowLoginAlert(false)}>ปิด</button>
-                    </div>
-                </div>
-            )} */}
-
             {/* ปุ่ม Toggle Sidebar */}
             {isLoggedIn && (
-            <button className={`toggleButton ${isSidebarOpen ? "open" : "closed"}`} onClick={toggleSidebar}>
-                <FontAwesomeIcon icon={isSidebarOpen ? faTimes : faBars} />
-            </button>
+                <button
+                    className={`toggleButton ${isSidebarOpen ? "open" : "closed"}`}
+                    onClick={toggleSidebar}
+                >
+                    <FontAwesomeIcon icon={isSidebarOpen ? faTimes : faBars} />
+                </button>
             )}
+
             {/* Navbar */}
             <nav className="navbar">
                 <img
@@ -230,100 +194,50 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar, isLoggedI
                 {isSidebarOpen && <span className="logo-text">EAZYPOS</span>}
 
                 <div className="navbar-content">
-                    
-                    <div className={`iconName ${isSidebarOpen ? "shifted" : "closed"}`}>
+                    <div
+                        className={`iconName ${isSidebarOpen ? "shifted" : "closed"}`}
+                    >
                         {activeMenu}
                     </div>
+
                     <div className="nav-right">
                         {user ? (
                             <>
                                 {/* 🔔 Notification Dropdown */}
-                                <div
-                                    className="notification-dropdown"
-                                    ref={notificationRef}
-                                    onClick={() => {
-                                        setNotificationOpen(!notificationOpen);
-                                        setUserDropdown(false);
-                                    }}
-                                >
-                                    <div className="notification-wrapper">
-                                        <FontAwesomeIcon icon={faBell} className="icon notification-icon" />
-                                        {lowStockItems.length > 0 && !hasSeenLowStock && (
-                                            <span className="notification-length">{lowStockItems.length}</span>
-                                        )}
-                                    </div>
+                                <NotificationDropdown
+                                    notificationOpen={notificationOpen}
+                                    setNotificationOpen={setNotificationOpen}                                   
+                                    hasSeenLowStock={hasSeenLowStock}
+                                    showLowStockList={showLowStockList}
+                                    setShowLowStockList={setShowLowStockList}
+                                />
 
-                                    {notificationOpen && (
-                                        <div className="notification-menu" onClick={(e) => e.stopPropagation()}>
-                                            <p className="notification-item">🔔 การแจ้งเตือนใหม่</p>
-
-                                            {lowStockItems.length > 0 && (
-                                                <>
-                                                    <div
-                                                        className="notification-item low-stock-header clickable"
-                                                        onClick={() => setShowLowStockList(prev => !prev)}
-                                                    >
-                                                        📦 สินค้าเหลือน้อย
-                                                        <span className="low-stock-count">
-                                                            ({lowStockItems.length} รายการ)
-                                                        </span>
-                                                    </div>
-                                                    {showLowStockList &&
-                                                        lowStockItems.map((item, index) => (
-                                                            <p key={index} className="notification-item clickable">
-                                                                • {item.name} เหลือ {item.quantity} ชิ้น
-                                                            </p>
-                                                        ))}
-                                                </>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                                <div
-                                    className="user-dropdown"
-                                    ref={userRef}
-                                    onClick={() => {
-                                        setUserDropdown(!userdropdown);
-                                        setNotificationOpen(false);
-                                    }}
-                                >
-                                    <div className="user-info">
-                                        <img src={user.profileImg} alt="User" className="avatar" />
-                                        <div className="user-details">
-                                            <span className="username">{user?.username || user?.name}</span>
-                                            <span className="status-online">🟢 กำลังออนไลน์</span>
-                                        </div>
-                                        <FontAwesomeIcon icon={faCaretDown} className="icon caret-icon" />
-                                    </div>
-
-                                    {userdropdown && (
-                                        <div className="dropdown-menu" onClick={(e) => e.stopPropagation()}>
-                                            <p className="user-role">👤 Role: {user.role}</p>
-                                            {/* เมนูตั้งค่าผู้ใช้ */}
-                                            <button
-                                                onClick={() => {
-                                                    handleUserSettings();
-                                                    handleMenuClick("/settingProfile", "ตั้งค่าผู้ใช้");
-                                                }}
-                                                className="settings-button"
-                                            >
-                                                <FontAwesomeIcon icon={faCog} className="icon settings-icon" /> ตั้งค่าผู้ใช้
-                                            </button>
-                                            {/* ปุ่มออกจากระบบ */}
-                                            <button onClick={handleLogout} className="logout-button">
-                                                <FontAwesomeIcon icon={faSignOutAlt} className="icon logout-icon" /> ออกจากระบบ
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
+                                {/* 👤 User Dropdown */}
+                                <UserDropdown
+                                    user={user}
+                                    userdropdown={userdropdown}
+                                    setUserDropdown={setUserDropdown}
+                                    onSettings={handleUserSettings}
+                                    onLogout={handleLogout}
+                                />
                             </>
                         ) : (
                             <>
-                                <button onClick={() => setIsLoginModalVisible(true)} className="login-button-header" name="login">
-                                    <FontAwesomeIcon icon={faSignInAlt} className="icon" /> <span>Login</span>
+                                <button
+                                    onClick={() => setIsLoginModalVisible(true)}
+                                    className="login-button-header"
+                                    name="login"
+                                >
+                                    <FontAwesomeIcon icon={faSignInAlt} className="icon" />{" "}
+                                    <span>Login</span>
                                 </button>
-                                <button onClick={() => setIsRegisterModalVisible(true)} className="register-button-header" name="register">
-                                    <FontAwesomeIcon icon={faUserPlus} className="icon" /> <span>Register</span>
+                                <button
+                                    onClick={() => setIsRegisterModalVisible(true)}
+                                    className="register-button-header"
+                                    name="register"
+                                >
+                                    <FontAwesomeIcon icon={faUserPlus} className="icon" />{" "}
+                                    <span>Register</span>
                                 </button>
                             </>
                         )}
@@ -332,8 +246,14 @@ const Header: React.FC<NavbarProps> = ({ isSidebarOpen, toggleSidebar, isLoggedI
             </nav>
 
             {/* Login และ Register Modal */}
-            <LoginPageModal isVisible={isLoginModalVisible} onClose={() => setIsLoginModalVisible(false)} />
-            <RegisterPageModal isVisible={isRegisterModalVisible} onClose={() => setIsRegisterModalVisible(false)} />
+            <LoginPageModal
+                isVisible={isLoginModalVisible}
+                onClose={() => setIsLoginModalVisible(false)}
+            />
+            <RegisterPageModal
+                isVisible={isRegisterModalVisible}
+                onClose={() => setIsRegisterModalVisible(false)}
+            />
         </>
     );
 };

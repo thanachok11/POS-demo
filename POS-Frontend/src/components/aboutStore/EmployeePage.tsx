@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import "../../styles/aboutStore/Employee.css";
 import AddEmployee from "../aboutStore/AddEmployee";
+import GlobalPopup from "../layout/GlobalPopup"; // ✅ ใช้ popup กลาง
 
 interface Employee {
     _id: string;
@@ -28,6 +29,7 @@ const EmployeeList: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
 
+    // popup state
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
     const [isSuccess, setIsSuccess] = useState(false);
@@ -63,7 +65,6 @@ const EmployeeList: React.FC = () => {
 
     const closeModal = () => {
         setIsModalOpen(false);
-        setShowPopup(false);
         setSelectedEmployee(null);
         fetchEmployees();
     };
@@ -209,6 +210,7 @@ const EmployeeList: React.FC = () => {
                         ถัดไป ▶
                     </button>
                 </div>
+
                 {/* Modal */}
                 {isModalOpen && (
                     <AddEmployee
@@ -219,9 +221,17 @@ const EmployeeList: React.FC = () => {
                         setMessage={setMessage}
                         isSuccess={isSuccess}
                         setIsSuccess={setIsSuccess}
-                        employee={selectedEmployee} // ✅ ส่งไปให้ AddEmployee
+                        employee={selectedEmployee}
                     />
                 )}
+
+                {/* Global Popup */}
+                <GlobalPopup
+                    message={message}
+                    isSuccess={isSuccess}
+                    show={showPopup}
+                    setShow={setShowPopup}
+                />
             </div>
         </div>
     );
