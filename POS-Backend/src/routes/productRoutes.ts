@@ -11,10 +11,10 @@ import {
 const router = Router();
 
 // 📦 Product Routes
-router.get('/get', getProducts)
+router.get('/Product', getProducts)
 router.get('/:barcode', getProductByBarcode);
 
-router.get("/all", getAllProducts);        // ✅ ทุก product
+router.get("/AllProduct", getAllProducts);        // ✅ ทุก product
 router.get("/category/:category", getProductsByCategory);
 router.put("/:id", updateProduct);
 router.patch("/:id", updateProduct);

@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // กำหนด URL ของ API
-const API_BASE_URL = process.env.REACT_APP_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // ฟังก์ชันสำหรับการลงทะเบียนผู้ใช้ใหม่
 export const registerUser = async (email: string, password: string, username: string, firstName: string, lastName: string, nameStore: string) => {

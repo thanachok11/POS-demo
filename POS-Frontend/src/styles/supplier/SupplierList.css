@@ -273,43 +273,6 @@
     z-index: 3000;
 }
 
-.popup-modal {
-    background: #fff;
-    padding: 20px 30px;
-    border-radius: 10px;
-    text-align: center;
-    min-width: 280px;
-    max-width: 400px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-    animation: scaleIn 0.3s ease;
-    font-size: 16px;
-    font-weight: 500;
-}
-
-.popup-success {
-    border-top: 6px solid #28a745;
-}
-
-.popup-error {
-    border-top: 6px solid #dc3545;
-}
-
-.popup-close-btn {
-    margin-top: 15px;
-    padding: 8px 20px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    background: #2563eb;
-    color: #fff;
-    font-size: 14px;
-    transition: background 0.2s;
-}
-
-.popup-close-btn:hover {
-    background: #1e40af;
-}
-
 /* ===========================
    Animations
 =========================== */

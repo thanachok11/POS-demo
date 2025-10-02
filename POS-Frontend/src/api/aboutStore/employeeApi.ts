@@ -1,11 +1,11 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:5000/api/employee";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // ✅ ดึงพนักงานทั้งหมด (มีอยู่แล้ว)
 export const getEmployeesByManager = async (token: string) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/`, {
+    const response = await axios.get(`${API_BASE_URL}/employee`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -32,7 +32,7 @@ export const addEmployee = async (
   token: string
 ) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/register`, employee, {
+    const response = await axios.post(`${API_BASE_URL}/employee/register`, employee, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -82,7 +82,7 @@ export const updateEmployee = async (
 // ✅ ดึงข้อมูลพนักงานตาม ID
 export const getEmployeeById = async (employeeId: string, token: string) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/${employeeId}`, {
+    const response = await axios.get(`${API_BASE_URL}/employee/${employeeId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -95,7 +95,7 @@ export const getEmployeeById = async (employeeId: string, token: string) => {
 // ✅ ลบพนักงาน
 export const deleteEmployee = async (employeeId: string, token: string) => {
   try {
-    const response = await axios.delete(`${API_BASE_URL}/${employeeId}`, {
+    const response = await axios.delete(`${API_BASE_URL}/employee/${employeeId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 

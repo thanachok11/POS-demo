@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCaretDown, faCog, faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
-
+import { logoutUser } from "../../api/auth/auth";
 interface User {
     name: string;
     username: string;
@@ -28,6 +28,15 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
 }) => {
     const userRef = useRef<HTMLDivElement>(null);
 
+    const handleLogout = async () => {
+        try {
+            await logoutUser();   // เคลียร์ session/token ที่ backend
+            onLogout();           // เคลียร์ state ฝั่ง frontend
+            window.location.reload(); // รีเฟรชหน้า
+        } catch (error) {
+            console.error("Logout failed:", error);
+        }
+    };
     // ปิด dropdown เมื่อคลิกข้างนอก
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -68,7 +77,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
                     </button>
 
                     {/* ปุ่มออกจากระบบ */}
-                    <button onClick={onLogout} className="logout-button">
+                    <button onClick={handleLogout} className="logout-button">
                         <FontAwesomeIcon icon={faSignOutAlt} className="icon logout-icon" /> ออกจากระบบ
                     </button>
                 </div>

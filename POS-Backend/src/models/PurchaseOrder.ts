@@ -17,6 +17,7 @@ export interface IPurchaseOrder extends Document {
     location: string;            // คลังที่จะรับสินค้าเข้า
     orderDate: Date;
     status: "รอดำเนินการ" | "ได้รับสินค้าแล้ว" | "ยกเลิก";
+    qcStatus: "รอตรวจสอบ" | "ผ่าน" | "ไม่ผ่าน";  // ✅ สถานะ QC
     items: IPurchaseOrderItem[];
     totalAmount: number;         // ยอดรวมทั้งใบ
     invoiceNumber?: string;      // เลข invoice ของ supplier
@@ -50,6 +51,11 @@ const PurchaseOrderSchema = new Schema<IPurchaseOrder>(
             type: String,
             enum: ["รอดำเนินการ", "ได้รับสินค้าแล้ว", "ยกเลิก"],
             default: "รอดำเนินการ",
+        },
+        qcStatus: {
+            type: String,
+            enum: ["รอตรวจสอบ", "ผ่าน", "ไม่ผ่าน"],
+            default: "รอตรวจสอบ",
         },
         items: { type: [PurchaseOrderItemSchema], required: true },
         totalAmount: { type: Number, required: true },

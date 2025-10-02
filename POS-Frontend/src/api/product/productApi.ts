@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Base URL ของ API
-const API_BASE_URL = process.env.REACT_APP_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // ฟังก์ชันเพื่อดึงรายการสินค้าทั้งหมด
 export const getProducts = async () => {
@@ -13,7 +13,7 @@ export const getProducts = async () => {
 
   try {
     // ส่ง token ไปใน Authorization header
-    const response = await axios.get(`${API_BASE_URL}/products/get`, {
+    const response = await axios.get(`${API_BASE_URL}/products/Product`, {
       headers: {
         'Authorization': `Bearer ${token}` // ใส่ token ใน header
       }
