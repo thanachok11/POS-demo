@@ -1,5 +1,6 @@
 import React from "react";
 import "../../styles/page/ProductReport.css";
+import { Select } from "@mui/material";
 
 const ProductReport = () => {
   return (
@@ -8,10 +9,10 @@ const ProductReport = () => {
         <h2 className="report-header">📊 รายงานสินค้า</h2>
         <div className="filter-section">
           <label>ช่วงเวลา:</label>
-          <select>
+          <Select>
             <option value="daily">รายวัน</option>
             <option value="monthly">รายเดือน</option>
-          </select>
+          </Select>
         </div>
         <div className="summary-box">
           <p>📦 สินค้าขายทั้งหมด: 120 ชิ้น</p>

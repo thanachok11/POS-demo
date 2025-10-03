@@ -36,3 +36,14 @@ export const deleteReceipt = async (saleId: string) => {
     return false;
   }
 };
+
+// 📌 ดึง Sales Summary (วันนี้ / สัปดาห์นี้ / เดือนนี้)
+export const fetchSalesSummary = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/receipts/sales-summary`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching sales summary:", error);
+    return { success: false };
+  }
+};

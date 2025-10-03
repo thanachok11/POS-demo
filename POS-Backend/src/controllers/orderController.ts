@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import Order, { IOrder } from "../models/order"
+import Order, { IOrder } from "../models/Order"
 import User from "../models/User";
 import Product from "../models/Product";
 import Stock from "../models/Stock"; // นำเข้า Stock ด้วย
