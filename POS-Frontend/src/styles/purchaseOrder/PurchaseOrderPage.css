@@ -1,56 +1,51 @@
 /* =============================
-   Purchase Order Page (Modern Clean UI)
+   Layout & Header
 ============================= */
 
-/* Container */
-.po-display {
-    padding: 20px;
-    background: #f8fafc;
-    /* light gray bg */
-    min-height: 100vh;
-    font-family: "Segoe UI", "Prompt", sans-serif;
-    color: #1e293b;
-    /* slate-800 */
-}
-
 .po-container {
-    max-width: 1100px;
-    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 20px;
+    background: #f9fafb;
+    box-sizing: border-box;
 }
 
-/* Header */
 .po-header-wrapper {
+    position: sticky;
+    margin-top: 20px;
+    background: #fff;
+    z-index: 20;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e7eb;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
 }
 
 .po-header {
-    font-size: 1.8rem;
-    font-weight: 600;
-    color: #0f172a;
-    /* slate-900 */
+    font-size: 24px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #6c5ce7;
 }
 
-/* States */
-.po-loading,
-.po-error,
-.po-empty {
-    text-align: center;
-    font-size: 1rem;
-    color: #475569;
-    margin-top: 20px;
-}
-
-/* Card List */
+/* =============================
+   List
+============================= */
 .po-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 20px;
 }
 
-/* Card */
+/* =============================
+   Card
+============================= */
 .po-card {
     background: #ffffff;
     border-radius: 14px;
@@ -64,93 +59,157 @@
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
 }
 
+/* =============================
+   Header ในแต่ละ PO
+============================= */
 .po-card-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     margin-bottom: 12px;
 }
 
-.po-card-header h2 {
-    font-size: 1.2rem;
+.po-number {
+    font-size: 1.1rem;
     font-weight: 600;
     color: #1e293b;
+    margin: 0;
 }
 
-/* Status Badge */
-.po-status {
-    padding: 4px 10px;
-    border-radius: 12px;
+.po-date {
+    font-size: 0.85rem;
+    color: #64748b;
+    /* slate-500 */
+    margin-top: 4px;
+}
+
+/* =============================
+   Status Badge
+============================= */
+.po-status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
     font-size: 0.8rem;
-    font-weight: 500;
-    color: white;
+    font-weight: 600;
+    color: #fff;
+    min-width: 120px;
+    text-align: center;
 }
 
-/* แยกสีแต่ละสถานะ */
-.po-status.pending {
-    background-color: #3b82f6;
-    /* blue */
+.po-status-badge.pending {
+    background-color: #facc15;
+    /* yellow */
+    color: #1f2937;
 }
 
-.po-status.received {
-    background-color: #22c55e;
+.po-status-badge.received {
+    background-color: #34d399;
     /* green */
 }
 
-.po-status.cancelled {
-    background-color: #ef4444;
+.po-status-badge.cancelled {
+    background-color: #f87171;
     /* red */
 }
 
-.po-status.qc-pending-return {
-    background-color: #f97316;
+.po-status-badge.qc-pending-return {
+    background-color: #fb923c;
     /* orange */
 }
 
-.po-status.qc-returned {
-    background-color: #a855f7;
-    /* purple */
+.po-status-badge.qc-returned {
+    background-color: #9ca3af;
+    /* gray */
 }
 
-/* Info Section */
-.po-card p {
-    margin: 4px 0;
+/* =============================
+   PO Info
+============================= */
+.po-info p {
+    margin: 6px 0;
     font-size: 0.95rem;
     color: #334155;
 }
 
-.po-items {
-    margin-top: 12px;
-    padding-top: 10px;
+.po-info strong {
+    color: #0f172a;
+}
+
+/* QC Status */
+.qc-status {
+    padding: 3px 8px;
+    border-radius: 6px;
+    margin-left: 8px;
+    font-size: 0.85rem;
+}
+
+.qc-รอตรวจสอบ {
+    background: #fef08a;
+    color: #92400e;
+}
+
+.qc-ผ่าน {
+    background: #bbf7d0;
+    color: #065f46;
+}
+
+.qc-ไม่ผ่าน {
+    background: #fecaca;
+    color: #991b1b;
+}
+
+.po-empty {
+    margin-top: 14px;
     border-top: 1px solid #e2e8f0;
+    padding-top: 12px;
+
+}
+
+/* =============================
+   Items Table
+============================= */
+.po-items {
+    margin-top: 14px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 12px;
 }
 
 .po-items h4 {
     font-size: 1rem;
     font-weight: 600;
-    margin-bottom: 6px;
+    color: #1e293b;
+    margin-bottom: 8px;
 }
 
-.po-items ul {
-    margin: 0;
-    padding: 0 0 0 16px;
-}
-
-.po-items li {
+.po-items-table {
+    width: 100%;
+    border-collapse: collapse;
     font-size: 0.9rem;
-    margin-bottom: 4px;
-    color: #475569;
 }
 
-/* Actions */
+.po-items-table th,
+.po-items-table td {
+    border: 1px solid #e5e7eb;
+    padding: 8px;
+    text-align: center;
+}
+
+.po-items-table th {
+    background: #f9fafb;
+    font-weight: 600;
+    color: #334155;
+}
+
+/* =============================
+   Actions
+============================= */
 .po-actions {
-    margin-top: 14px;
+    margin-top: 16px;
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
 }
 
-/* Buttons */
 .po-actions button,
 .po-actions select {
     font-size: 0.9rem;
@@ -162,10 +221,9 @@
     transition: all 0.2s ease;
 }
 
-/* Confirm */
+/* Confirm (เขียว) */
 .po-actions button:not(.po-cancel-button):not(.po-return-button) {
     background: #22c55e;
-    /* green */
     color: white;
 }
 
@@ -173,10 +231,9 @@
     background: #16a34a;
 }
 
-/* Cancel */
+/* Cancel (แดง) */
 .po-cancel-button {
     background: #ef4444;
-    /* red */
     color: white;
 }
 
@@ -184,10 +241,9 @@
     background: #dc2626;
 }
 
-/* Return */
+/* Return (ส้ม) */
 .po-return-button {
     background: #f97316;
-    /* orange */
     color: white;
 }
 
@@ -195,24 +251,209 @@
     background: #ea580c;
 }
 
-/* Disabled state */
-.po-actions button:disabled,
-.po-actions select:disabled {
-    background: #cbd5e1 !important;
-    /* gray */
-    color: #475569 !important;
-    cursor: not-allowed;
+/* Select สำหรับ QC */
+.po-actions select {
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    color: #1e293b;
 }
 
-/* Dropdown QC */
+/* =======================
+   QC Select Box
+======================= */
 .po-actions select {
-    background: #f1f5f9;
-    border: 1px solid #cbd5e1;
-    color: #1e293b;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    font-size: 14px;
+    background-color: #ffffff;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.po-actions select:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 0 4px rgba(59, 130, 246, 0.4);
 }
 
 .po-actions select:focus {
     outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+    border-color: #2563eb;
+    box-shadow: 0 0 6px rgba(37, 99, 235, 0.5);
+}
+
+/* ✅ Disabled state */
+.po-actions select:disabled {
+    background-color: #f3f4f6;
+    color: #9ca3af;
+    cursor: not-allowed;
+    border-color: #e5e7eb;
+    box-shadow: none;
+}
+
+/* ✅ ตัวเลือก QC แต่ละ status */
+.qc-status.qc-รอตรวจสอบ {
+    color: #f59e0b;
+    /* amber */
+    font-weight: 600;
+}
+
+.qc-status.qc-ผ่าน {
+    color: #10b981;
+    /* green */
+    font-weight: 600;
+}
+
+.qc-status.qc-ไม่ผ่าน {
+    color: #ef4444;
+    /* red */
+    font-weight: 600;
+}
+
+/* =========================
+   Popup Overlay
+========================= */
+.po-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.55);
+    /* dark blur */
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.25s ease-in-out;
+    z-index: 2200;
+}
+
+/* =========================
+   Popup Box
+========================= */
+.po-popup-box {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 28px 32px;
+    text-align: center;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+    max-width: 420px;
+    width: 90%;
+    animation: slideUp 0.3s ease;
+
+}
+
+/* =========================
+   Icon
+========================= */
+.po-popup-icon {
+    font-size: 46px;
+    margin-bottom: 16px;
+}
+
+.po-popup-icon.success {
+    color: #22c55e;
+}
+
+/* เขียว */
+.po-popup-icon.error {
+    color: #ef4444;
+}
+
+/* แดง */
+.po-popup-icon.confirm {
+    color: #3b82f6;
+}
+
+/* น้ำเงิน */
+
+/* =========================
+   Message
+========================= */
+.po-popup-message {
+    font-size: 18px;
+    margin-bottom: 22px;
+    line-height: 1.5;
+    color: #1f2937;
+}
+
+/* =========================
+   Action Buttons
+========================= */
+.po-popup-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.po-popup-confirm {
+    background: #22c55e;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: background 0.2s;
+}
+
+.po-popup-confirm:hover {
+    background: #16a34a;
+}
+
+.po-popup-cancel {
+    background: #ef4444;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: background 0.2s;
+}
+
+.po-popup-cancel:hover {
+    background: #dc2626;
+}
+
+.po-popup-close {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: background 0.2s;
+}
+
+.po-popup-close:hover {
+    background: #2563eb;
+}
+
+/* =========================
+   Animations
+========================= */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

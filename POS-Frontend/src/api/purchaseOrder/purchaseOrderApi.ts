@@ -10,7 +10,7 @@ export const createPurchaseOrder = async (data: any, token: string) => {
     return res.data;
 };
 
-// ✅ ดึง Purchase Orders ทั้งหมด
+// ดึง Purchase Orders ทั้งหมด
 export const getPurchaseOrders = async (token: string) => {
     const res = await axios.get(`${API_BASE_URL}/purchase-orders`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -18,7 +18,7 @@ export const getPurchaseOrders = async (token: string) => {
     return res.data;
 };
 
-// ✅ ดึง PO ตาม ID
+// ดึง PO ตาม ID
 export const getPurchaseOrderById = async (id: string, token: string) => {
     const res = await axios.get(`${API_BASE_URL}/purchase-orders/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -26,7 +26,7 @@ export const getPurchaseOrderById = async (id: string, token: string) => {
     return res.data;
 };
 
-// ✅ Confirm PO (PATCH)
+// Confirm PO (PATCH)
 export const confirmPurchaseOrder = async (id: string, token: string) => {
     const res = await axios.patch(
         `${API_BASE_URL}/purchase-orders/${id}/confirm`,
@@ -36,7 +36,7 @@ export const confirmPurchaseOrder = async (id: string, token: string) => {
     return res.data;
 };
 
-// ✅ Update QC Status (PATCH)
+// Update QC Status (PATCH)
 export const updateQCStatus = async (
     id: string,
     qcStatus: "รอตรวจสอบ" | "ผ่าน" | "ไม่ผ่าน",
@@ -50,7 +50,7 @@ export const updateQCStatus = async (
     return res.data;
 };
 
-// ✅ Return PO (PATCH)
+// Return PO (PATCH)
 export const returnPurchaseOrder = async (poId: string, token: string) => {
     const res = await axios.patch(
         `${API_BASE_URL}/purchase-orders/${poId}/returnPO`,
@@ -62,10 +62,10 @@ export const returnPurchaseOrder = async (poId: string, token: string) => {
     return res.data;
 };
 
-// ✅ Cancel PO (PATCH)
+// Cancel PO (PATCH)
 export const cancelPurchaseOrder = async (poId: string, token: string) => {
     const res = await axios.patch(
-        `${API_BASE_URL}/purchase-orders/${poId}/cancel`, // ✅ ใช้ params
+        `${API_BASE_URL}/purchase-orders/${poId}/cancel`, // ใช้ params
         {}, // body ว่าง
         {
             headers: { Authorization: `Bearer ${token}` },

@@ -4,12 +4,14 @@ import {
     confirmPurchaseOrder,
     updateQCStatus,
     cancelPurchaseOrder,
-    returnPurchaseOrder,   // ✅ เพิ่ม
+    returnPurchaseOrder,
 } from "../../api/purchaseOrder/purchaseOrderApi";
 import "../../styles/purchaseOrder/PurchaseOrderPage.css";
 import { createTransaction } from "../../api/stock/transactionApi";
+import PurchaseOrderPopup from "./PurchaseOrderPopup";
 
 interface Item {
+    stockId: string;
     productId: string;
     productName: string;
     quantity: number;
@@ -38,6 +40,11 @@ const PurchaseOrderPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [updatingIds, setUpdatingIds] = useState<string[]>([]);
+    const [popup, setPopup] = useState<{
+        type: "success" | "error" | "confirm";
+        message: string;
+        onConfirm?: () => void;
+    } | null>(null);
 
     // ================== โหลด Purchase Orders ==================
     const loadOrders = async () => {
@@ -77,13 +84,31 @@ const PurchaseOrderPage: React.FC = () => {
             .replace("น.", "")
             .trim() + " น.";
 
+    // เปิด confirm popup แทน window.confirm
+    // เปิด confirm popup แทน window.confirm (Cancel)
+    const openCancelConfirm = (poId: string) => {
+        setPopup({
+            type: "confirm",
+            message: "คุณแน่ใจหรือไม่ที่จะยกเลิก PO นี้?",
+            onConfirm: () => handleCancel(poId),
+        });
+    };
+
+    // เปิด confirm popup สำหรับ Return
+    const openReturnConfirm = (poId: string) => {
+        setPopup({
+            type: "confirm",
+            message: "คุณแน่ใจหรือไม่ที่จะคืนสินค้า PO นี้?",
+            onConfirm: () => handleReturn(poId),
+        });
+    };
+
     // ================== Confirm PO ==================
     const handleConfirm = async (poId: string) => {
         setUpdatingIds((prev) => [...prev, poId]);
         try {
             const token = localStorage.getItem("token") || "";
             const res = await confirmPurchaseOrder(poId, token);
-            alert(res.message);
 
             if (res.success) {
                 setOrders((prev) =>
@@ -91,9 +116,12 @@ const PurchaseOrderPage: React.FC = () => {
                         po._id === poId ? { ...po, status: "ได้รับสินค้าแล้ว" } : po
                     )
                 );
+                setPopup({ type: "success", message: res.message });
+            } else {
+                setPopup({ type: "error", message: res.message });
             }
         } catch {
-            alert("เกิดข้อผิดพลาดในการ Confirm PO");
+            setPopup({ type: "error", message: "เกิดข้อผิดพลาดในการ Confirm PO" });
         } finally {
             setUpdatingIds((prev) => prev.filter((id) => id !== poId));
         }
@@ -105,7 +133,6 @@ const PurchaseOrderPage: React.FC = () => {
         try {
             const token = localStorage.getItem("token") || "";
             const res = await updateQCStatus(poId, newStatus as any, token);
-            alert(res.message);
 
             if (res.success) {
                 setOrders((prev) =>
@@ -123,7 +150,6 @@ const PurchaseOrderPage: React.FC = () => {
                     )
                 );
 
-                // ✅ ถ้า QC ผ่าน → เติมสต็อก
                 if (newStatus === "ผ่าน") {
                     const currentPO = orders.find((po) => po._id === poId);
                     if (currentPO) {
@@ -131,7 +157,7 @@ const PurchaseOrderPage: React.FC = () => {
                             try {
                                 await createTransaction(
                                     {
-                                        stockId: item.productId,
+                                        stockId: item.stockId,
                                         productId: item.productId,
                                         type: "RESTOCK",
                                         quantity: item.quantity,
@@ -146,9 +172,12 @@ const PurchaseOrderPage: React.FC = () => {
                         }
                     }
                 }
+                setPopup({ type: "success", message: res.message });
+            } else {
+                setPopup({ type: "error", message: res.message });
             }
         } catch {
-            alert("เกิดข้อผิดพลาดในการอัปเดต QC");
+            setPopup({ type: "error", message: "เกิดข้อผิดพลาดในการอัปเดต QC" });
         } finally {
             setUpdatingIds((prev) => prev.filter((id) => id !== poId));
         }
@@ -156,13 +185,10 @@ const PurchaseOrderPage: React.FC = () => {
 
     // ================== Cancel PO ==================
     const handleCancel = async (poId: string) => {
-        if (!window.confirm("คุณแน่ใจหรือไม่ที่จะยกเลิก PO นี้?")) return;
-
         setUpdatingIds((prev) => [...prev, poId]);
         try {
             const token = localStorage.getItem("token") || "";
             const res = await cancelPurchaseOrder(poId, token);
-            alert(res.message);
 
             if (res.success) {
                 setOrders((prev) =>
@@ -170,23 +196,25 @@ const PurchaseOrderPage: React.FC = () => {
                         po._id === poId ? { ...po, status: "ยกเลิก" } : po
                     )
                 );
+                setPopup({ type: "success", message: res.message });
+            } else {
+                setPopup({ type: "error", message: res.message });
             }
         } catch {
-            alert("เกิดข้อผิดพลาดในการยกเลิก PO");
+            setPopup({ type: "error", message: "เกิดข้อผิดพลาดในการยกเลิก PO" });
         } finally {
             setUpdatingIds((prev) => prev.filter((id) => id !== poId));
         }
     };
 
+
+    // ================== Return PO ==================
     // ================== Return PO ==================
     const handleReturn = async (poId: string) => {
-        if (!window.confirm("คุณแน่ใจหรือไม่ที่จะคืนสินค้า PO นี้?")) return;
-
         setUpdatingIds((prev) => [...prev, poId]);
         try {
             const token = localStorage.getItem("token") || "";
             const res = await returnPurchaseOrder(poId, token);
-            alert(res.message);
 
             if (res.success) {
                 setOrders((prev) =>
@@ -196,13 +224,18 @@ const PurchaseOrderPage: React.FC = () => {
                             : po
                     )
                 );
+                setPopup({ type: "success", message: res.message });
+            } else {
+                setPopup({ type: "error", message: res.message });
             }
         } catch {
-            alert("เกิดข้อผิดพลาดในการคืนสินค้า PO");
+            setPopup({ type: "error", message: "เกิดข้อผิดพลาดในการคืนสินค้า PO" });
         } finally {
             setUpdatingIds((prev) => prev.filter((id) => id !== poId));
         }
     };
+
+
     const statusClassMap: Record<string, string> = {
         "รอดำเนินการ": "pending",
         "ได้รับสินค้าแล้ว": "received",
@@ -211,16 +244,15 @@ const PurchaseOrderPage: React.FC = () => {
         "ไม่ผ่าน QC - คืนสินค้าแล้ว": "qc-returned",
     };
 
-
     // ================== UI ==================
     if (loading) return <p className="order-loading">กำลังโหลดข้อมูล...</p>;
     if (error) return <p className="order-error">{error}</p>;
 
     return (
-        <div className="po-display">
+        <div className="display">
             <div className="po-container">
                 <div className="po-header-wrapper">
-                    <h1 className="po-header">รายการ Purchase Orders</h1>
+                    <h1 className="po-header">รายการใบสั่งซื้อสินค้า</h1>
                 </div>
 
                 {orders.length === 0 ? (
@@ -231,51 +263,76 @@ const PurchaseOrderPage: React.FC = () => {
                             const isUpdating = updatingIds.includes(po._id);
                             return (
                                 <div key={po._id} className="po-card">
+                                    {/* Header */}
                                     <div className="po-card-header">
-                                        <h2>{po.purchaseOrderNumber}</h2>
-                                        <span className={`po-status ${statusClassMap[po.status] || ""}`}>
+                                        <div>
+                                            <h2 className="po-number">{po.purchaseOrderNumber}</h2>
+                                            <p className="po-date">📅 {formatThaiDateTime(po.orderDate)}</p>
+                                        </div>
+                                        <span className={`po-status-badge ${statusClassMap[po.status] || ""}`}>
                                             {po.status}
                                         </span>
                                     </div>
 
-                                    <p>สถานะ QC: {po.qcStatus}</p>
-                                    <p>สถานที่รับสินค้า: {po.location}</p>
-                                    <p>ผู้จัดส่ง: {po.supplierCompany}</p>
-                                    <p>ยอดรวม: {po.totalAmount.toLocaleString()} บาท</p>
-                                    <p>วันที่สั่งซื้อ: {formatThaiDateTime(po.orderDate)}</p>
-
-                                    <div className="po-items">
-                                        <h4>รายการสินค้า:</h4>
-                                        <ul>
-                                            {po.items.map((item, index) => (
-                                                <li key={index}>
-                                                    {item.productName} - {item.quantity} ชิ้น
-                                                    (ต้นทุน: {item.costPrice} บาท,
-                                                    Batch: {item.batchNumber})
-                                                </li>
-                                            ))}
-                                        </ul>
+                                    {/* PO Info */}
+                                    <div className="po-info">
+                                        <p><strong>ผู้จัดส่ง:</strong> {po.supplierCompany}</p>
+                                        <p><strong>สถานที่รับสินค้า:</strong> {po.location}</p>
+                                        <p><strong>ยอดรวม:</strong> {po.totalAmount.toLocaleString()} บาท</p>
+                                        <p><strong>QC:</strong>
+                                            <span className={`qc-status qc-${po.qcStatus}`}>
+                                                {po.qcStatus}
+                                            </span>
+                                        </p>
                                     </div>
 
+                                    {/* Items Table */}
+                                    <div className="po-items">
+                                        <h4>📦 รายการสินค้า</h4>
+                                        <table className="po-items-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>สินค้า</th>
+                                                    <th>จำนวน</th>
+                                                    <th>ราคาต้นทุน</th>
+                                                    <th>Batch</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {po.items.map((item, index) => (
+                                                    <tr key={index}>
+                                                        <td>{item.productName}</td>
+                                                        <td>{item.quantity}</td>
+                                                        <td>{item.costPrice.toLocaleString()} ฿</td>
+                                                        <td>{item.batchNumber || "-"}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    {/* Actions */}
                                     <div className="po-actions">
-                                        {/* Confirm PO */}
                                         {po.status === "รอดำเนินการ" && (
-                                            <button
-                                                onClick={() => handleConfirm(po._id)}
-                                                disabled={isUpdating}
-                                            >
-                                                ✅ Confirm PO
-                                            </button>
+                                            <>
+                                                <button onClick={() => handleConfirm(po._id)} disabled={isUpdating}>
+                                                    ยืนยันใบสั่งซื้อ
+                                                </button>
+                                                <button
+                                                    className="po-cancel-button"
+                                                    onClick={() => openCancelConfirm(po._id)}
+                                                    disabled={isUpdating}
+                                                >
+                                                    ยกเลิก
+                                                </button>
+                                            </>
                                         )}
 
-                                        {/* Update QC */}
                                         {po.status === "ได้รับสินค้าแล้ว" && (
                                             <select
                                                 value={po.qcStatus}
-                                                onChange={(e) =>
-                                                    handleUpdateQC(po._id, e.target.value)
-                                                }
-                                                disabled={isUpdating}
+                                                onChange={(e) => handleUpdateQC(po._id, e.target.value)}
+                                                disabled={isUpdating || po.qcStatus === "ผ่าน"}
                                             >
                                                 {qcOptions.map((status) => (
                                                     <option key={status} value={status}>
@@ -285,22 +342,11 @@ const PurchaseOrderPage: React.FC = () => {
                                             </select>
                                         )}
 
-                                        {/* Cancel PO */}
-                                        {po.status === "รอดำเนินการ" && (
-                                            <button
-                                                className="po-cancel-button"
-                                                onClick={() => handleCancel(po._id)}
-                                                disabled={isUpdating}
-                                            >
-                                                ❌ ยกเลิก
-                                            </button>
-                                        )}
 
-                                        {/* Return PO */}
                                         {po.status === "ไม่ผ่าน QC - รอส่งคืนสินค้า" && (
                                             <button
                                                 className="po-return-button"
-                                                onClick={() => handleReturn(po._id)}
+                                                onClick={() => openReturnConfirm(po._id)}
                                                 disabled={isUpdating}
                                             >
                                                 ↩️ คืนสินค้า
@@ -313,6 +359,17 @@ const PurchaseOrderPage: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            {/* ✅ Popup */}
+            {popup && (
+                <PurchaseOrderPopup
+                    type={popup.type}
+                    message={popup.message}
+                    onClose={() => setPopup(null)}
+                    onConfirm={popup.onConfirm}
+                />
+            )}
+
         </div>
     );
 };

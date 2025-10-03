@@ -5,9 +5,12 @@ import { generateInvoiceNumber } from "../utils/generateInvoice";
 import StockTransaction from "../models/StockTransaction";
 import Stock from "../models/Stock";
 
-// ✅ สร้าง Purchase Order
+/* ==========================
+   สร้าง Purchase Order (PO)
+   ========================== */
 export const createPurchaseOrder = async (req: Request, res: Response): Promise<void> => {
     try {
+        // ตรวจสอบ Token
         const token = req.header("Authorization")?.split(" ")[1];
         if (!token) {
             res.status(401).json({ success: false, message: "Unauthorized, no token" });
@@ -20,21 +23,50 @@ export const createPurchaseOrder = async (req: Request, res: Response): Promise<
             return;
         }
 
+        // รับข้อมูลจาก body
         const { purchaseOrderNumber, supplierId, supplierCompany, location, items, invoiceNumber } = req.body;
 
-        const totalAmount = items.reduce(
+        // Loop item เพื่อ ensure stockId
+        const itemsWithStock = [];
+        for (const item of items) {
+            let stock = await Stock.findOne({ productId: item.productId });
+
+            // ถ้าไม่มี stock ให้สร้างใหม่
+            if (!stock) {
+                stock = new Stock({
+                    productId: item.productId,
+                    quantity: 0,
+                    costPrice: item.costPrice,
+                    salePrice: item.salePrice ?? item.costPrice,
+                    supplier: supplierCompany,
+                    supplierId,
+                    location,
+                    status: "ใหม่",
+                });
+                await stock.save();
+            }
+
+            itemsWithStock.push({
+                ...item,
+                stockId: stock._id, // เพิ่ม stockId ลงใน PO item
+            });
+        }
+
+        // คำนวณราคารวมของ PO
+        const totalAmount = itemsWithStock.reduce(
             (sum: number, item: any) => sum + item.quantity * item.costPrice,
             0
         );
 
+        // บันทึกลงฐานข้อมูล
         const po = await PurchaseOrder.create({
             purchaseOrderNumber,
             supplierId,
             supplierCompany,
             location,
-            items,
+            items: itemsWithStock, // ใช้ items ที่มี stockId แล้ว
             totalAmount,
-            invoiceNumber,
+            invoiceNumber: invoiceNumber || generateInvoiceNumber(),
             createdBy: decoded.userId,
         });
 
@@ -45,13 +77,15 @@ export const createPurchaseOrder = async (req: Request, res: Response): Promise<
     }
 };
 
-// ✅ ดึง Purchase Orders ทั้งหมด
+/* ==========================
+   ดึงรายการ Purchase Orders ทั้งหมด
+   ========================== */
 export const getPurchaseOrders = async (_: Request, res: Response): Promise<void> => {
     try {
         const orders = await PurchaseOrder.find()
-            .populate("supplierId")
-            .populate("createdBy")
-            .populate("updatedBy")
+            .populate("supplierId") // ดึงข้อมูล Supplier
+            .populate("createdBy") // ใครสร้าง
+            .populate("updatedBy") // ใครอัปเดตล่าสุด
             .sort({ createdAt: -1 });
 
         res.status(200).json({ success: true, message: "ดึงรายการ PO สำเร็จ", data: orders });
@@ -61,7 +95,9 @@ export const getPurchaseOrders = async (_: Request, res: Response): Promise<void
     }
 };
 
-// ✅ ดึง PO ตาม id
+/* ==========================
+   ดึงรายละเอียด PO ตาม ID
+   ========================== */
 export const getPurchaseOrderById = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
@@ -83,7 +119,10 @@ export const getPurchaseOrderById = async (req: Request, res: Response): Promise
     }
 };
 
-// ✅ Confirm PO
+/* ==========================
+   ยืนยันการรับสินค้า (Confirm PO)
+   ขั้นตอนนี้หมายถึง "สินค้าเข้ามาแล้ว" แต่ยังต้อง QC
+   ========================== */
 export const confirmPurchaseOrder = async (req: Request, res: Response): Promise<void> => {
     try {
         const token = req.header("Authorization")?.split(" ")[1];
@@ -106,15 +145,18 @@ export const confirmPurchaseOrder = async (req: Request, res: Response): Promise
             return;
         }
 
+        // ยืนยันได้เฉพาะ PO ที่สถานะยังเป็น "รอดำเนินการ"
         if (po.status !== "รอดำเนินการ") {
             res.status(400).json({ success: false, message: "PO นี้ไม่สามารถยืนยันได้" });
             return;
         }
 
+        // ถ้าไม่มี invoice → generate ใหม่
         if (!po.invoiceNumber) {
             po.invoiceNumber = generateInvoiceNumber();
         }
 
+        // อัปเดตสถานะเป็น "ได้รับสินค้าแล้ว"
         po.status = "ได้รับสินค้าแล้ว";
         po.updatedBy = decoded.userId;
         await po.save();
@@ -126,8 +168,10 @@ export const confirmPurchaseOrder = async (req: Request, res: Response): Promise
     }
 };
 
-// ✅ Update QC Status
-// ✅ Update QC Status
+/* ==========================
+   อัปเดตผลการ QC
+   - ถ้าไม่ผ่าน → เปลี่ยนสถานะเป็น "ไม่ผ่าน QC - รอส่งคืนสินค้า"
+   ========================== */
 export const updateQCStatus = async (req: Request, res: Response): Promise<void> => {
     try {
         const token = req.header("Authorization")?.split(" ")[1];
@@ -151,12 +195,12 @@ export const updateQCStatus = async (req: Request, res: Response): Promise<void>
             return;
         }
 
+        // อัปเดตสถานะ QC
         po.qcStatus = qcStatus;
         po.updatedBy = decoded.userId;
 
-        // ✅ ถ้า QC ไม่ผ่าน → เปลี่ยน status เป็น "ไม่ผ่าน QC - ส่งคืนสินค้า"
         if (qcStatus === "ไม่ผ่าน") {
-            po.status = "ไม่ผ่าน QC - ส่งคืนสินค้า";
+            po.status = "ไม่ผ่าน QC - รอส่งคืนสินค้า";
         }
 
         await po.save();
@@ -172,8 +216,10 @@ export const updateQCStatus = async (req: Request, res: Response): Promise<void>
     }
 };
 
-// ✅ Cancel PO
-// ✅ คืนสินค้า
+/* ==========================
+   คืนสินค้า (Return PO)
+   ใช้ได้เฉพาะ PO ที่ QC ไม่ผ่าน และอยู่ในสถานะ "รอส่งคืนสินค้า"
+   ========================== */
 export const returnPurchaseOrder = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
@@ -195,12 +241,13 @@ export const returnPurchaseOrder = async (req: Request, res: Response): Promise<
             return;
         }
 
+        // ต้องอยู่ในสถานะ "ไม่ผ่าน QC - รอส่งคืนสินค้า"
         if (po.status !== "ไม่ผ่าน QC - รอส่งคืนสินค้า") {
             res.status(400).json({ success: false, message: "PO นี้ไม่สามารถคืนสินค้าได้" });
             return;
         }
 
-        // ✅ สร้าง StockTransaction RETURN
+        // สร้าง StockTransaction (type: RETURN)
         for (const item of po.items) {
             await StockTransaction.create({
                 stockId: item.productId,
@@ -213,6 +260,7 @@ export const returnPurchaseOrder = async (req: Request, res: Response): Promise<
             });
         }
 
+        // อัปเดตสถานะเป็น "คืนสินค้าแล้ว"
         po.status = "ไม่ผ่าน QC - คืนสินค้าแล้ว";
         po.updatedBy = decoded.userId;
         await po.save();
@@ -224,8 +272,10 @@ export const returnPurchaseOrder = async (req: Request, res: Response): Promise<
     }
 };
 
-
-// ✅ Cancel PO (ใช้ได้เฉพาะตอนยังไม่ Confirm)
+/* ==========================
+   ยกเลิก PO
+   ใช้ได้เฉพาะตอนสถานะยังเป็น "รอดำเนินการ"
+   ========================== */
 export const cancelPurchaseOrder = async (req: Request, res: Response): Promise<void> => {
     try {
         const token = req.header("Authorization")?.split(" ")[1];
@@ -248,13 +298,12 @@ export const cancelPurchaseOrder = async (req: Request, res: Response): Promise<
             return;
         }
 
-        // ❌ ถ้า PO ถูก confirm แล้ว → ห้ามยกเลิก
+        // ยกเลิกได้เฉพาะ PO ที่ยังไม่ confirm เท่านั้น
         if (po.status !== "รอดำเนินการ") {
             res.status(400).json({ success: false, message: "ไม่สามารถยกเลิก PO ที่ได้รับสินค้าแล้วหรืออยู่ในขั้นตอน QC ได้" });
             return;
         }
 
-        // ✅ ยกเลิกได้เฉพาะ "รอดำเนินการ"
         po.status = "ยกเลิก";
         po.updatedBy = decoded.userId;
         await po.save();
@@ -265,4 +314,3 @@ export const cancelPurchaseOrder = async (req: Request, res: Response): Promise<
         res.status(500).json({ success: false, message: "Server error while cancelling PO" });
     }
 };
-
