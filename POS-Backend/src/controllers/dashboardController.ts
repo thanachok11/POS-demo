@@ -2,7 +2,9 @@ import { Request, Response } from "express";
 import Receipt from "../models/Receipt";
 import Stock from "../models/Stock";
 
-// Helper: Format วันไทย
+// ======================= Helper Functions =======================
+
+// ✅ แปลงวันที่ให้อยู่ในรูปแบบไทย + ISO
 function formatThaiDate(date: Date) {
     return {
         thai: date.toLocaleString("th-TH", {
@@ -17,7 +19,7 @@ function formatThaiDate(date: Date) {
     };
 }
 
-// เติมชั่วโมงที่ไม่มีขาย (0 บาท)
+// ✅ เติมข้อมูลชั่วโมงที่ไม่มียอดขาย (ให้เป็น 0)
 function fillHours(data: any[], start: Date) {
     const hours = Array.from({ length: 24 }, (_, i) => i);
     return hours.map((h) => {
@@ -26,56 +28,130 @@ function fillHours(data: any[], start: Date) {
         date.setHours(h, 0, 0, 0);
         return {
             hour: h,
-            totalSales: found ? found.totalSales : 0,
-            totalQuantity: found ? found.totalQuantity : 0,
-            netSales: found ? found.netSales : 0,
-            totalProfit: found ? found.totalProfit : 0,
-            bestSeller: found ? found.bestSeller : { name: "-", quantity: 0, revenue: 0 },
+            totalSales: found?.totalSales || 0,
+            totalQuantity: found?.totalQuantity || 0,
+            netSales: found?.netSales || 0,
+            totalProfit: found?.totalProfit || 0,
+            bestSeller: found?.bestSeller || { name: "-", quantity: 0, revenue: 0 },
             formattedDate: formatThaiDate(date),
         };
     });
 }
 
-export const getDashboardStats = async (req: Request, res: Response): Promise<void> => {
+// ======================= Main Controller =======================
+export const getDashboardStats = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
     try {
-        const now = new Date();
+        // ✅ แปลงวันที่จาก query โดยไม่บวก offset ซ้ำ
+        const inputDate = req.query.date
+            ? new Date(req.query.date as string)
+            : new Date();
+        const filter = (req.query.filter as string) || "daily";
 
-        // Daily = 24 ชั่วโมง
-        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const dailyRaw = await aggregateSales(startOfDay, now, "hour");
+        // ✅ แปลงเป็นเวลาไทย (โดยไม่ขยับวัน)
+        const localDate = new Date(
+            new Date(inputDate).toLocaleString("en-US", { timeZone: "Asia/Bangkok" })
+        );
+
+        // ===== กำหนดช่วงเวลา =====
+        const startOfDay = new Date(localDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(localDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const startOfWeek = new Date(localDate);
+        startOfWeek.setDate(localDate.getDate() - localDate.getDay());
+        startOfWeek.setHours(0, 0, 0, 0);
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999);
+
+        const startOfMonth = new Date(
+            localDate.getFullYear(),
+            localDate.getMonth(),
+            1
+        );
+        const endOfMonth = new Date(
+            localDate.getFullYear(),
+            localDate.getMonth() + 1,
+            0,
+            23,
+            59,
+            59,
+            999
+        );
+
+        // ===== ดึงข้อมูลยอดขายหลัก =====
+        const [dailyRaw, weeklyData, monthlyData] = await Promise.all([
+            aggregateSales(startOfDay, endOfDay, "hour"),
+            aggregateSales(startOfWeek, endOfWeek, "day"),
+            aggregateSales(startOfMonth, endOfMonth, "day"),
+        ]);
+
         const dailyData = fillHours(dailyRaw, startOfDay);
 
-        // Weekly = 7 วัน
-        const startOfWeek = new Date(now);
-        startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
-        startOfWeek.setHours(0, 0, 0, 0);
-        const weeklyData = await aggregateSales(startOfWeek, now, "day");
-
-        // Monthly = รายวันในเดือนนี้
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const monthlyData = await aggregateSales(startOfMonth, now, "day");
-
-        // ✅ Summary รวม
+        // ===== สรุปยอดขาย =====
         const summary = {
             daily: makeSummary(dailyData),
             weekly: makeSummary(weeklyData),
             monthly: makeSummary(monthlyData),
         };
 
-        // ✅ TopProducts
+        // ===== รวมสินค้าขายดี =====
         const topProducts = {
-            daily: getTopProducts(dailyData),
+            daily: getTopProducts(dailyRaw),
             weekly: getTopProducts(weeklyData),
             monthly: getTopProducts(monthlyData),
         };
 
-        // ✅ ByEmployee
+        // ✅ แทรกสินค้าขายดีของวันในแต่ละชั่วโมง
+        if (topProducts.daily.length > 0) {
+            const top = topProducts.daily[0];
+            dailyData.forEach((d) => {
+                d.bestSeller = {
+                    name: top.name,
+                    barcode: top.barcode,
+                    quantity: top.quantity,
+                    revenue: top.revenue,
+                };
+            });
+        }
+
+        // ===== ยอดขายแยกตามพนักงาน =====
         const byEmployee = {
-            daily: await aggregateByEmployee(startOfDay, now),
-            weekly: await aggregateByEmployee(startOfWeek, now),
-            monthly: await aggregateByEmployee(startOfMonth, now),
+            daily: await aggregateByEmployee(startOfDay, endOfDay),
+            weekly: await aggregateByEmployee(startOfWeek, endOfWeek),
+            monthly: await aggregateByEmployee(startOfMonth, endOfMonth),
         };
 
+        // ===== ช่วงก่อนหน้า =====
+        const prevDayStart = new Date(startOfDay);
+        prevDayStart.setDate(prevDayStart.getDate() - 1);
+        const prevWeekStart = new Date(startOfWeek);
+        prevWeekStart.setDate(prevWeekStart.getDate() - 7);
+        const prevMonthStart = new Date(startOfMonth);
+        prevMonthStart.setMonth(prevMonthStart.getMonth() - 1);
+
+        const prevDayData = makeSummary(
+            (await aggregateSales(prevDayStart, startOfDay, "hour")) || []
+        );
+        const prevWeekData = makeSummary(
+            (await aggregateSales(prevWeekStart, startOfWeek, "day")) || []
+        );
+        const prevMonthData = makeSummary(
+            (await aggregateSales(prevMonthStart, startOfMonth, "day")) || []
+        );
+
+        // ===== การเปลี่ยนแปลง =====
+        const changes = {
+            daily: calcChange(summary.daily, prevDayData),
+            weekly: calcChange(summary.weekly, prevWeekData),
+            monthly: calcChange(summary.monthly, prevMonthData),
+        };
+
+        // ===== ส่งข้อมูลกลับ =====
         res.status(200).json({
             success: true,
             data: {
@@ -85,6 +161,7 @@ export const getDashboardStats = async (req: Request, res: Response): Promise<vo
                 summary,
                 topProducts,
                 byEmployee,
+                changes: changes || { daily: {}, weekly: {}, monthly: {} },
             },
         });
     } catch (error) {
@@ -96,10 +173,12 @@ export const getDashboardStats = async (req: Request, res: Response): Promise<vo
     }
 };
 
-// =======================================
-// Aggregate Sales (daily/hourly, weekly, monthly)
-// =======================================
-export async function aggregateSales(start: Date, end: Date, groupBy: "hour" | "day") {
+// ======================= Aggregate Sales =======================
+export async function aggregateSales(
+    start: Date,
+    end: Date,
+    groupBy: "hour" | "day"
+) {
     const stocks = await Stock.find({}).lean();
     const stockMap = new Map(
         stocks.map((s) => [
@@ -116,18 +195,31 @@ export async function aggregateSales(start: Date, end: Date, groupBy: "hour" | "
                 _id: {
                     bucket:
                         groupBy === "hour"
-                            ? { hour: { $hour: { date: "$timestamp", timezone: "Asia/Bangkok" } } }
+                            ? {
+                                hour: {
+                                    $hour: { date: "$timestamp", timezone: "Asia/Bangkok" },
+                                },
+                            }
                             : {
-                                year: { $year: { date: "$timestamp", timezone: "Asia/Bangkok" } },
-                                month: { $month: { date: "$timestamp", timezone: "Asia/Bangkok" } },
-                                day: { $dayOfMonth: { date: "$timestamp", timezone: "Asia/Bangkok" } },
+                                year: {
+                                    $year: { date: "$timestamp", timezone: "Asia/Bangkok" },
+                                },
+                                month: {
+                                    $month: { date: "$timestamp", timezone: "Asia/Bangkok" },
+                                },
+                                day: {
+                                    $dayOfMonth: {
+                                        date: "$timestamp",
+                                        timezone: "Asia/Bangkok",
+                                    },
+                                },
                             },
                     product: "$items.name",
                     barcode: "$items.barcode",
                 },
                 totalSales: { $sum: "$items.subtotal" },
                 totalQuantity: { $sum: "$items.quantity" },
-            }
+            },
         },
         {
             $group: {
@@ -160,17 +252,19 @@ export async function aggregateSales(start: Date, end: Date, groupBy: "hour" | "
             date = new Date();
         }
 
+        // ✅ คำนวณกำไร
         let totalProfit = 0;
         if (Array.isArray(r.products)) {
             r.products.forEach((p: any) => {
                 const stock = stockMap.get(p.barcode);
                 if (stock) {
-                    const itemProfit = (stock.salePrice - stock.costPrice) * p.quantity;
-                    totalProfit += itemProfit;
+                    const profit = (stock.salePrice - stock.costPrice) * p.quantity;
+                    totalProfit += profit;
                 }
             });
         }
 
+        // ✅ หาสินค้าขายดีที่สุดในแต่ละ bucket
         let bestSeller = { name: "-", quantity: 0, revenue: 0, barcode: "" };
         if (Array.isArray(r.products) && r.products.length > 0) {
             bestSeller = r.products.reduce(
@@ -192,45 +286,67 @@ export async function aggregateSales(start: Date, end: Date, groupBy: "hour" | "
     });
 }
 
-// =======================================
-// Summary รวม
-// =======================================
+// ======================= Summary รวม =======================
 function makeSummary(data: any[]) {
     const totalSales = data.reduce((s, d) => s + d.totalSales, 0);
     const totalQuantity = data.reduce((s, d) => s + d.totalQuantity, 0);
     const totalProfit = data.reduce((s, d) => s + d.totalProfit, 0);
     const netSales = data.reduce((s, d) => s + d.netSales, 0);
-
     return { totalSales, totalQuantity, totalProfit, netSales };
 }
 
-// =======================================
-// TopProducts (รวมทุก bucket)
-// =======================================
+// ===== คำนวณการเปลี่ยนแปลงจากช่วงก่อนหน้า =====
+function calcChange(current: any, previous: any) {
+    const getPercent = (cur: number, prev: number) =>
+        prev === 0 ? 0 : ((cur - prev) / prev) * 100;
+
+    return {
+        totalSalesChange: getPercent(current.totalSales, previous.totalSales),
+        totalProfitChange: getPercent(current.totalProfit, previous.totalProfit),
+        totalQuantityChange: getPercent(
+            current.totalQuantity,
+            previous.totalQuantity
+        ),
+    };
+}
+
+// ======================= Top Products =======================
 function getTopProducts(data: any[]) {
-    const productMap: any = {};
+    const productMap: Record<string, any> = {};
 
-    data.forEach((d) => {
-        if (!d.products || !Array.isArray(d.products)) return;
+    // ✅ รวมสินค้าทั้งหมดจากทุก bucket (ทุกชั่วโมง/ทุกวัน)
+    data.forEach((bucket) => {
+        if (!Array.isArray(bucket.products)) return;
 
-        d.products.forEach((p: any) => {
-            if (!productMap[p.name]) {
-                productMap[p.name] = { ...p };
+        bucket.products.forEach((product: any) => {
+            const key = product.barcode || product.name;
+            if (!productMap[key]) {
+                productMap[key] = {
+                    name: product.name,
+                    barcode: product.barcode || "-",
+                    quantity: product.quantity,
+                    revenue: product.revenue,
+                };
             } else {
-                productMap[p.name].quantity += p.quantity;
-                productMap[p.name].revenue += p.revenue;
+                // รวมยอดขายสินค้าซ้ำ
+                productMap[key].quantity += product.quantity;
+                productMap[key].revenue += product.revenue;
             }
         });
     });
 
-    return Object.values(productMap)
+    // ✅ แปลงเป็น array และเรียงลำดับตามยอดขาย
+    const mergedProducts = Object.values(productMap)
         .sort((a: any, b: any) => b.quantity - a.quantity)
         .slice(0, 5);
+
+    // ✅ คืนค่ารายการ top 5
+    return mergedProducts.length > 0
+        ? mergedProducts
+        : [{ name: "-", quantity: 0, revenue: 0 }];
 }
 
-// =======================================
-// ByEmployee
-// =======================================
+// ======================= By Employee =======================
 async function aggregateByEmployee(start: Date, end: Date) {
     const receipts = await Receipt.aggregate([
         { $match: { timestamp: { $gte: start, $lte: end } } },

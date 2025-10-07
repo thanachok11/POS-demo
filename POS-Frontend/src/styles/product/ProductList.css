@@ -539,12 +539,12 @@ body {
   background: linear-gradient(135deg, #ff6b6b, #e53935);
   color: white;
   font-weight: 600;
-  margin-bottom: 0px;
+  margin-bottom: 20px;
   padding: 10px 18px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  width: 100%;
+  width: 40%;
   letter-spacing: 0.5px;
   box-shadow: 0 3px 10px rgba(229, 57, 53, 0.3);
   transition: all 0.3s ease-in-out;

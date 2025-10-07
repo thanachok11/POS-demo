@@ -29,11 +29,6 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({
   const [warehouseName, setWarehouseName] = useState<string>("ไม่พบข้อมูล");
   const [warehouseId, setWarehouseId] = useState<string>("");
 
-  // ✅ Popup state
-  const [message, setMessage] = useState<string>("");
-  const [isSuccess, setIsSuccess] = useState<boolean>(true);
-  const [showPopup, setShowPopup] = useState<boolean>(false);
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -68,9 +63,18 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({
     setFormData((prev: any) => ({ ...prev, [name]: value }));
   };
 
-  const handleStockChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setStockData((prev: any) => ({ ...prev, [name]: value }));
+  const handleStockChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, type, value } = e.target;
+
+    setStockData((prev: any) => ({
+      ...prev,
+      [name]:
+        type === "checkbox"
+          ? (e.target as HTMLInputElement).checked 
+          : value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,27 +84,67 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({
 
     try {
       setLoading(true);
-      const updatedStockData = { ...stockData, location: warehouseId };
 
+      // ✅ เช็ค supplier ว่าเป็น “อื่นๆ” ไหม
+      const isOtherSupplier =
+        stockData?.supplier === "อื่นๆ" ||
+        stockData?.supplier === "อื่น ๆ" ||
+        stockData?.supplier?.toLowerCase() === "other";
+
+      // ✅ เตรียม payload สำหรับอัปเดต stock
+      const updatedStockData: any = {
+        supplier: stockData.supplier,
+        location: warehouseId,
+        threshold: stockData.threshold,
+        status: stockData.status,
+        notes: stockData.notes,
+        isActive: stockData.isActive,
+      };
+
+      // ✅ อนุญาตให้แก้ quantity ได้เฉพาะถ้า supplier เป็น "อื่นๆ"
+      if (isOtherSupplier) {
+        updatedStockData.quantity = stockData.quantity;
+      }
+
+      // ✅ เริ่มอัปเดตข้อมูล
       await updateProduct(stock.productId._id, formData);
+
       if (stock?.barcode) {
         await updateStock(stock.barcode, updatedStockData);
       }
+
+      // ✅ อัปโหลดรูปภาพถ้ามี
       if (image) {
         const formDataUpload = new FormData();
         formDataUpload.append("image", image);
         await updateProductImage(formDataUpload, token);
       }
 
-      onSuccess("บันทึกการแก้ไขสำเร็จ ✅", true); // 👈 ส่ง message ออกไป
-      onClose(); // ปิด modal
-    } catch (err) {
+      onSuccess("✅ บันทึกการแก้ไขสำเร็จ", true);
+      onClose();
+    } catch (err: any) {
       console.error("❌ Update error:", err);
-      onSuccess("เกิดข้อผิดพลาดในการบันทึก ❌", false);
+
+      let errorMessage = "เกิดข้อผิดพลาดในการอัปเดตข้อมูล";
+
+      if (err.response) {
+        errorMessage =
+          err.response.data?.message ||
+          err.response.data?.error ||
+          `เซิร์ฟเวอร์ตอบกลับด้วยรหัส ${err.response.status}`;
+      } else if (err.request) {
+        errorMessage = "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้";
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      onSuccess(`${errorMessage}`, false);
     } finally {
       setLoading(false);
     }
   };
+
+
 
   const handleDelete = async () => {
     const token = localStorage.getItem("token");
@@ -210,12 +254,28 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({
               <div className="stock-form-row">
                 <div className="stock-form-group">
                   <label>จำนวนสต็อก:</label>
-                  <input
-                    type="number"
-                    name="quantity"
-                    value={stockData?.quantity || 0}
-                    onChange={handleStockChange}
-                  />
+                  <div className="stock-input-wrapper">
+                    <input
+                      type="number"
+                      name="quantity"
+                      value={stockData.quantity || 0}
+                      onChange={handleStockChange}
+                      disabled={
+                        stockData?.supplier !== "อื่นๆ" &&
+                        stockData?.supplier !== "อื่น ๆ" &&
+                        stockData?.supplier?.toLowerCase() !== "other"
+                      }
+                    />
+
+                    {/* tooltip */}
+                    {stockData?.supplier !== "อื่นๆ" &&
+                      stockData?.supplier !== "อื่น ๆ" &&
+                      stockData?.supplier?.toLowerCase() !== "other" && (
+                        <span className="disabled-tooltip">
+                          ⚠️ ไม่สามารถแก้ไขจำนวนได้<br />เนื่องจากเป็นสินค้านำเข้าภายนอก
+                        </span>
+                      )}
+                  </div>
                 </div>
 
                 <div className="stock-form-group">
@@ -228,6 +288,7 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({
                   />
                 </div>
               </div>
+
 
               {/* Row 2 */}
               <div className="stock-form-row">
@@ -299,6 +360,15 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({
               {/* Row 5 */}
               <div className="stock-form-row">
                 <div className="stock-form-group">
+                  <label>เลขบาร์โค้ต:</label>
+                  <input
+                    type="text"
+                    name="barcode"
+                    value={stockData?.barcode || ""}
+                    onChange={handleStockChange}
+                  />
+                </div>
+                <div className="stock-form-group">
                   <label>หมายเหตุ:</label>
                   <input
                     type="text"
@@ -308,7 +378,36 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({
                   />
                 </div>
               </div>
+              <div className="stock-form-row">
+                <div className="stock-form-group">
+                  <label>หน่วยสินค้า:</label>
+                  <input
+                    type="text"
+                    name="units"
+                    value={stockData?.units || ""}
+                    onChange={handleStockChange}
+                  />
+                </div>     
+                <div className="stock-form-group">
+                  <label>สถานะสินค้า:</label>
+                  <div className="toggle-wrapper">
+                    <label className="toggle-switch">
+                      <input
+                        type="checkbox"
+                        name="isActive"
+                        checked={!!stockData?.isActive}
+                        onChange={handleStockChange}
+                      />
+                      <span className="slider"></span>
+                    </label>
+                    <span className="toggle-text">
+                      {stockData?.isActive ? "เปิดขาย ✅" : "ปิดขาย ❌"}
+                    </span>
+                  </div>
+                </div>
 
+      
+              </div>
               <button
                 type="button"
                 className="stock-import-btn"

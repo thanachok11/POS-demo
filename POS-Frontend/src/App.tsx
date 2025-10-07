@@ -191,7 +191,6 @@ const App: React.FC = () => {
           <Route path="/shop" element={<ProductList isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />} />
           <Route path="/stocks" element={<StockPage />} />
           <Route path="/stockTransaction" element={<StockTransaction />} />
-          <Route path="/receipts/paymentId/:paymentId" element={<ReceiptDetail />} />
           <Route path="/createOrder" element={<CreateOrder />} />
           <Route path="/expired" element={<ExpiredPage />} />
           <Route path="/barcode" element={<BarcodePage />} />

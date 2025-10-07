@@ -1,54 +1,89 @@
-.employee-popup {
+.global-popup {
     position: fixed;
     bottom: 20px;
     right: 20px;
     min-width: 280px;
-    padding: 12px;
-    border-radius: 8px;
+    padding: 12px 14px;
+    border-radius: 10px;
     color: #fff;
-    z-index: 2000;
-    animation: fadeIn 0.3s ease-in-out;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 3000;
+    animation: fadeIn 0.25s ease-in-out;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    font-family: "Prompt", sans-serif;
 }
 
-.employee-popup.success {
+/* ✅ สีตามสถานะ */
+.global-popup.success {
     background-color: #16a34a;
+    /* เขียว */
 }
 
-.employee-popup.error {
+.global-popup.error {
     background-color: #dc2626;
+    /* แดง */
 }
 
-.employee-popup-con {
+/* ✅ ส่วนเนื้อหา */
+.global-popup-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 8px;
 }
 
-.employee-popup-close-btn {
+.global-popup-message {
+    flex: 1;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+/* ✅ ปุ่มปิด */
+.global-popup-close-btn {
     background: transparent;
     border: none;
     color: #fff;
+    font-size: 18px;
     font-weight: bold;
     cursor: pointer;
-    font-size: 16px;
+    transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
-.progress-bar {
-    margin-top: 8px;
+.global-popup-close-btn:hover {
+    transform: scale(1.1);
+    opacity: 0.8;
+}
+
+/* ✅ แถบ Progress */
+.global-popup-progress {
+    margin-top: 6px;
     width: 100%;
     height: 6px;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.25);
     border-radius: 3px;
     overflow: hidden;
-    position: relative;
 }
 
-.progress-fill {
+.global-popup-progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #ffffff, #98fafd, #447aef);
-    /* เขียว → เหลือง → แดง */
     width: 100%;
     transition: width 0.1s linear;
-    /* ให้มันลดลงอย่าง smooth */
+    background: linear-gradient(90deg, #ffffff, #22c55e, #15803d);
+}
+
+.global-popup.error .global-popup-progress-fill {
+    background: linear-gradient(90deg, #ffffff, #f87171, #dc2626);
+}
+
+/* ✅ Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

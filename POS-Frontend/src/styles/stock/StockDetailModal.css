@@ -194,9 +194,10 @@
     transition: background 0.2s;
     transition: all 0.2s ease-in-out;
 }
-.stock-import-btn:hover{
+
+.stock-import-btn:hover {
     background: #059669;
-        transform: scale(1.05);
+    transform: scale(1.05);
 }
 
 .save-btn {
@@ -217,6 +218,114 @@
 .delete-btn:hover {
     background: #dc2626;
     transform: scale(1.05);
+}
+
+.stock-input-wrapper {
+    position: relative;
+    display: block;
+    /* ✅ เปลี่ยนจาก inline-block → block */
+    width: 100%;
+    /* ✅ ให้ขยายเต็มช่อง */
+}
+
+.stock-input-wrapper input {
+    width: 100%;
+    /* ✅ ให้ input ขยายเต็มเหมือนเดิม */
+    box-sizing: border-box;
+}
+
+.disabled-tooltip {
+    visibility: hidden;
+    opacity: 0;
+    width: 230px;
+    background: #333;
+    color: #fff;
+    text-align: left;
+    border-radius: 8px;
+    padding: 8px 10px;
+    position: absolute;
+    z-index: 10;
+    top: 0px;
+    left: 15%;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.stock-input-wrapper:hover .disabled-tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Toggle switch container */
+
+.toggle-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    /* ระยะห่างระหว่างปุ่มกับข้อความ */
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+}
+
+/* ซ่อน checkbox จริง */
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* ตัว slider */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    border-radius: 34px;
+    transition: background-color 0.3s;
+}
+
+/* หัววงกลมใน toggle */
+.slider::before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    border-radius: 50%;
+    transition: transform 0.3s;
+}
+
+/* เมื่อเปิด (checked) */
+.toggle-switch input:checked+.slider {
+    background-color: #00c853;
+    /* สีเขียวสวย */
+}
+
+.toggle-switch input:checked+.slider::before {
+    transform: translateX(22px);
+}
+
+/* เพิ่มเงาและความโค้งสวย ๆ */
+.slider {
+    box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
+}
+
+/* ข้อความด้านข้าง */
+.toggle-text {
+    font-weight: 500;
+    color: #333;
 }
 
 /* Animations */

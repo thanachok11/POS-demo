@@ -90,6 +90,7 @@ export const updateStock = async (req: Request, res: Response): Promise<void> =>
       res.status(401).json({ success: false, message: "No token provided" });
       return;
     }
+
     const decoded = verifyToken(token);
     if (typeof decoded === "string" || !("userId" in decoded)) {
       res.status(401).json({ success: false, message: "Invalid token" });
@@ -110,22 +111,40 @@ export const updateStock = async (req: Request, res: Response): Promise<void> =>
       lastPurchasePrice,
       batchNumber,
       expiryDate,
+      isActive,
     } = req.body;
 
     const stock = await Stock.findOne({ barcode });
     if (!stock) {
-      res.status(404).json({ success: false, message: "Stock not found with this barcode" });
+      res
+        .status(404)
+        .json({ success: false, message: "Stock not found with this barcode" });
       return;
     }
 
-    // เก็บค่าเดิมก่อนแก้ไข
     const oldQuantity = stock.quantity;
 
-    // ✅ ถ้ามีการแก้ไขจำนวน → log Transaction ADJUSTMENT
+    // 🧩 ตรวจ supplier ก่อนอนุญาตให้แก้จำนวน
+    const currentSupplier = (stock.supplier || "").toString().trim().toLowerCase();
+    const isOtherSupplier =
+      currentSupplier === "อื่นๆ" ||
+      currentSupplier === "อื่น ๆ" ||
+      currentSupplier === "other";
+
     if (quantity !== undefined) {
+      if (!isOtherSupplier) {
+        res.status(403).json({
+          success: false,
+          message: "❌ ไม่สามารถแก้ไขจำนวนสินค้าได้ เนื่องจากเป็นสินค้าของ Supplier ภายนอก",
+        });
+        return;
+      }
+
       const parsedQuantity = Number(quantity);
       if (isNaN(parsedQuantity) || parsedQuantity < 0) {
-        res.status(400).json({ success: false, message: "Quantity must be non-negative number" });
+        res
+          .status(400)
+          .json({ success: false, message: "Quantity must be non-negative number" });
         return;
       }
 
@@ -146,16 +165,18 @@ export const updateStock = async (req: Request, res: Response): Promise<void> =>
       }
     }
 
-    // ✅ อัพเดท field อื่น ๆ
+    // ✅ อัปเดต field อื่น ๆ (ทำงานได้ปกติ)
     if (supplier !== undefined) stock.supplier = supplier;
     if (location !== undefined) stock.location = location;
     if (threshold !== undefined) stock.threshold = threshold;
     if (status !== undefined) stock.status = status;
     if (notes !== undefined) stock.notes = notes;
+    if (isActive !== undefined) stock.isActive = Boolean(isActive);
 
     if (costPrice !== undefined) stock.costPrice = Number(costPrice);
     if (salePrice !== undefined) stock.salePrice = Number(salePrice);
-    if (lastPurchasePrice !== undefined) stock.lastPurchasePrice = Number(lastPurchasePrice);
+    if (lastPurchasePrice !== undefined)
+      stock.lastPurchasePrice = Number(lastPurchasePrice);
 
     if (batchNumber !== undefined) stock.batchNumber = batchNumber;
     if (expiryDate !== undefined) stock.expiryDate = new Date(expiryDate);
@@ -174,9 +195,12 @@ export const updateStock = async (req: Request, res: Response): Promise<void> =>
     });
   } catch (error) {
     console.error("Update Stock Error:", error);
-    res.status(500).json({ success: false, message: "Server error while updating stock" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error while updating stock" });
   }
 };
+
 
 
 //ใช้เวลานำเข้าสินค้า → เพิ่มสต็อก + log ลง StockTransaction

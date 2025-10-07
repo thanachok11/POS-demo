@@ -21,6 +21,7 @@ export interface StockItem {
     status: string;
     supplier: string;
     productId: Product;
+    isActive:string;
 }
 
 export interface PaymentItem {

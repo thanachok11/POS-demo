@@ -16,3 +16,4 @@ router.put("/:id", updateWarehouse); // แก้ไข
 router.delete("/:id", deleteWarehouse); // ลบ
 
 export default router;
+

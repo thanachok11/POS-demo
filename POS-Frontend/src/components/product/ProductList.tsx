@@ -316,15 +316,18 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen }) => {
         />
       </div>
 
-      <CartSidebar
-        cart={cart}
-        isSidebarOpen={isSidebarOpen}
-        clearCart={clearCart}
-        removeFromCart={removeFromCart}
-        openNumberPad={openNumberPad}
-        getTotalPrice={getTotalPrice}
-        setShowCheckout={setShowCheckout}
-      />
+      {cart.length > 0 && (
+        <CartSidebar
+          cart={cart}
+          isSidebarOpen={isSidebarOpen}
+          clearCart={clearCart}
+          removeFromCart={removeFromCart}
+          openNumberPad={openNumberPad}
+          getTotalPrice={getTotalPrice}
+          setShowCheckout={setShowCheckout}
+        />
+      )}
+
 
       <StockErrorDialog
         show={showStockError}

@@ -7,9 +7,8 @@ interface GlobalPopupProps {
     show: boolean;
     setShow: (val: boolean) => void;
     duration?: number;
-    onClose?: () => void;   // ✅ callback เวลา popup ปิด
+    onClose?: () => void; // callback เวลา popup ปิด
 }
-
 
 const GlobalPopup: React.FC<GlobalPopupProps> = ({
     message,
@@ -22,39 +21,53 @@ const GlobalPopup: React.FC<GlobalPopupProps> = ({
     const [progress, setProgress] = useState(100);
 
     useEffect(() => {
-        if (show) {
-            setProgress(100);
-            const step = 100 / (duration / 50);
-            const interval = setInterval(() => {
-                setProgress((prev) => {
-                    if (prev <= 0) {
-                        clearInterval(interval);
-                        setShow(false);                     
-                    }
-                    return prev - step;
-                });
-            }, 50);
+        if (!show) return;
 
-            return () => clearInterval(interval);
-        }
-    }, [show, duration, setShow, isSuccess, onClose]);
+        setProgress(100);
+        const step = 100 / (duration / 50);
+        const interval = setInterval(() => {
+            setProgress((prev) => {
+                if (prev <= 0) {
+                    clearInterval(interval);
+                    setShow(false);
+                    if (onClose) onClose();
+                    return 0;
+                }
+                return prev - step;
+            });
+        }, 50);
+
+        return () => clearInterval(interval);
+    }, [show, duration, setShow, onClose]);
 
     if (!show) return null;
 
     return (
-        <div className={`employee-popup ${isSuccess ? "success" : "error"}`}>
-            <div className="employee-popup-con">
-                <span>{message}</span>
+        <div className={`global-popup ${isSuccess ? "success" : "error"}`}>
+            <div className="global-popup-content">
+                <div className="global-popup-message">
+                    {isSuccess ? (
+                        <span>{message}</span>
+                    ) : (
+                        <span>{message || "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง"}</span>
+                    )}
+                </div>
+
                 <button
-                    onClick={() => setShow(false)}
-                    className="employee-popup-close-btn"
+                    onClick={() => {
+                        setShow(false);
+                        if (onClose) onClose();
+                    }}
+                    className="global-popup-close-btn"
+                    aria-label="Close"
                 >
                     ✖
                 </button>
             </div>
-            <div className="progress-bar">
+
+            <div className="global-popup-progress">
                 <div
-                    className="progress-fill"
+                    className="global-popup-progress-fill"
                     style={{
                         width: `${progress}%`,
                         backgroundColor: isSuccess ? "#22c55e" : "#ef4444",

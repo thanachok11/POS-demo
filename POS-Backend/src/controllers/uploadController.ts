@@ -11,8 +11,6 @@ import { verifyToken } from "../utils/auth";
 import dotenv from "dotenv";
 dotenv.config();
 
-
-// ✅ เพิ่มสินค้า + สต็อก
 // ✅ เพิ่มสินค้า + สต็อก
 export const addProductWithStock = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -78,9 +76,10 @@ export const addProductWithStock = async (req: Request, res: Response): Promise<
           : finalCostPrice * 1.2;
 
         // ✅ Gen barcode อัตโนมัติถ้าว่างหรือเป็น ","
+        // ✅ ทำความสะอาด barcode
         let finalBarcode: string;
         if (barcode && String(barcode).trim() !== "" && String(barcode).trim() !== ",") {
-          finalBarcode = String(barcode).trim();
+          finalBarcode = String(barcode).trim().replace(/^,+|,+$/g, ""); // ตัด comma ด้านท้ายออก
         } else {
           finalBarcode = `BC${Date.now()}${Math.floor(1000 + Math.random() * 9000)}`;
         }

@@ -103,10 +103,6 @@
     border-top: 6px solid #22c55e;
 }
 
-.AddEmployee-popup-content.error {
-    border-top: 6px solid #ef4444;
-}
-
 .AddEmployee-icon {
     font-size: 40px;
     margin-bottom: 12px;

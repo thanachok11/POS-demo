@@ -37,16 +37,17 @@ export const deleteReceipt = async (saleId: string) => {
   }
 };
 
-export const fetchSalesSummary = async () => {
+export const fetchSalesSummary = async (
+  date: Date,
+  filter: "daily" | "weekly" | "monthly"
+) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/dashboard/stats`);
-    if (response.data.success) {
-      return { success: true, data: response.data.data };
-    }
-    return { success: false, data: null };
+    const response = await axios.get(`${API_BASE_URL}/dashboard/stats`, {
+      params: { date: date.toISOString(), filter },
+    });
+    return response.data;
   } catch (error) {
     console.error("Error fetching sales summary:", error);
     return { success: false, data: null };
   }
 };
-

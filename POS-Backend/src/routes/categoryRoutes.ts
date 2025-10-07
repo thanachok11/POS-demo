@@ -12,7 +12,7 @@ const router = Router();
 // 🏷️ Category Routes
 router.get("/", getCategories);           // ดึงจาก Product.distinct()
 router.get("/all", fetchCategories);     // ดึงจาก Category collection
-router.post("/", addCategory);
+router.post("/create", addCategory);
 router.put("/:id", updateCategory);
 router.patch("/:id", updateCategory);
 router.delete("/:id", deleteCategory);
