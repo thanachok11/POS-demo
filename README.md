@@ -31,6 +31,8 @@ npm install @react-oauth/google
 npm install @mui/material @emotion/react @emotion/styled
 npm install promptpay-qr qrcode.react
 npm install @zxing/browser @zxing/library
+npm install react-datepicker @types/react-datepicker
+npm install socket.io-client
 
 npm install 
 ```
@@ -94,6 +96,8 @@ Ensure that you have the following installed on your machine:
     npm install cloudinary
     npm install express body-parser cors dotenv
     npm install --save-dev typescript @types/node @types/express ts-node nodemon
+    npm install socket.io
+    
     ```
 
 3. Set up your environment variables:

@@ -22,9 +22,9 @@
 .product-detail-modal-content {
     background: #ffffff;
     width: 90%;
-    /* กำหนดเป็น % แทน px */
+    /* เธเธณเธซเธเธ”เน€เธเนเธ % เนเธ—เธ px */
     max-width: 800px;
-    /* ล็อกไม่ให้เกิน */
+    /* เธฅเนเธญเธเนเธกเนเนเธซเนเน€เธเธดเธ */
     max-height: 92vh;
     margin-top: 20px;
     border-radius: 18px;
@@ -176,7 +176,6 @@
     transition: all 0.2s ease-in-out;
 }
 
-<<<<<<< Updated upstream
 .stock-import-btn {
     align-self: flex-start;
     display: inline-flex;
@@ -200,8 +199,6 @@
     transform: scale(1.05);
 }
 
-=======
->>>>>>> Stashed changes
 .save-btn {
     background: linear-gradient(135deg, #3b82f6, #2563eb);
     color: white;
@@ -225,14 +222,14 @@
 .stock-input-wrapper {
     position: relative;
     display: block;
-    /* ✅ เปลี่ยนจาก inline-block → block */
+    /* โ… เน€เธเธฅเธตเนเธขเธเธเธฒเธ inline-block โ’ block */
     width: 100%;
-    /* ✅ ให้ขยายเต็มช่อง */
+    /* โ… เนเธซเนเธเธขเธฒเธขเน€เธ•เนเธกเธเนเธญเธ */
 }
 
 .stock-input-wrapper input {
     width: 100%;
-    /* ✅ ให้ input ขยายเต็มเหมือนเดิม */
+    /* โ… เนเธซเน input เธเธขเธฒเธขเน€เธ•เนเธกเน€เธซเธกเธทเธญเธเน€เธ”เธดเธก */
     box-sizing: border-box;
 }
 
@@ -266,7 +263,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    /* ระยะห่างระหว่างปุ่มกับข้อความ */
+    /* เธฃเธฐเธขเธฐเธซเนเธฒเธเธฃเธฐเธซเธงเนเธฒเธเธเธธเนเธกเธเธฑเธเธเนเธญเธเธงเธฒเธก */
 }
 
 .toggle-switch {
@@ -276,14 +273,14 @@
     height: 28px;
 }
 
-/* ซ่อน checkbox จริง */
+/* เธเนเธญเธ checkbox เธเธฃเธดเธ */
 .toggle-switch input {
     opacity: 0;
     width: 0;
     height: 0;
 }
 
-/* ตัว slider */
+/* เธ•เธฑเธง slider */
 .slider {
     position: absolute;
     cursor: pointer;
@@ -296,7 +293,7 @@
     transition: background-color 0.3s;
 }
 
-/* หัววงกลมใน toggle */
+/* เธซเธฑเธงเธงเธเธเธฅเธกเนเธ toggle */
 .slider::before {
     position: absolute;
     content: "";
@@ -309,22 +306,22 @@
     transition: transform 0.3s;
 }
 
-/* เมื่อเปิด (checked) */
+/* เน€เธกเธทเนเธญเน€เธเธดเธ” (checked) */
 .toggle-switch input:checked+.slider {
     background-color: #00c853;
-    /* สีเขียวสวย */
+    /* เธชเธตเน€เธเธตเธขเธงเธชเธงเธข */
 }
 
 .toggle-switch input:checked+.slider::before {
     transform: translateX(22px);
 }
 
-/* เพิ่มเงาและความโค้งสวย ๆ */
+/* เน€เธเธดเนเธกเน€เธเธฒเนเธฅเธฐเธเธงเธฒเธกเนเธเนเธเธชเธงเธข เน */
 .slider {
     box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
 }
 
-/* ข้อความด้านข้าง */
+/* เธเนเธญเธเธงเธฒเธกเธ”เนเธฒเธเธเนเธฒเธ */
 .toggle-text {
     font-weight: 500;
     color: #333;
@@ -357,14 +354,14 @@
        Responsive Breakpoints
     ============================== */
 /* Laptop / MacBook 13" */
-/* Desktop ใหญ่ (>= 1600px) */
+/* Desktop เนเธซเธเน (>= 1600px) */
 @media (min-width: 1600px) {
     .product-detail-modal-content {
         max-width: 720px;
     }
 }
 
-/* Laptop ทั่วไป (1025px – 1440px) */
+/* Laptop เธ—เธฑเนเธงเนเธ (1025px โ€“ 1440px) */
 @media (max-width: 1440px) and (min-width: 1025px) {
     .product-detail-modal-content {
         max-width: 640px;
@@ -396,7 +393,7 @@
 
     .stock-form-row {
         grid-template-columns: 1fr;
-        /* ให้เหลือ 1 คอลัมน์ */
+        /* เนเธซเนเน€เธซเธฅเธทเธญ 1 เธเธญเธฅเธฑเธกเธเน */
     }
 
     .stock-form-actions {
