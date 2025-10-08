@@ -29,6 +29,11 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ receipt, onClose }) => {
             ? receipt.paymentId
             : null;
 
+    const discount = receipt.discount ?? 0;
+    const subtotal = receipt.totalPrice / 1.07; // สมมติว่าราคารวม VAT แล้ว
+    const vat = subtotal * 0.07;
+    const netTotal = receipt.totalPrice - discount;
+
     return (
         <div className="receipt-modal-overlay">
             <div className="receipt-modal-content">
@@ -63,36 +68,49 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ receipt, onClose }) => {
 
                     <hr className="receipt-separator" />
 
-                    {/* 🛒 รายการสินค้า */}
-                    <table className="receipt-items-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>สินค้า</th>
-                                <th>จำนวน</th>
-                                <th>รวม</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {receipt.items.map((item, index) => (
-                                <tr key={item._id}>
-                                    <td>{index + 1}</td>
-                                    <td>{item.name}</td>
-                                    <td>{item.quantity}</td>
-                                    <td>{item.subtotal.toLocaleString()} ฿</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    {/* 🛒 รายการสินค้า (ไม่มี thead) */}
+                    <div className="receipt-items-list">
+                        {receipt.items.map((item) => (
+                            <div key={item._id} className="receipt-item-row">
+                                <span className="receipt-item-name">
+                                    {item.quantity} * {item.name}
+                                </span>
+                                <span className="receipt-item-total">
+                                    {item.subtotal.toLocaleString()} ฿
+                                </span>
+                            </div>
+                        ))}
+                    </div>
 
                     <hr className="receipt-separator" />
 
                     {/* 💰 สรุปยอด */}
                     <div className="receipt-summary">
                         <p>
-                            <span>รวมทั้งหมด</span>
-                            <strong>{receipt.totalPrice.toLocaleString()} ฿</strong>
+                            <span>ยอดก่อนภาษี</span>
+                            <strong>
+                                {subtotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} ฿
+                            </strong>
                         </p>
+                        <p>
+                            <span>ภาษีมูลค่าเพิ่ม (VAT 7%)</span>
+                            <strong>
+                                {vat.toLocaleString(undefined, { maximumFractionDigits: 2 })} ฿
+                            </strong>
+                        </p>
+                        {discount > 0 && (
+                            <p>
+                                <span>ส่วนลด</span>
+                                <strong>-{discount.toLocaleString()} ฿</strong>
+                            </p>
+                        )}
+                        <p className="receipt-total">
+                            <span>ยอดสุทธิ</span>
+                            <strong>
+                                {netTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} ฿
+                            </strong>
+                        </p>
+                        <hr />
                         <p>
                             <span>จำนวนเงินที่จ่าย</span>
                             <strong>{receipt.amountPaid.toLocaleString()} ฿</strong>

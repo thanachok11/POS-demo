@@ -135,7 +135,8 @@ export const updateStock = async (req: Request, res: Response): Promise<void> =>
       if (!isOtherSupplier) {
         res.status(403).json({
           success: false,
-          message: "❌ ไม่สามารถแก้ไขจำนวนสินค้าได้ เนื่องจากเป็นสินค้าของ Supplier ภายนอก",
+          message:
+            "❌ ไม่สามารถแก้ไขจำนวนสินค้าได้ เนื่องจากเป็นสินค้าของ Supplier ภายนอก",
         });
         return;
       }
@@ -165,7 +166,7 @@ export const updateStock = async (req: Request, res: Response): Promise<void> =>
       }
     }
 
-    // ✅ อัปเดต field อื่น ๆ (ทำงานได้ปกติ)
+    // ✅ อัปเดต field อื่น ๆ
     if (supplier !== undefined) stock.supplier = supplier;
     if (location !== undefined) stock.location = location;
     if (threshold !== undefined) stock.threshold = threshold;
@@ -181,20 +182,28 @@ export const updateStock = async (req: Request, res: Response): Promise<void> =>
     if (batchNumber !== undefined) stock.batchNumber = batchNumber;
     if (expiryDate !== undefined) stock.expiryDate = new Date(expiryDate);
 
+    // ✅ อัปเดตวันที่ restock ถ้ามีการเพิ่มจำนวน
     if (quantity !== undefined && Number(quantity) > 0) {
       stock.lastRestocked = new Date();
     }
 
-    await stock.updateStatus();
+    // ✅ ประเมินสถานะสินค้าใหม่แบบ real-time
+    if (stock.quantity <= 0) {
+      stock.status = "สินค้าหมด";
+    } else if (stock.quantity <= stock.threshold) {
+      stock.status = "สินค้าเหลือน้อย";
+    } else {
+      stock.status = "สินค้าพร้อมขาย";
+    }
     await stock.save();
 
     res.status(200).json({
       success: true,
-      message: "Stock updated successfully",
+      message: "อัปเดตข้อมูลสต็อกสำเร็จ ✅",
       data: stock,
     });
   } catch (error) {
-    console.error("Update Stock Error:", error);
+    console.error("❌ Update Stock Error:", error);
     res
       .status(500)
       .json({ success: false, message: "Server error while updating stock" });
@@ -202,43 +211,6 @@ export const updateStock = async (req: Request, res: Response): Promise<void> =>
 };
 
 
-
-//ใช้เวลานำเข้าสินค้า → เพิ่มสต็อก + log ลง StockTransaction
-export const restockProductByBarcode = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { barcode } = req.params;
-    const { quantity, costPrice, userId, orderId } = req.body;
-
-    const stock = await Stock.findOne({ barcode });
-    if (!stock) {
-      res.status(404).json({ success: false, message: "Stock not found" });
-      return;
-    }
-
-    stock.quantity += quantity;
-    stock.lastPurchasePrice = costPrice;
-    stock.costPrice = costPrice;
-    stock.lastRestocked = new Date();
-    await stock.updateStatus();
-    await stock.save();
-
-    await StockTransaction.create({
-      stockId: stock._id,
-      productId: stock.productId,
-      type: "RESTOCK",
-      quantity,
-      referenceId: orderId,
-      userId,
-      costPrice,
-      notes: "นำเข้าสินค้าใหม่",
-    });
-
-    res.status(200).json({ success: true, message: "นำเข้าสินค้าสำเร็จ", data: stock });
-  } catch (error) {
-    console.error("Restock Product Error:", error);
-    res.status(500).json({ success: false, message: "Server error while restocking product" });
-  }
-};
 
 // คืนสินค้า
 export const returnProductByBarcode = async (req: Request, res: Response): Promise<void> => {
@@ -273,37 +245,6 @@ export const returnProductByBarcode = async (req: Request, res: Response): Promi
   }
 };
 
-// ปรับสต็อก (เช่น ตรวจนับใหม่)
-export const adjustStockByBarcode = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { barcode } = req.params;
-    const { newQuantity, userId, notes } = req.body;
-
-    const stock = await Stock.findOne({ barcode });
-    if (!stock) {
-      res.status(404).json({ success: false, message: "Stock not found" });
-      return;
-    }
-
-    stock.quantity = newQuantity;
-    await stock.updateStatus();
-    await stock.save();
-
-    await StockTransaction.create({
-      stockId: stock._id,
-      productId: stock.productId,
-      type: "ADJUSTMENT",
-      quantity: newQuantity,
-      userId,
-      notes: notes || "ปรับยอดสต็อก",
-    });
-
-    res.status(200).json({ success: true, message: "ปรับสต็อกสำเร็จ", data: stock });
-  } catch (error) {
-    console.error("Adjust Stock Error:", error);
-    res.status(500).json({ success: false, message: "Server error while adjusting stock" });
-  }
-};
 
 //ลบ Stock (พร้อมลบ Product ที่ผูก)
 export const deleteStockByBarcode = async (req: Request, res: Response): Promise<void> => {

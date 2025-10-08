@@ -57,15 +57,25 @@
     border-collapse: collapse;
 }
 
-.receipt-items-table th,
-.receipt-items-table td {
-    font-size: 12px;
-    padding: 3px 0;
+.receipt-items-list {
+    margin: 6px 0;
+}
+
+.receipt-item-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    margin: 3px 0;
+}
+
+.receipt-item-name {
+    flex: 1;
     text-align: left;
 }
 
-.receipt-items-table th {
-    border-bottom: 1px dashed #333;
+.receipt-item-total {
+    text-align: right;
+    min-width: 60px;
 }
 
 .receipt-summary {
@@ -77,9 +87,17 @@
 .receipt-summary p {
     display: flex;
     justify-content: space-between;
-    margin: 2px 0;
+    margin: 4px 0;
 }
 
+.receipt-summary .receipt-total {
+    border-top: 1px dashed #aaa;
+    border-bottom: 1px dashed #aaa;
+    padding: 5px 0;
+    margin-top: 6px;
+    font-weight: bold;
+    font-size: 15px;
+}
 .receipt-footer {
     text-align: center;
     border-top: 1px dashed #333;

@@ -392,14 +392,14 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
                         </div>
 
                         <div className="add-product-form-group">
-                            <label className="add-product-form-label">Batch Number:</label>
+                            <label className="add-product-form-label">เลขล็อตสินค้า:</label>
                             <input
                                 type="text"
                                 name="batchNumber"
                                 value={stockData.batchNumber}
                                 onChange={handleInputChange}
                                 className="add-product-form-input"
-                                placeholder="เช่น LOT2025-001"
+                                placeholder="เช่น LOT2025-01-30"
                             />
                         </div>
 

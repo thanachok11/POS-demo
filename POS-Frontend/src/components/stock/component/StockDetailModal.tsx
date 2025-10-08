@@ -93,8 +93,6 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({
 
       // ✅ เตรียม payload สำหรับอัปเดต stock
       const updatedStockData: any = {
-        supplier: stockData.supplier,
-        location: warehouseId,
         threshold: stockData.threshold,
         status: stockData.status,
         notes: stockData.notes,

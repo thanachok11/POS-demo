@@ -14,7 +14,6 @@ import CreateOrder from "./components/purchaseOrder/CreatePurchaseOrderPage";
 import SupplierList from "./components/suppliers/SupplierList";
 import UserSettings from "./components/pages/UserSettings";
 import ReceiptPage from "./components/receipt/ReceiptPage";
-import ReceiptDetail from "./components/receipt/ReceiptModal";
 import Search from "./components/product/BarcodeSearch";
 import SalePage from "./components/pages/Dashboard";
 import PaymentPage from "./components/payment/PaymentPage";
@@ -24,6 +23,7 @@ import EmployeePage from "./components/pages/Employee/Dashboard-employee";
 import StockTransaction from "./components/stock/StockTransaction";
 import ExpiredPage from "./components/stock/ExpiredPage";
 import BarcodePage from "./components/barcode/BarcodeStockPage";
+import DiscountPage from "./components/payment/DiscountPage";
 
 import { jwtDecode } from "jwt-decode";
 import { renewToken } from "./api/auth/auth";
@@ -84,7 +84,6 @@ const App: React.FC = () => {
     navigate(path);            // ไปยัง path โดยไม่ต้องรีเฟรช
   };
   useEffect(() => {
-    // เวลา refresh หรือเข้า path ตรงๆ → ให้เช็คชื่อเมนูจาก path ด้วย
     const pathToMenu: Record<string, string> = {
       "/shop": "ซื้อสินค้า",
       "/reports/sales": "รายงานยอดขาย",
@@ -95,11 +94,19 @@ const App: React.FC = () => {
       "/createOrder": "นำเข้าสินค้าใหม่",
       "/barcode": "บาร์โค้ด",
       "/debt": "ค้างชำระ",
-      "/expired": "สินค้าเหลือน้อย",
-      "/setting/employee": "พนักงาน",
+      "/expired": "สินค้าเหลือน้อย/สินค้าหมด",
+      "/setting/employee": "ตั้งค่าพนักงาน",
       "/suppliers": "ผู้ผลิต",
+      "/purchase-orders": "คำสั่งซื้อ", 
+      "/stockTransaction": "ประวัติการเคลื่อนไหวของคลังสินค้า", 
+      "/discount": "จัดการส่วนลด",                
     };
-    setActiveMenu(pathToMenu[location.pathname] || "");
+
+    const menuName = pathToMenu[location.pathname];
+    if (menuName) {
+      setActiveMenu(menuName);
+    } else {
+    }
   }, [location.pathname]);
 
   useEffect(() => {
@@ -194,6 +201,7 @@ const App: React.FC = () => {
           <Route path="/createOrder" element={<CreateOrder />} />
           <Route path="/expired" element={<ExpiredPage />} />
           <Route path="/barcode" element={<BarcodePage />} />
+          <Route path="/discount" element={<DiscountPage />} />
 
         </Routes>
       </div>

@@ -23,6 +23,7 @@ import warehouseRoutes from "./routes/warehouseRoutes";
 import categoryRoutes from "./routes/categoryRoutes";
 import purchaseOrderRouter from "./routes/purchaseOrderRoutes";
 import dashboardRoutes from './routes/dashboardRoutes';
+import discountRoute from './routes/discountRoutes';
 
 // Models
 import StockModel from "./models/Stock";
@@ -115,6 +116,7 @@ app.use("/api/warehouses", warehouseRoutes);
 app.use("/api/stock", StockTransaction);
 app.use("/api/", purchaseOrderRouter);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/discounts', discountRoute);
 
 // ============================
 // START SERVER

@@ -4,7 +4,7 @@ import Stock from "../models/Stock";
 import Product from "../models/Product";
 import { verifyToken } from "../utils/auth";
 
-//  สร้าง Transaction ใหม่
+// 🧩 สร้าง Transaction ใหม่ (ขาย / รับเข้า / คืน / ปรับยอด)
 export const createTransaction = async (req: Request, res: Response): Promise<void> => {
     try {
         const token = req.headers["authorization"]?.split(" ")[1];
@@ -12,29 +12,31 @@ export const createTransaction = async (req: Request, res: Response): Promise<vo
             res.status(401).json({ success: false, message: "No token provided" });
             return;
         }
+
         const decoded = verifyToken(token);
         if (typeof decoded === "string" || !("userId" in decoded)) {
             res.status(401).json({ success: false, message: "Invalid token" });
             return;
         }
 
-        const { stockId, productId, type, quantity, referenceId, costPrice, salePrice, notes } = req.body;
+        const { stockId, productId, type, quantity, referenceId, costPrice, salePrice, notes } =
+            req.body;
 
-        //  ตรวจสอบ stock
+        // ✅ ตรวจสอบ stock
         const stock = await Stock.findById(stockId);
         if (!stock) {
             res.status(404).json({ success: false, message: "Stock not found" });
             return;
         }
 
-        //  ตรวจสอบ product
+        // ✅ ตรวจสอบ product
         const product = await Product.findById(productId);
         if (!product) {
             res.status(404).json({ success: false, message: "Product not found" });
             return;
         }
 
-        //  อัปเดตจำนวนใน Stock ตาม type
+        // ✅ ปรับจำนวนตามประเภท transaction
         if (type === "SALE") {
             if (stock.quantity < quantity) {
                 res.status(400).json({
@@ -47,11 +49,21 @@ export const createTransaction = async (req: Request, res: Response): Promise<vo
         } else if (type === "RESTOCK" || type === "RETURN") {
             stock.quantity += quantity;
         } else if (type === "ADJUSTMENT") {
-            stock.quantity = quantity; // set ใหม่ตามที่ให้มา
+            stock.quantity = quantity;
         }
+
+        // ✅ ประเมินสถานะสินค้าใหม่แบบ real-time
+        if (stock.quantity <= 0) {
+            stock.status = "สินค้าหมด";
+        } else if (stock.quantity <= stock.threshold) {
+            stock.status = "สินค้าเหลือน้อย";
+        } else {
+            stock.status = "สินค้าพร้อมขาย";
+        }
+
         await stock.save();
 
-        //  สร้าง Transaction
+        // ✅ สร้าง Transaction ใหม่
         const transaction = new StockTransaction({
             stockId,
             productId,
@@ -59,21 +71,28 @@ export const createTransaction = async (req: Request, res: Response): Promise<vo
             quantity,
             referenceId,
             userId: decoded.userId,
-            //  ดึงราคาจาก Stock ถ้ามี ถ้าไม่มี fallback ไปที่ Product
-            costPrice: stock.costPrice ?? product.price,
-            salePrice: stock.salePrice ?? product.price,
+            costPrice: costPrice ?? stock.costPrice ?? product.price,
+            salePrice: salePrice ?? stock.salePrice ?? product.price,
             notes,
         });
 
         await transaction.save();
 
-
-        await transaction.save();
-
-        res.status(201).json({ success: true, data: transaction });
+        res.status(201).json({
+            success: true,
+            message: "สร้าง Transaction สำเร็จ และอัปเดตสถานะสินค้าเรียบร้อย ✅",
+            data: {
+                transaction,
+                updatedStock: stock,
+            },
+        });
     } catch (error: any) {
-        console.error("Create Transaction Error:", error);
-        res.status(500).json({ success: false, message: "Server error" });
+        console.error("❌ Create Transaction Error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Server error while creating transaction",
+            error,
+        });
     }
 };
 

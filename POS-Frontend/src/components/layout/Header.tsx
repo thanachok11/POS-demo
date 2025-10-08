@@ -1,13 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-    faSignOutAlt,
     faSignInAlt,
     faUserPlus,
-    faCaretDown,
     faBars,
     faTimes,
-    faCog,
 } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
@@ -77,6 +74,9 @@ const Header: React.FC<NavbarProps> = ({
     const [notificationOpen, setNotificationOpen] = useState(false);
 
     const navigate = useNavigate();
+    useEffect(() => {
+        console.log("activeMenu =>", activeMenu);
+    }, [activeMenu]);
 
     // ✅ Decode token
     useEffect(() => {

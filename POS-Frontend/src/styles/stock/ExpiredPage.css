@@ -107,17 +107,16 @@
 
 /* thead */
 .expired-table thead {
-    background-color: #dddddd;
-    /* เทาอ่อน */
+    background: linear-gradient(90deg, #0284c7, #0ea5e9);
+    color: #fff;
+    font-size: 0.95rem;
 }
 
-.expired-table thead th {
+.expired-table th {
     font-size: 14px;
     font-weight: 600;
-    color: #374151;
-    /* text-gray-700 */
     padding: 10px 12px;
-    text-align: left;
+    text-align: center;
     border-bottom: 2px solid #e5e7eb;
 }
 
@@ -125,6 +124,7 @@
 .expired-table tbody td {
     border-bottom: 1px solid #e5e7eb;
     font-size: 20px;
+    text-align: center;
 }
 
 /* รูปสินค้า */

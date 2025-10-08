@@ -1,0 +1,333 @@
+.discount-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 20px;
+    background: #f9fafb;
+    box-sizing: border-box;
+}
+
+/* ✅ ส่วนหัว */
+.discount-header-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.discount-header {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.discount-loading {
+    color: #0284c7;
+    font-size: 0.95rem;
+}
+
+.discount-error {
+    color: #dc2626;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+
+/* 📋 ตารางรายการส่วนลด */
+.discount-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.discount-table thead {
+    background: linear-gradient(90deg, #0284c7, #0ea5e9);
+    color: #fff;
+    font-size: 0.95rem;
+}
+
+.discount-table th,
+.discount-table td {
+    padding: 12px 14px;
+    text-align: center;
+}
+
+.discount-table tbody tr:nth-child(even) {
+    background: #f9fafb;
+}
+
+.discount-table tbody tr:hover {
+    background: #e0f2fe;
+    transition: 0.2s;
+}
+
+.discount-code {
+    font-weight: 600;
+    color: #0369a1;
+}
+/* 🔹 แถวของปุ่มจัดการ */
+.discount-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    /* ระยะห่างระหว่างปุ่ม */
+}
+
+/* 🔹 ปุ่มทั่วไป */
+.discount-actions button {
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-weight: 500;
+}
+
+/* ✏️ ปุ่มแก้ไข */
+.discount-btn-edit {
+    background-color: #0284c7;
+    color: white;
+}
+
+.discount-btn-edit:hover {
+    background-color: #0369a1;
+    transform: translateY(-2px);
+}
+
+/* 🗑️ ปุ่มลบ */
+.discount-btn-delete {
+    background-color: #ef4444;
+    color: white;
+}
+
+.discount-btn-delete:hover {
+    background-color: #dc2626;
+    transform: translateY(-2px);
+}
+
+.discount-no-data {
+    text-align: center;
+    padding: 25px 0;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+/* ➕ ปุ่มเพิ่มส่วนลด */
+.discount-btn-add {
+    align-self: flex-start;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #2a9d8f;
+        color: #fff;
+        padding: 8px 14px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s;
+        transition: all 0.2s ease-in-out;
+}
+
+.discount-btn-add:hover {
+background: #059669;
+    transform: scale(1.05);
+}
+.discount-modal-container.editing {
+    border-top: 5px solid #0284c7;
+    animation: pulseBorder 1.2s infinite alternate;
+}
+
+@keyframes pulseBorder {
+    from {
+        border-top-color: #0ea5e9;
+    }
+
+    to {
+        border-top-color: #22d3ee;
+    }
+}
+/* ✨ Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+
+.discount-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    animation: fadeIn 0.25s ease;
+}
+
+.discount-modal-container {
+    background: #ffffff;
+    border-radius: 16px;
+    width: 420px;
+    max-width: 90%;
+    padding: 25px 28px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    animation: slideUp 0.3s ease;
+    position: relative;
+}
+
+/* 🧭 Header */
+.discount-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.discount-modal-header h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.discount-modal-close {
+    border: none;
+    background: transparent;
+    font-size: 1.2rem;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.discount-modal-close:hover {
+    color: #ef4444;
+    transform: scale(1.1);
+}
+
+/* 🧾 Form */
+.discount-modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.discount-modal-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.discount-modal-group label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #334155;
+}
+
+.discount-modal-group input,
+.discount-modal-group select {
+    padding: 9px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.2s ease;
+    background: #f8fafc;
+}
+
+.discount-modal-group input:focus,
+.discount-modal-group select:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.25);
+}
+
+.discount-modal-row {
+    display: flex;
+    gap: 10px;
+}
+
+.discount-modal-row .discount-modal-group {
+    flex: 1;
+}
+
+/* ✅ ปุ่ม Action */
+.discount-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.discount-btn-save {
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+    color: #fff;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.discount-btn-save:hover {
+    background: linear-gradient(90deg, #16a34a, #15803d);
+    transform: translateY(-1px);
+}
+
+.discount-btn-save:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
+.discount-btn-cancel {
+    background: #e2e8f0;
+    color: #334155;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.discount-btn-cancel:hover {
+    background: #cbd5e1;
+}
+
+/* ✨ Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}

@@ -123,14 +123,15 @@
 }
 
 .employee-table thead {
-    background: #dddddd;
+    background: linear-gradient(90deg, #0284c7, #0ea5e9);
+    color: #fff;
+    font-size: 0.95rem;
 }
 
 .employee-table th {
     text-align: left;
     padding: 10px 12px;
     font-weight: 600;
-    color: #374151;
     border-bottom: 2px solid #e5e7eb;
 }
 

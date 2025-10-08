@@ -180,6 +180,17 @@ body {
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
 
+
+.app-container.sidebar-open .discount-container {
+  margin-left: 50px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
+
+.app-container.sidebar-closed .discount-container {
+  margin-left: 50px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
+
 .employee-dashboard {
   transition: margin-left 0.3s ease-in-out;
 }

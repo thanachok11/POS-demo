@@ -140,7 +140,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               <span className="dropdown-text-expired">สินค้าเหลือน้อย</span>
             </li>
             {/* ✅ เพิ่มเมนู StockTransaction */}
-            <li onClick={() => handleMenuClick("/stockTransaction", "ประวัติ Stock")}>
+            <li onClick={() => handleMenuClick("/stockTransaction", "ประวัติการเคลื่อนไหวของคลังสินค้า")}>
               <FontAwesomeIcon icon={faHistory} className="icon" />{" "}
               <span className="dropdown-text-transaction">ประวัติ Stock</span>
             </li>
@@ -165,6 +165,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <li onClick={() => handleMenuClick("/suppliers", "ผู้ผลิต")}>
                   <FontAwesomeIcon icon={faHandshake} className="icon" />{" "}
                   <span className="dropdown-text-suppliers">ผู้ผลิต</span>
+                </li>
+                <li onClick={() => handleMenuClick("/discount", "จัดการส่วนลด")}>
+                  <FontAwesomeIcon icon={faHandshake} className="icon" />{" "}
+                  <span className="dropdown-text-discount">ส่วนลด</span>
                 </li>
               </ul>
             </>

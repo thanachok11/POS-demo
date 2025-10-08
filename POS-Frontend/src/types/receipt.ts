@@ -28,5 +28,6 @@ export interface Receipt {
     paymentMethod: string;
     amountPaid: number;
     changeAmount: number;
+    discount:number;
     timestamp: string;
 }

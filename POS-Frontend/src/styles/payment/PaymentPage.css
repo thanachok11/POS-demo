@@ -1,11 +1,11 @@
 /* payment/PaymentPage.css */
 .payment-container {
     display: flex;
-        flex-direction: column;
-        height: 100vh;
-        padding: 20px;
-        background: #f9fafb;
-        box-sizing: border-box;
+    flex-direction: column;
+    height: 100vh;
+    padding: 20px;
+    background: #f9fafb;
+    box-sizing: border-box;
 }
 
 .payment-header-wrapper {
@@ -65,14 +65,18 @@
     font-size: 14px;
 }
 
+.payment-table thead {
+    background: linear-gradient(90deg, #0284c7, #0ea5e9);
+    color: #fff;
+    font-size: 0.95rem;
+}
+
 .payment-header-cell {
     position: sticky;
     top: 0;
-    background: #dddddd;
     text-align: left;
     padding: 12px;
     font-weight: 600;
-    color: #374151;
     border-bottom: 2px solid #e5e7eb;
     z-index: 5;
 }

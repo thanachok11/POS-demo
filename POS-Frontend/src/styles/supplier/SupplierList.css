@@ -112,7 +112,7 @@
 
 .supplier-add-btn:hover {
     background: #059669;
-        transform: scale(1.05);
+    transform: scale(1.05);
 }
 
 /* ===========================
@@ -133,16 +133,21 @@
     font-size: 14px;
 }
 
+.supplier-table thead {
+    background: linear-gradient(90deg, #0284c7, #0ea5e9);
+    color: #fff;
+    font-size: 0.95rem;
+}
+
 .supplier-table th {
     position: sticky;
     top: 0;
-    background: #dddddd;
     text-align: left;
     padding: 12px;
     font-weight: 600;
-    color: #374151;
     border-bottom: 2px solid #e5e7eb;
     z-index: 5;
+
 }
 
 .supplier-table td {
@@ -152,10 +157,6 @@
     vertical-align: top;
 }
 
-.supplier-table tr:hover {
-    background: #f9fafb;
-    transition: background 0.2s;
-}
 
 /* ===========================
    Action Buttons

@@ -77,14 +77,18 @@
     font-size: 14px;
 }
 
+.receipt-table thead {
+    background: linear-gradient(90deg, #0284c7, #0ea5e9);
+    color: #fff;
+    font-size: 0.95rem;
+}
+
 .receipt-header-cell {
     position: sticky;
     top: 0;
-    background: #dddddd;
     text-align: left;
     padding: 12px;
     font-weight: 600;
-    color: #374151;
     border-bottom: 2px solid #e5e7eb;
     z-index: 5;
 }
