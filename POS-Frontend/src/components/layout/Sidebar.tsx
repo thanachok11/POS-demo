@@ -63,7 +63,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       ref={sidebarRef}
       className={`sidebar ${isSidebarOpen ? "open" : "closed"}`}
     >
-      <div className="sidebar-header">
+      <div className="sidebar-header" >
         <span className="sidebar-logo-text">{user?.nameStore || "EAZYPOS"}</span>
       </div>
 
