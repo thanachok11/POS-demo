@@ -1,7 +1,8 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 interface ISupplier extends Document {
-    userId: mongoose.Types.ObjectId; // อ้างอิงไปยัง User
+    userId: mongoose.Types.ObjectId;
+    code: string; // ✅ รหัสซัพพลายเออร์ เช่น SP01
     companyName: string;
     phoneNumber: string;
     address: string;
@@ -17,18 +18,23 @@ interface ISupplier extends Document {
 
 const SupplierSchema = new Schema<ISupplier>(
     {
-        userId: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // เพิ่ม userId ที่อ้างอิงกับ User
-        companyName: { type: String, required: true }, // ชื่อบริษัท
-        phoneNumber: { type: String, required: true }, // เบอร์โทรศัพท์
-        address: { type: String, required: true }, // ที่อยู่
-        country: { type: String, required: true }, // ประเทศ
-        stateOrProvince: { type: String, required: true }, // จังหวัด/รัฐ
-        district: { type: String, required: true }, // อำเภอ/เขต
-        subDistrict: { type: String, required: true }, // ตำบล/แขวง
-        postalCode: { type: String, required: true }, // รหัสไปรษณีย์
-        email: { type: String, required: true }, // อีเมล
+        userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+        code: {
+            type: String,
+            required: true,
+            unique: true, // ห้ามซ้ำ (เช่น SP01)
+        },
+        companyName: { type: String, required: true },
+        phoneNumber: { type: String, required: true },
+        address: { type: String, required: true },
+        country: { type: String, required: true },
+        stateOrProvince: { type: String, required: true },
+        district: { type: String, required: true },
+        subDistrict: { type: String, required: true },
+        postalCode: { type: String, required: true },
+        email: { type: String, required: true },
     },
     { timestamps: true }
 );
-const Supplier = mongoose.model<ISupplier>("Supplier", SupplierSchema);
-export default Supplier;
+
+export default mongoose.model<ISupplier>("Supplier", SupplierSchema);

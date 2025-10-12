@@ -4,7 +4,7 @@ export interface Item {
     barcode: string;
     name: string;
     price: number;
-    quantity: number;
+    totalQuantity: number;
     subtotal: number;
     _id: string;
 }

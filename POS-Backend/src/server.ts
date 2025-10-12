@@ -12,8 +12,7 @@ import productRoutes from "./routes/productRoutes";
 import uploadRoutes from "./routes/uploadRoutes";
 import { connectDB } from "./database";
 import Stock from "./routes/stockRoutes";
-import orderRoutes from './routes/orderRoutes';
-import testRoute from './routes/testRoutes';
+
 import Supplier from "./routes/supplierRoutes";
 import StockTransaction from "./routes/stockTransactionRoutes";
 import employeeRouter from './routes/employeeRoutes';
@@ -24,6 +23,7 @@ import categoryRoutes from "./routes/categoryRoutes";
 import purchaseOrderRouter from "./routes/purchaseOrderRoutes";
 import dashboardRoutes from './routes/dashboardRoutes';
 import discountRoute from './routes/discountRoutes';
+import qcRoutes from "./routes/qcRoutes";
 
 // Models
 import StockModel from "./models/Stock";
@@ -100,14 +100,12 @@ app.get("/", (req, res) => {
 
 app.use(express.json());
 app.use(bodyParser.json());
-app.use("/api/test", testRoute);
 app.use("/api/products", productRoutes);
 app.use("/api/products/barcode", productRoutes);
 app.use("/api/category", categoryRoutes);
 app.use("/api/product", uploadRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/stocks", Stock);
-app.use('/api/', orderRoutes);
 app.use('/api/suppliers', Supplier);
 app.use('/api/employee', employeeRouter);
 app.use('/api/payment', createPayment);
@@ -117,6 +115,7 @@ app.use("/api/stock", StockTransaction);
 app.use("/api/", purchaseOrderRouter);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/discounts', discountRoute);
+app.use("/api/qc", qcRoutes);
 
 // ============================
 // START SERVER

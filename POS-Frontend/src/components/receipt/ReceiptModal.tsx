@@ -73,7 +73,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ receipt, onClose }) => {
                         {receipt.items.map((item) => (
                             <div key={item._id} className="receipt-item-row">
                                 <span className="receipt-item-name">
-                                    {item.quantity} * {item.name}
+                                    {item.totalQuantity} * {item.name}
                                 </span>
                                 <span className="receipt-item-total">
                                     {item.subtotal.toLocaleString()} ฿

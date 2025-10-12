@@ -173,16 +173,17 @@
     font-size: 13px;
     cursor: pointer;
     border: none;
-    transition: background 0.2s;
+    transition: all 0.25s ease;
 }
 
 .supplier-edit-btn {
-    background: #3b82f6;
-    color: #fff;
+    background-color: #0284c7;
+        color: white;
 }
 
 .supplier-edit-btn:hover {
-    background: #2563eb;
+    background-color: #0369a1;
+        transform: translateY(-2px);
 }
 
 .supplier-delete-btn {
@@ -191,7 +192,8 @@
 }
 
 .supplier-delete-btn:hover {
-    background: #dc2626;
+    background-color: #dc2626;
+        transform: translateY(-2px);
 }
 
 /* ===========================

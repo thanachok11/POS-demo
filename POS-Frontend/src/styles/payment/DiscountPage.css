@@ -275,18 +275,21 @@ background: #059669;
 
 .discount-btn-save {
     background: linear-gradient(90deg, #22c55e, #16a34a);
-    color: #fff;
-    border: none;
-    padding: 9px 16px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.25s ease;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 22px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        box-shadow: 0 3px 8px rgba(22, 163, 74, 0.3);
 }
 
 .discount-btn-save:hover {
     background: linear-gradient(90deg, #16a34a, #15803d);
-    transform: translateY(-1px);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
 }
 
 .discount-btn-save:disabled {
@@ -295,18 +298,22 @@ background: #059669;
 }
 
 .discount-btn-cancel {
-    background: #e2e8f0;
-    color: #334155;
-    border: none;
-    padding: 9px 16px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.25s ease;
+    background: linear-gradient(90deg, #ef4444, #dc2626);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 22px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        box-shadow: 0 3px 8px rgba(220, 38, 38, 0.3);
 }
 
 .discount-btn-cancel:hover {
-    background: #cbd5e1;
+    background: linear-gradient(90deg, #dc2626, #b91c1c);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
 }
 
 /* ✨ Animations */

@@ -25,7 +25,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({
             }`}
     >
         <p className="cart-summary">
-            รวมทั้งหมด: {cart.reduce((sum, i) => sum + i.quantity, 0)} รายการ
+            รวมทั้งหมด: {cart.reduce((sum, i) => sum + i.totalQuantity, 0)} รายการ
         </p>
 
         <h2 className="cart-title">ตะกร้าสินค้า</h2>
@@ -37,12 +37,12 @@ const CartSidebar: React.FC<CartSidebarProps> = ({
                     <img src={item.imageUrl} alt={item.name} className="cart-item-img" />
                     <div className="cart-item-info">
                         <p className="cart-item-name">{item.name}</p>
-                        <p className="cart-item-quantity">จำนวน: {item.quantity}</p>
+                        <p className="cart-item-quantity">จำนวน: {item.totalQuantity}</p>
                         <p className="cart-item-price">
-                            ราคา: {(item.price * item.quantity).toLocaleString()} ฿
+                            ราคา: {(item.price * item.totalQuantity).toLocaleString()} ฿
                         </p>
                         <button
-                            onClick={() => openNumberPad(item.quantity, item.barcode)}
+                            onClick={() => openNumberPad(item.totalQuantity, item.barcode)}
                             className="edit-quantity-btn"
                         >
                             แก้ไขจำนวน

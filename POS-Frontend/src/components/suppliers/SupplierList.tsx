@@ -4,11 +4,9 @@ import "../../styles/supplier/SupplierList.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import SupplierForm from "./SupplierForm";
-import React from "react";
-import GlobalPopup from "../layout/GlobalPopup"; // ✅ ใช้ popup กลาง
+import { useGlobalPopup } from "../../components/common/GlobalPopupEdit";
 
 interface Supplier {
-    id?: number;
     _id?: string;
     companyName: string;
     phoneNumber: string;
@@ -19,6 +17,7 @@ interface Supplier {
     district: string;
     subDistrict: string;
     postalCode: string;
+    code?: string;
 }
 
 const SupplierList = () => {
@@ -29,14 +28,11 @@ const SupplierList = () => {
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
-
-    // ✅ popup state
-    const [showPopup, setShowPopup] = useState(false);
-    const [message, setMessage] = useState("");
-    const [isSuccess, setIsSuccess] = useState(false);
-
     const [searchQuery, setSearchQuery] = useState("");
 
+    const { showPopup, closePopup } = useGlobalPopup();
+
+    // โหลดข้อมูลซัพพลายเออร์
     useEffect(() => {
         fetchSuppliers();
     }, []);
@@ -44,48 +40,63 @@ const SupplierList = () => {
     const fetchSuppliers = async () => {
         const token = localStorage.getItem("token");
         if (!token) {
-            setError("❌ No token found");
+            setError("❌ ไม่มีโทเคน");
             setLoading(false);
             return;
         }
+
         try {
-            const response = await getSupplierData(token);
-            if (Array.isArray(response)) {
-                setSuppliers(response);
-            } else if (response.data && Array.isArray(response.data)) {
-                setSuppliers(response.data);
+            const res = await getSupplierData(token);
+            const data = res.data || res;
+            if (Array.isArray(data)) {
+                setSuppliers(data);
             } else {
-                setError("❌ รูปแบบข้อมูลไม่ถูกต้อง");
+                setError("⚠️ รูปแบบข้อมูลไม่ถูกต้อง");
             }
-        } catch (error) {
-            setError("❌ ไม่สามารถดึงข้อมูลซัพพลายเออร์ได้");
-            console.error("API Fetch Error:", error);
+        } catch (err) {
+            setError("❌ ไม่สามารถโหลดข้อมูลซัพพลายเออร์ได้");
+            console.error("getSupplierData error:", err);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleDelete = async (supplier: Supplier) => {
-        const id = supplier._id || supplier.id;
-        if (!id) {
-            console.error("❌ No supplier id found");
-            return;
-        }
-        if (!window.confirm("คุณต้องการลบซัพพลายเออร์นี้ใช่หรือไม่?")) return;
+    const handleDelete = (supplier: Supplier) => {
+        if (!supplier._id) return;
 
-        const token = localStorage.getItem("token");
-        try {
-            await deleteSupplier(id, token);
-            setSuppliers((prev) => prev.filter((s) => s._id !== id && s.id !== id));
-            setMessage("🗑️ ลบซัพพลายเออร์สำเร็จ!");
-            setIsSuccess(true);
-            setShowPopup(true);
-        } catch (err) {
-            console.error("Error deleting supplier:", err);
-            setMessage("❌ เกิดข้อผิดพลาดในการลบซัพพลายเออร์");
-            setIsSuccess(false);
-            setShowPopup(true);
-        }
+        showPopup({
+            type: "confirm",
+            message: `คุณต้องการลบซัพพลายเออร์ "${supplier.companyName}" ใช่หรือไม่?`,
+            onConfirm: async () => {
+                const token = localStorage.getItem("token");
+                try {
+                    await deleteSupplier(supplier._id!, token!);
+                    setSuppliers((prev) => prev.filter((s) => s._id !== supplier._id));
+
+                    closePopup();
+                    showPopup({
+                        type: "success",
+                        message: "🗑️ ลบซัพพลายเออร์สำเร็จ!",
+                        onClose: () => fetchSuppliers(),
+                    });
+                } catch (err: any) {
+                    closePopup();
+
+                    // ✅ แสดงข้อความจริงจาก backend
+                    const backendMsg =
+                        err?.response?.data?.message ||
+                        err?.response?.data?.error ||
+                        "❌ เกิดข้อผิดพลาดในการลบซัพพลายเออร์";
+
+                    showPopup({
+                        type: "error",
+                        message: backendMsg,
+                    });
+
+                    console.error("❌ deleteSupplier Error:", backendMsg);
+                }
+            },
+        });
     };
 
     const handleOpenModal = (supplier?: Supplier) => {
@@ -100,17 +111,17 @@ const SupplierList = () => {
 
     // ✅ ฟิลเตอร์ก่อน paginate
     const filteredSuppliers = suppliers.filter((s) => {
-        const searchText = searchQuery.toLowerCase();
+        const search = searchQuery.toLowerCase();
         return (
-            s.companyName?.toLowerCase().includes(searchText) ||
-            s.phoneNumber?.toLowerCase().includes(searchText) ||
-            s.email?.toLowerCase().includes(searchText) ||
-            s.address?.toLowerCase().includes(searchText) ||
-            s.subDistrict?.toLowerCase().includes(searchText) ||
-            s.district?.toLowerCase().includes(searchText) ||
-            s.stateOrProvince?.toLowerCase().includes(searchText) ||
-            s.country?.toLowerCase().includes(searchText) ||
-            s.postalCode?.toLowerCase().includes(searchText)
+            s.companyName?.toLowerCase().includes(search) ||
+            s.phoneNumber?.toLowerCase().includes(search) ||
+            s.email?.toLowerCase().includes(search) ||
+            s.address?.toLowerCase().includes(search) ||
+            s.subDistrict?.toLowerCase().includes(search) ||
+            s.district?.toLowerCase().includes(search) ||
+            s.stateOrProvince?.toLowerCase().includes(search) ||
+            s.country?.toLowerCase().includes(search) ||
+            s.postalCode?.toLowerCase().includes(search)
         );
     });
 
@@ -121,7 +132,6 @@ const SupplierList = () => {
     return (
         <div className="display">
             <div className="supplier-container">
-                {/* Header */}
                 <div className="supplier-header-wrapper">
                     <h2 className="supplier-header">📋 รายชื่อซัพพลายเออร์</h2>
 
@@ -144,7 +154,7 @@ const SupplierList = () => {
                         </div>
 
                         <div className="items-per-page">
-                            <label>แสดง: </label>
+                            <label>แสดง:</label>
                             <select
                                 value={itemsPerPage}
                                 onChange={(e) => {
@@ -156,11 +166,10 @@ const SupplierList = () => {
                                 <option value={20}>20</option>
                                 <option value={30}>30</option>
                             </select>
-                            <span> รายการต่อหน้า</span>
+                            <span> รายการ</span>
                         </div>
                     </div>
 
-                    {/* Add Button */}
                     <button className="supplier-add-btn" onClick={() => handleOpenModal()}>
                         <FontAwesomeIcon icon={faPlus} /> เพิ่มซัพพลายเออร์
                     </button>
@@ -171,6 +180,7 @@ const SupplierList = () => {
                     <table className="supplier-table">
                         <thead>
                             <tr>
+                                <th>รหัส</th>
                                 <th>ชื่อ</th>
                                 <th>เบอร์โทร</th>
                                 <th>อีเมล</th>
@@ -180,26 +190,27 @@ const SupplierList = () => {
                         </thead>
                         <tbody>
                             {currentSuppliers.length > 0 ? (
-                                currentSuppliers.map((supplier) => (
-                                    <tr key={supplier._id || supplier.id}>
-                                        <td>{supplier.companyName}</td>
-                                        <td>{supplier.phoneNumber}</td>
-                                        <td>{supplier.email}</td>
+                                currentSuppliers.map((s) => (
+                                    <tr key={s._id}>
+                                        <td>{s.code || "-"}</td>
+                                        <td>{s.companyName}</td>
+                                        <td>{s.phoneNumber}</td>
+                                        <td>{s.email}</td>
                                         <td>
-                                            {supplier.address}, {supplier.subDistrict}, {supplier.district},{" "}
-                                            {supplier.stateOrProvince}, {supplier.country} {supplier.postalCode}
+                                            {s.address}, {s.subDistrict}, {s.district},{" "}
+                                            {s.stateOrProvince}, {s.country} {s.postalCode}
                                         </td>
                                         <td>
                                             <div className="supplier-action-buttons">
                                                 <button
                                                     className="supplier-edit-btn"
-                                                    onClick={() => handleOpenModal(supplier)}
+                                                    onClick={() => handleOpenModal(s)}
                                                 >
                                                     แก้ไข
                                                 </button>
                                                 <button
                                                     className="supplier-delete-btn"
-                                                    onClick={() => handleDelete(supplier)}
+                                                    onClick={() => handleDelete(s)}
                                                 >
                                                     ลบ
                                                 </button>
@@ -209,7 +220,7 @@ const SupplierList = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={5} className="supplier-no-data">
+                                    <td colSpan={6} className="supplier-no-data">
                                         ❌ ไม่พบซัพพลายเออร์
                                     </td>
                                 </tr>
@@ -247,31 +258,18 @@ const SupplierList = () => {
                         <SupplierForm
                             supplier={selectedSupplier}
                             onClose={handleCloseModal}
-                            onSave={(success, msg) => {
+                            onSave={() => {
                                 fetchSuppliers();
-                                setMessage(msg);
-                                setIsSuccess(success);
-                                setShowPopup(true);
+                                showPopup({
+                                    type: "success",
+                                    message: "✅ บันทึกซัพพลายเออร์สำเร็จ!",
+                                    onClose: () => setModalOpen(false),
+                                });
                             }}
                         />
                     </div>
                 </div>
             )}
-
-            {/* ✅ GlobalPopup สำหรับ success/error */}
-            <GlobalPopup
-                message={message}
-                isSuccess={isSuccess}
-                show={showPopup}
-                setShow={setShowPopup}
-                onClose={() => {
-                    // ✅ ให้ refresh หลังปิด popup
-                    fetchSuppliers();
-                    setModalOpen(false);
-                    setSelectedSupplier(null);
-                }}
-            />
-
         </div>
     );
 };

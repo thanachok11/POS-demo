@@ -35,7 +35,7 @@ interface StockTransaction {
     productId: Product;
     stockId: Stock;
     type: string;
-    quantity: number;
+    totalQuantity: number;
     userId: User;
     notes?: string;
     createdAt: string;
@@ -88,7 +88,7 @@ const TransactionDetailModal: React.FC<Props> = ({
                         <strong>ประเภท:</strong> {transaction.type}
                     </p>
                     <p>
-                        <strong>จำนวน:</strong> {transaction.quantity}
+                        <strong>จำนวน:</strong> {transaction.totalQuantity}
                     </p>
                     <p>
                         <strong>ผู้ดำเนินการ:</strong> {transaction.userId?.username}

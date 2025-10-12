@@ -2,104 +2,88 @@ import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-
-// เพิ่มซัพพลายเออร์ใหม่
+// ✅ เพิ่มซัพพลายเออร์ใหม่
 export const addSupplier = async (supplierData: any, token: string) => {
     try {
         const response = await axios.post(
-            `${API_BASE_URL}/suppliers/add-suppliers`,  // Assuming you have an endpoint like /suppliers
-            supplierData,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
-        return response.data;  // Assuming the response returns data
-    } catch (error) {
-        console.error("Error in addSupplier:", error);
-        throw new Error("Failed to add supplier");
-    }
-};
-
-// ดึงข้อมูลซัพพลายเออร์
-export const getSupplierData = async (token: string | null) => {
-    try {
-        if (!token) throw new Error("Unauthorized: No token provided");
-
-        const response = await axios.get(`${API_BASE_URL}/suppliers`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-
-        return response.data.data; // คืนค่าเฉพาะข้อมูลซัพพลายเออร์
-    } catch (error: any) {
-        console.error("Error fetching supplier data:", error);
-        throw new Error(error.response?.data?.message || "Error fetching supplier data");
-    }
-};
-
-// ลบซัพพลายเออร์
-export const deleteSupplier = async (id: string | number, token: string | null) => {
-    try {
-        if (!token) throw new Error("Unauthorized: No token provided");
-
-        const response = await axios.delete(`${API_BASE_URL}/suppliers/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-
-        return response.data;
-    } catch (error: any) {
-        throw new Error(error.response?.data?.message || "Error deleting supplier");
-    }
-};
-
-// ดึงสินค้าจากซัพพลายเออร์
-export const getProductsBySupplier = async (supplierId: string, token: string | null) => {
-    try {
-        if (!token) throw new Error("Unauthorized: No token provided");
-
-        const response = await axios.get(`${API_BASE_URL}/suppliers/${supplierId}/products-with-stock`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-
-        return response.data; // คืนค่าผลลัพธ์จาก API
-    } catch (error: any) {
-        console.error("Error fetching products by supplier:", error);
-        throw new Error(error.response?.data?.message || "Error fetching products by supplier");
-    }
-};
-// ดึงข้อมูลซัพพลายเออร์ตาม ID
-export const getSupplierById = async (id: string, token: string | null) => {
-    try {
-        if (!token) throw new Error("Unauthorized: No token provided");
-
-        const response = await axios.get(`${API_BASE_URL}/suppliers/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-
-        return response.data; // คืนค่าข้อมูลซัพพลายเออร์ตาม ID
-    } catch (error: any) {
-        console.error("Error fetching supplier by ID:", error);
-        throw new Error(error.response?.data?.message || "Error fetching supplier by ID");
-    }
-};
-
-// อัปเดตซัพพลายเออร์
-export const updateSupplier = async (id: number, supplierData: any, token: string) => {
-    try {
-        if (!token) throw new Error("Unauthorized: No token provided");
-
-        const response = await axios.put(
-            `${API_BASE_URL}/suppliers/${id}`, // ใช้ PUT เพื่ออัปเดตข้อมูล
+            `${API_BASE_URL}/suppliers/create`,
             supplierData,
             {
                 headers: { Authorization: `Bearer ${token}` },
             }
         );
-
-        return response.data; // คืนค่าผลลัพธ์จาก API
+        return response.data;
     } catch (error: any) {
-        console.error("Error updating supplier:", error);
-        throw new Error(error.response?.data?.message || "Error updating supplier");
+        console.error("❌ addSupplier Error:", error);
+        throw error.response?.data || { message: "เกิดข้อผิดพลาดในการเพิ่มซัพพลายเออร์" };
+    }
+};
+
+// ✅ ดึงข้อมูลซัพพลายเออร์ทั้งหมด
+export const getSupplierData = async (token: string | null) => {
+    try {
+        if (!token) throw new Error("Unauthorized: No token provided");
+        const response = await axios.get(`${API_BASE_URL}/suppliers`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return response.data.data;
+    } catch (error: any) {
+        console.error("❌ getSupplierData Error:", error);
+        throw error.response?.data || { message: "เกิดข้อผิดพลาดในการดึงข้อมูลซัพพลายเออร์" };
+    }
+};
+
+// ✅ ดึงข้อมูลซัพพลายเออร์ตาม ID
+export const getSupplierById = async (id: string, token: string) => {
+    try {
+        const response = await axios.get(`${API_BASE_URL}/suppliers/${id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return response.data;
+    } catch (error: any) {
+        console.error("❌ getSupplierById Error:", error);
+        throw error.response?.data || { message: "เกิดข้อผิดพลาดในการดึงข้อมูลซัพพลายเออร์" };
+    }
+};
+
+// ✅ อัปเดตซัพพลายเออร์ (PATCH)
+export const updateSupplier = async (id: string, supplierData: any, token: string) => {
+    try {
+        const response = await axios.patch(
+            `${API_BASE_URL}/suppliers/${id}`,
+            supplierData,
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+        return response.data;
+    } catch (error: any) {
+        console.error("❌ updateSupplier Error:", error);
+        throw error.response?.data || { message: "เกิดข้อผิดพลาดในการอัปเดตซัพพลายเออร์" };
+    }
+};
+
+// ✅ ลบซัพพลายเออร์
+export const deleteSupplier = async (id: string, token: string) => {
+    try {
+        const response = await axios.delete(`${API_BASE_URL}/suppliers/${id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return response.data;
+    } catch (error: any) {
+        console.error("❌ deleteSupplier Error:", error);
+        throw error.response?.data || { message: "เกิดข้อผิดพลาดในการลบซัพพลายเออร์" };
+    }
+};
+
+// ✅ ดึงสินค้าพร้อม stock ตาม supplier
+export const getProductsBySupplier = async (supplierId: string, token: string) => {
+    try {
+        const response = await axios.get(
+            `${API_BASE_URL}/suppliers/${supplierId}/products-with-stock`,
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+        return response.data;
+    } catch (error: any) {
+        console.error("❌ getProductsBySupplier Error:", error);
+        throw error.response?.data || { message: "เกิดข้อผิดพลาดในการดึงสินค้าจากซัพพลายเออร์" };
     }
 };

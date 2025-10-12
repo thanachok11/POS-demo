@@ -20,7 +20,7 @@ const extractUserId = async (req: Request): Promise<string | null> => {
 
 // ===== Controllers =====
 
-// ✅ Add supplier
+// ✅ Add supplier (with auto code)
 export const addSupplier = async (req: Request, res: Response): Promise<void> => {
     try {
         const userId = await extractUserId(req);
@@ -29,13 +29,49 @@ export const addSupplier = async (req: Request, res: Response): Promise<void> =>
             return;
         }
 
-        const { companyName, phoneNumber, address, country, stateOrProvince, district, subDistrict, postalCode, email } = req.body;
-        if (!companyName || !phoneNumber || !address || !country || !stateOrProvince || !district || !subDistrict || !postalCode || !email) {
+        const {
+            companyName,
+            phoneNumber,
+            address,
+            country,
+            stateOrProvince,
+            district,
+            subDistrict,
+            postalCode,
+            email,
+        } = req.body;
+
+        if (
+            !companyName ||
+            !phoneNumber ||
+            !address ||
+            !country ||
+            !stateOrProvince ||
+            !district ||
+            !subDistrict ||
+            !postalCode ||
+            !email
+        ) {
             res.status(400).json({ success: false, message: "All fields are required" });
             return;
         }
 
+        // 🔢 หา supplier ล่าสุดของ user เพื่อ gen code
+        const lastSupplier = await Supplier.findOne({ userId })
+            .sort({ createdAt: -1 })
+            .lean();
+
+        let nextNumber = 1;
+        if (lastSupplier && lastSupplier.code) {
+            const match = lastSupplier.code.match(/\d+$/);
+            if (match) nextNumber = parseInt(match[0], 10) + 1;
+        }
+
+        const code = `SP${nextNumber.toString().padStart(2, "0")}`;
+
+        // ✅ สร้าง supplier ใหม่
         const newSupplier = new Supplier({
+            code, // เพิ่มรหัสซัพพลายเออร์
             companyName,
             phoneNumber,
             address,
@@ -117,6 +153,9 @@ export const updateSupplier = async (req: Request, res: Response): Promise<void>
             res.status(404).json({ success: false, message: "Supplier not found" });
             return;
         }
+
+        // ป้องกันไม่ให้แก้รหัสซัพพลายเออร์
+        if ("code" in req.body) delete req.body.code;
 
         Object.assign(supplier, req.body);
         const updatedSupplier = await supplier.save();

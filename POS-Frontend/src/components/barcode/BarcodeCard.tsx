@@ -4,6 +4,7 @@ import JsBarcode from "jsbarcode";
 interface StockItem {
     _id: string;
     barcode: string;
+    salePrice:string;
     productId: {
         _id: string;
         name: string;
@@ -53,8 +54,9 @@ const BarcodeCard: React.FC<BarcodeCardProps> = ({ item, options, onClick }) => 
 
             {/* ราคา */}
             <p className="barcode-price">
-                ราคา <span>฿{item.productId.price?.toFixed(2) || "0.00"}</span>
+                ราคา <span>฿{Number(item.salePrice || 0).toFixed(2)}</span>
             </p>
+
         </div>
     );
 };

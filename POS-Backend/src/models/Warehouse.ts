@@ -6,9 +6,14 @@ const warehouseSchema = new Schema({
         type: String,
         required: true,
     },
+    code: {
+        type: String,
+        required: true,
+        unique: true, // ห้ามซ้ำ เพื่อใช้เป็นรหัสประจำคลัง เช่น WH01, WH02
+    },
     location: String,
     description: String,
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true }, // เพิ่ม userId
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     createdAt: {
         type: Date,
         default: Date.now,

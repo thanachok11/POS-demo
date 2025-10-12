@@ -1,0 +1,386 @@
+/* ===========================
+   Container Layout
+=========================== */
+.warehouse-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 20px;
+    background: #f9fafb;
+    box-sizing: border-box;
+}
+
+/* ===============================
+   🏠 HEADER & WRAPPER
+=================================*/
+
+.warehouse-header-wrapper {
+    position: sticky;
+    margin-top: 20px;
+    background: #fff;
+    z-index: 20;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.warehouse-header {
+    font-size: 24px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #6c5ce7;
+    /* ใช้สีเดียวกับ stock */
+}
+
+.warehouse-loading,
+.warehouse-error {
+    font-weight: 500;
+    color: #ef4444;
+}
+
+/* ===============================
+   🔍 CONTROLS (search, page size)
+=================================*/
+.warehouse-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.warehouse-search-input {
+    flex: 1;
+    min-width: 220px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.warehouse-search-input:focus {
+    outline: none;
+    border-color: #0ea5e9;
+}
+
+.warehouse-page-size label {
+    font-weight: 500;
+    margin-right: 4px;
+}
+
+.warehouse-page-size select {
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+}
+
+/* ===============================
+   ➕ ADD BUTTON
+=================================*/
+.warehouse-add-btn {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #2a9d8f;
+    color: #fff;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    transition: all 0.2s ease-in-out;
+}
+
+.warehouse-add-btn:hover {
+    background: #059669;
+    transform: scale(1.05);
+}
+
+/* ===============================
+   📋 TABLE
+=================================*/
+.warehouse-table-wrapper {
+    overflow-x: auto;
+    border-radius: 10px;
+    margin-top: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* ===============================
+   📋 TABLE
+=================================*/
+.warehouse-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.warehouse-table thead {
+    background: linear-gradient(90deg, #0284c7, #0ea5e9);
+    color: #fff;
+}
+
+.warehouse-table th,
+.warehouse-table td {
+    text-align: center;
+    /* ✅ จัดข้อความให้อยู่ตรงกลาง */
+    vertical-align: middle;
+    /* ✅ จัดแนวกลางในแนวตั้ง */
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.warehouse-table th {
+    font-weight: 600;
+}
+
+.warehouse-table tbody tr:hover {
+    background-color: #f1f5f9;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.warehouse-no-data {
+    text-align: center;
+    color: #64748b;
+    padding: 20px;
+}
+
+/* ===============================
+   ⚙️ ACTION BUTTONS
+=================================*/
+.warehouse-action-buttons {
+    display: flex;
+    justify-content: center;
+    /* ✅ จัดปุ่มให้อยู่ตรงกลางแนวนอน */
+    align-items: center;
+    /* ✅ จัดปุ่มให้อยู่ตรงกลางแนวตั้ง */
+    gap: 10px;
+}
+
+.warehouse-edit-btn,
+.warehouse-delete-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    text-align: center;
+    min-width: 70px;
+    transition: all 0.25s ease;
+}
+
+.warehouse-edit-btn {
+    background-color: #0284c7;
+    color: white;
+}
+
+.warehouse-edit-btn:hover {
+    background-color: #0369a1;
+    transform: translateY(-2px);
+}
+
+.warehouse-delete-btn {
+    background: #ef4444;
+    color: #fff;
+}
+
+.warehouse-delete-btn:hover {
+    background-color: #dc2626;
+    transform: translateY(-2px);
+}
+
+/* ===============================
+   📑 PAGINATION
+=================================*/
+.warehouse-pagination {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+}
+
+.warehouse-pagination button {
+    background: #e2e8f0;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.warehouse-pagination button:hover:not(:disabled) {
+    background: #cbd5e1;
+}
+
+.warehouse-pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ===============================
+   🪟 MODAL
+=================================*/
+.warehouse-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.warehouse-modal-container {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    width: 95%;
+    max-width: 520px;
+    position: relative;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+}
+
+.warehouse-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    background: transparent;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+}
+
+/* ===============================
+   🧾 FORM
+=================================*/
+.warehouse-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.warehouse-form-header {
+    text-align: center;
+    font-weight: 700;
+    color: #0284c7;
+}
+
+.warehouse-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.warehouse-form-group label {
+    font-weight: 600;
+    color: #334155;
+}
+
+.warehouse-form-group input,
+.warehouse-form-group textarea {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.warehouse-form-group input:focus,
+.warehouse-form-group textarea:focus {
+    outline: none;
+    border-color: #0ea5e9;
+}
+
+/* รหัสคลังสินค้า (readonly) */
+.warehouse-code-input {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-weight: 600;
+    cursor: not-allowed;
+    opacity: 0.9;
+}
+
+/* ===============================
+   💾 BUTTONS (save + cancel)
+=================================*/
+.warehouse-form-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.25rem;
+}
+
+.warehouse-save-btn {
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 3px 8px rgba(22, 163, 74, 0.3);
+}
+
+.warehouse-save-btn:hover {
+    background: linear-gradient(90deg, #16a34a, #15803d);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
+}
+
+.warehouse-cancel-btn {
+    background: linear-gradient(90deg, #ef4444, #dc2626);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 3px 8px rgba(220, 38, 38, 0.3);
+}
+
+.warehouse-cancel-btn:hover {
+    background: linear-gradient(90deg, #dc2626, #b91c1c);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+
+/* 📱 Responsive */
+@media (max-width: 768px) {
+    .warehouse-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .warehouse-form-actions {
+        flex-direction: column;
+    }
+
+    .warehouse-add-btn {
+        width: 100%;
+    }
+
+    .warehouse-form-group input,
+    .warehouse-form-group textarea {
+        font-size: 0.95rem;
+    }
+}

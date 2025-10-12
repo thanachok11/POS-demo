@@ -28,25 +28,166 @@ body {
 }
 
 /* ===============================
+   💈 POS LAYOUT OVERVIEW
+=================================*/
+.pos-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bg-main, #f7f9fc);
+  font-family: "Prompt", sans-serif;
+}
+
+/* ===============================
+   🔍 SEARCH BAR (ใต้ HEADER)
+=================================*/
+.pos-search-bar {
+  position: sticky;
+  top: 60px;
+  margin-top: 50px;
+  margin-left: 40px;
+  z-index: 100;
+  background: #f8f9fb;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  padding: 10px 20px;
+}
+
+/* ===============================
+   🧱 MAIN CONTENT (สินค้า + ตะกร้า)
+=================================*/
+.pos-main-content {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  /* 380px = ความกว้างตะกร้า */
+  height: calc(100vh - 120px);
+  /* ลบส่วน header + search */
+  overflow: hidden;
+}
+
+/* ===============================
+   🛍️ PRODUCT AREA (ฝั่งซ้าย)
+=================================*/
+.pos-product-area {
+  overflow-y: auto;
+  padding: 1rem 1.2rem;
+  background: #f8f9fb;
+}
+
+/* ===============================
+   🧾 POS CART PANEL (ฝั่งขวา)
+=================================*/
+.pos-cart-area {
+  background: #ffffff;
+  border-left: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: sticky;
+  top: 60px;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+
+/* ===============================
+   🏪 HEADER ภายใน CART
+=================================*/
+.cart-header {
+  text-align: center;
+  padding: 20px 10px;
+  color: #b21cd8;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.cart-store-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.cart-store-subtitle {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin-top: 4px;
+}
+
+/* ===============================
+   🛒 EMPTY CART STATE
+=================================*/
+.cart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #777;
+  text-align: center;
+  padding: 2rem;
+}
+
+.cart-empty img {
+  width: 180px;
+  opacity: 0.8;
+  margin-bottom: 1rem;
+}
+
+.cart-empty p {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.cart-empty small {
+  font-size: 0.9rem;
+  color: #999;
+}
+
+/* ===============================
+   🧩 PRODUCT GRID (4 ช่องต่อแถว)
+=================================*/
+
+.product-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  padding: 10px;
+  transition: 0.25s;
+  position: relative;
+}
+
+
+
+/* ===============================
+   📱 RESPONSIVE
+=================================*/
+@media (max-width: 1200px) {
+  .pos-main-content {
+    grid-template-columns: 1fr 340px;
+  }
+}
+
+@media (max-width: 900px) {
+  .pos-main-content {
+    grid-template-columns: 1fr;
+  }
+
+  .pos-cart-area {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 50%;
+    border-left: none;
+    border-top: 1px solid #e0e0e0;
+    z-index: 200;
+  }
+}
+
+/* ===============================
    🔍 SEARCH WRAPPER
 =================================*/
 
-.search-wrapper {
-  position: fixed;
-  top: 60px;
-  left: 240px;
-  right: 20px;
-  height: 70px;
-  background: #fff;
-  border-radius: 20px;
-  padding: 12px 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transition: all 0.3s ease;
-  z-index: 1200;
-}
 
 .searchproduct-container {
   display: flex;
@@ -65,6 +206,7 @@ body {
   background-color: #fff;
   transition: var(--transition);
   outline: none;
+  margin-left: 10px;
 }
 
 .searchproduct-input:focus {
@@ -88,13 +230,7 @@ body {
 }
 
 /* 🔍 Search Input Wrapper */
-.search-input-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  max-width: 800px;
-}
+
 
 /* 🔢 ปุ่มสแกนบาร์โค้ด */
 .barcode-scan-btn {
@@ -166,31 +302,10 @@ body {
 }
 
 /* ✅ เว้นช่องด้านบนให้ product ไม่ชน search bar */
-.product-content-area {
-  margin-top: 130px;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  height: calc(100vh - 130px);
-  overflow-y: auto;
-}
 
 /* ===============================
    🛍️ PRODUCT WRAPPER
 =================================*/
-
-.product-list-wrapper {
-  width: 100%;
-  max-width: 1280px;
-  background: var(--bg-card);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  margin-top: 20px;
-  padding: 24px 30px;
-  animation: fadeIn 0.5s ease;
-  max-height: calc(100vh - 250px);
-  overflow-y: auto;
-}
 
 .product-grid {
   display: grid;
@@ -284,6 +399,7 @@ body {
   right: 25px;
   bottom: 25px;
   width: 360px;
+  height: 750px;
   background: white;
   border-radius: var(--radius);
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.18);
@@ -301,7 +417,7 @@ body {
 }
 
 .cart-items {
-  max-height: 300px;
+  max-height: 450px;
   overflow-y: auto;
   margin-bottom: 14px;
   padding-right: 6px;

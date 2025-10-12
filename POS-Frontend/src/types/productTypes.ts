@@ -8,14 +8,14 @@ export interface Product {
     barcode: string;
     name: string;
     price: number;
-    quantity: number;
+    totalQuantity: number;
     category: Category;
     imageUrl: string;
 }
 
 export interface StockItem {
     barcode: string;
-    quantity: number;
+    totalQuantity: number;
     salePrice:number;
     costPrice:number;
     status: string;

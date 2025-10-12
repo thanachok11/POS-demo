@@ -40,7 +40,7 @@ interface StockTransaction {
     productId: Product;
     stockId: Stock;
     type: "SALE" | "RESTOCK" | "RETURN" | "ADJUSTMENT";
-    quantity: number;
+    totalQuantity: number;
     userId: User;
     notes?: string;
     source?: string;

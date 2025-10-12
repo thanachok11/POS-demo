@@ -123,6 +123,14 @@ const Sidebar: React.FC<SidebarProps> = ({
               <FontAwesomeIcon icon={faClipboardList} className="icon" />{" "}
               <span className="dropdown-text-stock">สต็อกสินค้า</span>
             </li>
+            <li onClick={() => handleMenuClick("/warehouse", "จัดการคลังสินค้า")}>
+              <FontAwesomeIcon icon={faBarcode} className="icon" />{" "}
+              <span className="dropdown-text-warehouse">จัดการคลังสินค้า</span>
+            </li>
+            <li onClick={() => handleMenuClick("/qc", "ตรวจสอบสินค้า")}>
+              <FontAwesomeIcon icon={faBarcode} className="icon" />{" "}
+              <span className="dropdown-text-qc">ตรวจสอบสินค้า</span>
+            </li>
             <li onClick={() => handleMenuClick("/createOrder", "นำเข้าสินค้าใหม่")}>
               <FontAwesomeIcon icon={faCartPlus} className="icon" />{" "}
               <span className="dropdown-text-buyproduct">นำเข้าสินค้าใหม่</span>
@@ -166,6 +174,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <FontAwesomeIcon icon={faHandshake} className="icon" />{" "}
                   <span className="dropdown-text-suppliers">ผู้ผลิต</span>
                 </li>
+
                 <li onClick={() => handleMenuClick("/discount", "จัดการส่วนลด")}>
                   <FontAwesomeIcon icon={faHandshake} className="icon" />{" "}
                   <span className="dropdown-text-discount">ส่วนลด</span>

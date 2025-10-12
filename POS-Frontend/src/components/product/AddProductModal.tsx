@@ -30,12 +30,12 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
     });
 
     const [stockData, setStockData] = useState({
-        quantity: 0,              // จำนวนสินค้า
+        totalQuantity: 0,              // จำนวนสินค้า
         threshold: 5,             // สต็อกขั้นต่ำ
         costPrice: 0,             // ราคาทุน
         salePrice: 0,             // ราคาขาย
         lastPurchasePrice: 0,     // ราคาซื้อล่าสุด
-        units: [] as { name: string; quantity: number }[], // multi-unit conversion
+        units: [] as { name: string; totalQuantity: number }[], // multi-unit conversion
         barcode: "",              // บาร์โค้ด
         batchNumber: "",          // เลขล็อตสินค้า
         expiryDate: "",           // วันหมดอายุ
@@ -123,12 +123,13 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
         const token = localStorage.getItem("token");
         if (!token) return;
 
+        // ตรวจว่ากรอกครบ
         if (
             !productData.name ||
             !productData.description ||
             !productData.category ||
             !image ||
-            !stockData.quantity ||
+            !stockData.totalQuantity ||
             !stockData.supplierId ||
             !stockData.location ||
             !stockData.threshold
@@ -141,45 +142,62 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
         setErrorMessage("");
 
         const formData = new FormData();
-        // ✅ Product fields
-        Object.entries(productData).forEach(([k, v]) => {
-            if (v !== undefined && v !== null) {
-                formData.append(k, String(v));
+
+        // 🧩 1️⃣ เพิ่มข้อมูลสินค้า
+        Object.entries(productData).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+                formData.append(key, String(value));
             }
         });
 
-        // ✅ Image
+        // 🧩 2️⃣ เพิ่มรูปภาพ (required)
         formData.append("image", image);
 
-        // ✅ Stock fields
-        Object.entries(stockData).forEach(([k, v]) => {
-            if (k === "units" && Array.isArray(v)) {
-                formData.append("units", JSON.stringify(v)); // serialize array
-            } else {
-                formData.append(k, String(v));
+        // 🧩 3️⃣ เพิ่มข้อมูลสต็อก
+        Object.entries(stockData).forEach(([key, value]) => {
+            // serialize array
+            if (Array.isArray(value)) {
+                formData.append(key, JSON.stringify(value));
+            }
+            // serialize object เช่น supplierId/location ที่เป็น Object
+            else if (typeof value === "object" && value !== null) {
+                if ((value as any)._id) {
+                    formData.append(key, (value as any)._id);
+                } else {
+                    formData.append(key, JSON.stringify(value));
+                }
+            }
+            // boolean → "true"/"false"
+            else if (typeof value === "boolean") {
+                formData.append(key, value ? "true" : "false");
+            }
+            // number/string
+            else if (value !== undefined && value !== null) {
+                formData.append(key, String(value));
             }
         });
+
+        console.log("🧾 Payload ที่จะส่ง:", Object.fromEntries(formData.entries()));
 
         try {
             const response = await uploadProduct(formData, token);
-            setShowSuccessPopup(true);
 
-            if (response?.data) {
-                onSuccess(response.data);
-            }
+            setShowSuccessPopup(true);
+            if (response?.data) onSuccess(response.data);
         } catch (err) {
-            console.error(err);
+            console.error("❌ Upload error:", err);
             setShowErrorPopup(true);
         } finally {
             setLoading(false);
         }
     };
 
+
     // เพิ่มหน่วยสินค้า
     const addUnit = () => {
         setStockData((prev) => ({
             ...prev,
-            units: [...(prev.units || []), { name: "", quantity: 1 }],
+            units: [...(prev.units || []), { name: "", totalQuantity: 1 }],
         }));
     };
 
@@ -191,7 +209,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
         }));
     };
 
-    const handleUnitChange = (index: number, field: "name" | "quantity", value: any) => {
+    const handleUnitChange = (index: number, field: "name" | "totalQuantity", value: any) => {
         const newUnits = [...stockData.units];
         newUnits[index] = { ...newUnits[index], [field]: value };
         setStockData({ ...stockData, units: newUnits });
@@ -266,8 +284,8 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
                             <label className="add-product-form-label">จำนวน:</label>
                             <input
                                 type="number"
-                                name="quantity"
-                                value={stockData.quantity}
+                                name="totalQuantity"
+                                value={stockData.totalQuantity}
                                 onChange={handleInputChange}
                                 className="add-product-form-input"
                                 min="0"
@@ -299,7 +317,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
                             />
                         </div>
 
-                        {/* ✅ Units (multi-unit conversion) */}
+                        {/* Units (multi-unit conversion) */}
                         <div className="add-product-form-group">
                             <label className="add-product-form-label">หน่วยสินค้า (Units):</label>
                             {stockData.units?.map((u, index) => (
@@ -314,9 +332,9 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
                                     <input
                                         type="number"
                                         placeholder="จำนวน เช่น 12"
-                                        value={u.quantity}
+                                        value={u.totalQuantity}
                                         onChange={(e) =>
-                                            handleUnitChange(index, "quantity", Number(e.target.value))
+                                            handleUnitChange(index, "totalQuantity", Number(e.target.value))
                                         }
                                         className="add-product-form-input small"
                                         min="1"
@@ -371,8 +389,8 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
                             >
                                 <option value="">-- เลือกคลัง --</option>
                                 {warehouses.map((w) => (
-                                    <option key={w._id} value={w.location}>
-                                        {w.location}
+                                    <option key={w._id} value={w.name}>
+                                        {w.name}
                                     </option>
                                 ))}
                                 <option value="custom">➕ เพิ่มคลังใหม่</option>
@@ -388,18 +406,6 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSu
                                 onChange={handleInputChange}
                                 className="add-product-form-input"
                                 min="0"
-                            />
-                        </div>
-
-                        <div className="add-product-form-group">
-                            <label className="add-product-form-label">เลขล็อตสินค้า:</label>
-                            <input
-                                type="text"
-                                name="batchNumber"
-                                value={stockData.batchNumber}
-                                onChange={handleInputChange}
-                                className="add-product-form-input"
-                                placeholder="เช่น LOT2025-01-30"
                             />
                         </div>
 

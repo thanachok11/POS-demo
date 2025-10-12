@@ -57,19 +57,19 @@ body {
   transition: margin-left 0.3s ease-in-out;
 }
 
-.app-container.sidebar-closed .search-wrapper {
-  margin-right: 350px;
+.app-container.sidebar-open .pos-search-bar {
+  margin-left: 50px;
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
 
-.app-container.sidebar-open .product-content-area {
-  margin-left: 65px;
+.app-container.sidebar-closed .searchproduct-input {
+  margin-left: 40px;
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
 
 /* เมื่อ sidebar ปิด */
-.app-container.sidebar-closed .product-container {
-  margin-left: 80px;
+.app-container.sidebar-closed .pos-main-content {
+  margin-left: 10px;
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
 
@@ -187,6 +187,16 @@ body {
 }
 
 .app-container.sidebar-closed .discount-container {
+  margin-left: 50px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
+
+.app-container.sidebar-open .warehouse-container {
+  margin-left: 50px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
+
+.app-container.sidebar-closed .warehouse-container {
   margin-left: 50px;
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }

@@ -61,7 +61,7 @@ const StockTable: React.FC<StockTableProps> = ({
                                 <td className="stock-cell">
                                     {item.salePrice ? `${item.salePrice.toLocaleString()} บาท` : "-"}
                                 </td>
-                                <td className="stock-cell">{item.quantity}</td>
+                                <td className="stock-cell">{item.totalQuantity}</td>
                                 <td className="stock-cell">
                                     {item.location ? getLocationName(item.location) : "ไม่ทราบที่เก็บ"}
                                 </td>

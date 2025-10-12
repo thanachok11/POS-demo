@@ -86,27 +86,7 @@
 }
 
 /* Button */
-.supplier-button {
-    background: #2563eb;
-    color: white;
-    padding: 12px;
-    border: none;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.2s;
-}
 
-.supplier-button:hover:not(:disabled) {
-    background: #1e40af;
-    transform: translateY(-1px);
-}
-
-.supplier-button:disabled {
-    background: #93c5fd;
-    cursor: not-allowed;
-}
 
 /* ✅ Popup Success */
 .supplier-popup-success {
@@ -122,6 +102,58 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     animation: fadeInOut 2.5s ease;
     z-index: 1000;
+}
+
+/* 💾 ปุ่มบันทึก */
+.supplier-save-btn {
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 3px 8px rgba(22, 163, 74, 0.3);
+}
+
+.supplier-save-btn:hover:not(:disabled) {
+    background: linear-gradient(90deg, #16a34a, #15803d);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
+}
+
+.supplier-save-btn:disabled {
+    background: #a3a3a3;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* ❌ ปุ่มยกเลิก */
+.supplier-cancel-btn {
+    background: linear-gradient(90deg, #ef4444, #dc2626);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 3px 8px rgba(220, 38, 38, 0.3);
+}
+
+.supplier-cancel-btn:hover:not(:disabled) {
+    background: linear-gradient(90deg, #dc2626, #b91c1c);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+
+.supplier-cancel-btn:disabled {
+    background: #a3a3a3;
+    cursor: not-allowed;
+    box-shadow: none;
 }
 
 @keyframes fadeInOut {

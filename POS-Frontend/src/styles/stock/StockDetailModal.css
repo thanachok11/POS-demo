@@ -21,16 +21,17 @@
     ============================== */
 .product-detail-modal-content {
     background: #ffffff;
-    width: 90%;
-    /* เธเธณเธซเธเธ”เน€เธเนเธ % เนเธ—เธ px */
-    max-width: 800px;
-    /* เธฅเนเธญเธเนเธกเนเนเธซเนเน€เธเธดเธ */
-    max-height: 92vh;
-    margin-top: 20px;
-    border-radius: 18px;
-    padding: 28px 32px;
+    width: 100%;
+    max-width: 600px;
+    /* 🔹 จำกัดกว้างสุด */
+    max-height: 85vh;
+    /* 🔹 ไม่ให้สูงเกิน */
+    margin: auto;
+    /* 🔹 จัดกลางแนวนอน */
+    border-radius: 16px;
+    padding: 24px 28px;
     overflow-y: auto;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
     animation: slideUp 0.3s ease-in-out;
     position: relative;
     display: flex;
@@ -199,15 +200,7 @@
     transform: scale(1.05);
 }
 
-.save-btn {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: white;
-}
 
-.save-btn:hover {
-    background: linear-gradient(135deg, #2563eb, #1e40af);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
-}
 
 .delete-btn {
     background: #ef4444;
@@ -222,14 +215,14 @@
 .stock-input-wrapper {
     position: relative;
     display: block;
-    /* โ… เน€เธเธฅเธตเนเธขเธเธเธฒเธ inline-block โ’ block */
+    /* ✅ เปลี่ยนจาก inline-block → block */
     width: 100%;
-    /* โ… เนเธซเนเธเธขเธฒเธขเน€เธ•เนเธกเธเนเธญเธ */
+    /* ✅ ให้ขยายเต็มช่อง */
 }
 
 .stock-input-wrapper input {
     width: 100%;
-    /* โ… เนเธซเน input เธเธขเธฒเธขเน€เธ•เนเธกเน€เธซเธกเธทเธญเธเน€เธ”เธดเธก */
+    /* ✅ ให้ input ขยายเต็มเหมือนเดิม */
     box-sizing: border-box;
 }
 
@@ -257,13 +250,84 @@
     opacity: 1;
 }
 
+/* ===========================
+   🎨 BUTTON ROW (Save + Cancel)
+=========================== */
+
+
+/* 💾 ปุ่มบันทึก */
+.save-btn-modal {
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 3px 8px rgba(22, 163, 74, 0.3);
+}
+
+.save-btn-modal:hover:not(:disabled) {
+    background: linear-gradient(90deg, #16a34a, #15803d);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
+}
+
+.save-btn-modal:disabled {
+    background: #a3a3a3;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* ❌ ปุ่มยกเลิก */
+.delete-btn-modal {
+    background: linear-gradient(90deg, #ef4444, #dc2626);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 3px 8px rgba(220, 38, 38, 0.3);
+}
+
+.delete-btn-modal:hover:not(:disabled) {
+    background: linear-gradient(90deg, #dc2626, #b91c1c);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+
+.supplier-cancel-btn:disabled {
+    background: #a3a3a3;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* 📱 Responsive: จัดปุ่มเรียงลงใน mobile */
+@media (max-width: 600px) {
+    .supplier-btn-row {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .supplier-button,
+    .supplier-cancel-btn {
+        width: 100%;
+        font-size: 0.95rem;
+        padding: 10px 0;
+    }
+}
 /* Toggle switch container */
 
 .toggle-wrapper {
     display: flex;
     align-items: center;
     gap: 12px;
-    /* เธฃเธฐเธขเธฐเธซเนเธฒเธเธฃเธฐเธซเธงเนเธฒเธเธเธธเนเธกเธเธฑเธเธเนเธญเธเธงเธฒเธก */
+    /* ระยะห่างระหว่างปุ่มกับข้อความ */
 }
 
 .toggle-switch {
@@ -273,14 +337,14 @@
     height: 28px;
 }
 
-/* เธเนเธญเธ checkbox เธเธฃเธดเธ */
+/* ซ่อน checkbox จริง */
 .toggle-switch input {
     opacity: 0;
     width: 0;
     height: 0;
 }
 
-/* เธ•เธฑเธง slider */
+/* ตัว slider */
 .slider {
     position: absolute;
     cursor: pointer;
@@ -293,7 +357,7 @@
     transition: background-color 0.3s;
 }
 
-/* เธซเธฑเธงเธงเธเธเธฅเธกเนเธ toggle */
+/* หัววงกลมใน toggle */
 .slider::before {
     position: absolute;
     content: "";
@@ -306,22 +370,22 @@
     transition: transform 0.3s;
 }
 
-/* เน€เธกเธทเนเธญเน€เธเธดเธ” (checked) */
+/* เมื่อเปิด (checked) */
 .toggle-switch input:checked+.slider {
     background-color: #00c853;
-    /* เธชเธตเน€เธเธตเธขเธงเธชเธงเธข */
+    /* สีเขียวสวย */
 }
 
 .toggle-switch input:checked+.slider::before {
     transform: translateX(22px);
 }
 
-/* เน€เธเธดเนเธกเน€เธเธฒเนเธฅเธฐเธเธงเธฒเธกเนเธเนเธเธชเธงเธข เน */
+/* เพิ่มเงาและความโค้งสวย ๆ */
 .slider {
     box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
 }
 
-/* เธเนเธญเธเธงเธฒเธกเธ”เนเธฒเธเธเนเธฒเธ */
+/* ข้อความด้านข้าง */
 .toggle-text {
     font-weight: 500;
     color: #333;
@@ -354,18 +418,22 @@
        Responsive Breakpoints
     ============================== */
 /* Laptop / MacBook 13" */
-/* Desktop เนเธซเธเน (>= 1600px) */
-@media (min-width: 1600px) {
+/* Tablet */
+@media (max-width: 1600px) {
     .product-detail-modal-content {
-        max-width: 720px;
+        margin-top: 80px;
+        max-width: 600px;
+        padding: 20px 24px;
     }
 }
 
-/* Laptop เธ—เธฑเนเธงเนเธ (1025px โ€“ 1440px) */
-@media (max-width: 1440px) and (min-width: 1025px) {
+/* Mobile */
+@media (max-width: 768px) {
     .product-detail-modal-content {
-        max-width: 640px;
-        width: 70%;
+        width: 95%;
+        max-width: 95%;
+        max-height: 80vh;
+        padding: 16px 20px;
     }
 }
 
@@ -393,7 +461,7 @@
 
     .stock-form-row {
         grid-template-columns: 1fr;
-        /* เนเธซเนเน€เธซเธฅเธทเธญ 1 เธเธญเธฅเธฑเธกเธเน */
+        /* ให้เหลือ 1 คอลัมน์ */
     }
 
     .stock-form-actions {

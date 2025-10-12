@@ -62,22 +62,44 @@ export const getProductByBarcode = async (
 
 export const updateProduct = async (req: Request, res: Response): Promise<void> => {
   try {
-    const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, {
+    const allowedFields = [
+      "name",
+      "description",
+      "category",
+      "imageUrl",
+      "public_id",
+      "defaultCostPrice",
+      "defaultSalePrice",
+      "isSelfPurchased",
+    ];
+
+    const updates = Object.keys(req.body)
+      .filter((key) => allowedFields.includes(key))
+      .reduce((obj: any, key) => {
+        obj[key] = req.body[key];
+        return obj;
+      }, {});
+
+    const updatedProduct = await Product.findByIdAndUpdate(req.params.id, updates, {
       new: true,
     });
+
     if (!updatedProduct) {
       res.status(404).json({ success: false, message: "Product not found" });
       return;
     }
+
     res.status(200).json({
       success: true,
-      message: "Product updated successfully",
+      message: "✅ Product updated successfully (no stock changes)",
       data: updatedProduct,
     });
   } catch (error: any) {
+    console.error("Update Product Error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 export const deleteProduct = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -99,28 +121,37 @@ export const deleteProduct = async (req: Request, res: Response): Promise<void> 
 // -------------------------
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = getDecodedUserId(req);
-    if (!userId) {
+    const token = req.header("Authorization")?.split(" ")[1];
+    if (!token) {
       res.status(401).json({ success: false, message: "Unauthorized" });
       return;
     }
 
-    const ownerId = await getOwnerId(userId);
+    const decoded = verifyToken(token);
+    if (typeof decoded === "string" || !("userId" in decoded)) {
+      res.status(401).json({ success: false, message: "Invalid token" });
+      return;
+    }
+
+    const ownerId = await getOwnerId(decoded.userId);
 
     const stocks = await Stock.find({ userId: ownerId })
       .populate({
         path: "productId",
-        populate: { path: "category", model: "Category" } // ✅ ดึง category.name มาเลย
+        model: "Product",
+        populate: { path: "category", model: "Category", select: "name" },
+        select: "name description price barcode imageUrl category"
       })
-      .populate("location")  
-      .populate("supplierId"); 
-
+      .populate("supplierId", "companyName contactName")
+      .lean();
 
     res.status(200).json({ success: true, data: stocks });
   } catch (error: any) {
-    res.status(403).json({ success: false, message: error.message });
+    console.error("❌ Get Products Error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 
 export const getAllProducts = async (_: Request, res: Response): Promise<void> => {
   try {
@@ -134,6 +165,7 @@ export const getAllProducts = async (_: Request, res: Response): Promise<void> =
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 
 export const getProductsByCategory = async (
   req: Request,
@@ -169,6 +201,30 @@ export const getProductsByCategory = async (
     res.status(200).json({ success: true, data: filtered });
   } catch (error: any) {
     res.status(403).json({ success: false, message: error.message });
+  }
+};
+
+export const getBatchesByProduct = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params; // productId
+    const stocks = await Stock.find({ productId: id })
+      .populate("supplierId")
+      .populate("location")
+      .sort({ createdAt: -1 });
+
+    if (!stocks.length) {
+      res.status(404).json({ success: false, message: "No batches found for this product" });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "ดึงล็อตสินค้าสำเร็จ",
+      data: stocks,
+    });
+  } catch (error) {
+    console.error("Get Batches Error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 

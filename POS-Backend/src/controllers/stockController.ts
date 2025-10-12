@@ -4,8 +4,8 @@ import Employee from "../models/Employee";
 import Stock from "../models/Stock";
 import Product from "../models/Product";
 import StockTransaction from "../models/StockTransaction";
+import Supplier from "../models/Supplier";
 import { verifyToken } from "../utils/auth";
-
 
 //หาค่า ownerId จาก userId (รองรับ admin / employee)
 const getOwnerId = async (userId: string): Promise<string> => {
@@ -124,12 +124,29 @@ export const updateStock = async (req: Request, res: Response): Promise<void> =>
 
     const oldQuantity = stock.quantity;
 
-    // 🧩 ตรวจ supplier ก่อนอนุญาตให้แก้จำนวน
-    const currentSupplier = (stock.supplier || "").toString().trim().toLowerCase();
+    // ตรวจ supplier ก่อนอนุญาตให้แก้จำนวน
+    let currentSupplier = "";
+
+    // ✅ ถ้ามาจาก body (frontend ส่งมา) ใช้อันนี้ก่อน
+    if (req.body?.supplier) {
+      currentSupplier = req.body.supplier.toString().trim().toLowerCase();
+    }
+    // ถ้าใน stock เป็น object (populate แล้ว)
+    else if (
+      stock.supplier &&
+      typeof stock.supplier === "object" &&
+      "companyName" in stock.supplier
+    ) {
+      currentSupplier = stock.supplier.companyName.trim().toLowerCase();
+    }
+    // ถ้าใน stock เป็น ObjectId → ดึง supplier จาก DB
+    else if (typeof stock.supplier === "object") {
+      const supplierDoc = await Supplier.findById(stock.supplier).lean();
+      currentSupplier = supplierDoc?.companyName?.trim().toLowerCase() || "";
+    }
+
     const isOtherSupplier =
-      currentSupplier === "อื่นๆ" ||
-      currentSupplier === "อื่น ๆ" ||
-      currentSupplier === "other";
+      ["อื่นๆ", "อื่น ๆ", "other"].includes(currentSupplier);
 
     if (quantity !== undefined) {
       if (!isOtherSupplier) {

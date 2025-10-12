@@ -32,7 +32,7 @@ interface StockItem {
     barcode: string;
     name: string;
     imageUrl: string;
-    quantity: number;
+    totalQuantity: number;
     updatedAt: string;
     location: string;
     status: string;
@@ -141,7 +141,7 @@ const Header: React.FC<NavbarProps> = ({
                     setProducts(productData.data);
 
                     const lowStock = stock
-                        .filter((item: { quantity: number }) => item.quantity < 5)
+                        .filter((item: { totalQuantity: number }) => item.totalQuantity < 5)
                         .map((item: any) => {
                             return {
                                 ...item,

@@ -2,15 +2,17 @@ import mongoose, { Document, Schema } from "mongoose";
 
 export interface IStockTransaction extends Document {
     stockId: mongoose.Types.ObjectId;
+    stockLotId?: mongoose.Types.ObjectId; // ✅ อ้างอิงล็อต
     productId: mongoose.Types.ObjectId;
     userId: mongoose.Types.ObjectId;
     type: "SALE" | "RESTOCK" | "RETURN" | "ADJUSTMENT";
     quantity: number;
     referenceId?: mongoose.Types.ObjectId;
+    qcReference?: mongoose.Types.ObjectId;
     costPrice?: number;
     salePrice?: number;
     notes?: string;
-    source: "SUPPLIER" | "SELF";  // ✅ เพิ่มตรงนี้
+    source: "SUPPLIER" | "SELF" | "CUSTOMER";
     createdAt: Date;
     updatedAt: Date;
 }
@@ -18,6 +20,7 @@ export interface IStockTransaction extends Document {
 const StockTransactionSchema = new Schema<IStockTransaction>(
     {
         stockId: { type: Schema.Types.ObjectId, ref: "Stock", required: true },
+        stockLotId: { type: Schema.Types.ObjectId, ref: "StockLot" }, // ✅ ผูกล็อต
         productId: { type: Schema.Types.ObjectId, ref: "Product", required: true },
         userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
         type: {
@@ -27,19 +30,24 @@ const StockTransactionSchema = new Schema<IStockTransaction>(
         },
         quantity: { type: Number, required: true },
         referenceId: { type: Schema.Types.ObjectId, refPath: "refModel" },
-        costPrice: { type: Number },
-        salePrice: { type: Number },
-        notes: { type: String },
-
-        // ✅ Supplier / Self
+        qcReference: { type: Schema.Types.ObjectId, ref: "QC" },
+        costPrice: Number,
+        salePrice: Number,
+        notes: String,
         source: {
             type: String,
-            enum: ["SUPPLIER", "SELF"],
+            enum: ["SUPPLIER", "SELF", "CUSTOMER"],
             default: "SELF",
         },
     },
     { timestamps: true }
 );
+
+// ✅ Indexes
+StockTransactionSchema.index({ stockId: 1 });
+StockTransactionSchema.index({ stockLotId: 1 });
+StockTransactionSchema.index({ qcReference: 1 });
+StockTransactionSchema.index({ createdAt: -1 });
 
 export default mongoose.models.StockTransaction ||
     mongoose.model<IStockTransaction>("StockTransaction", StockTransactionSchema);
