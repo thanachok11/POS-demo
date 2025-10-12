@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom"; 
+import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
 import axios from "axios";
@@ -27,6 +27,8 @@ import DiscountPage from "./components/payment/DiscountPage";
 import WarehousePage from "./components/warehouses/WarehouseList"
 import { GlobalPopupProvider } from "./components/common/GlobalPopupEdit";
 import QCInspectionPage from "./components/qc/QCInspectionPage";
+import RefundPage from "./components/payment/RefundPage";
+import QCListPage from "./components/qc/QCListPage";
 
 import { jwtDecode } from "jwt-decode";
 import { renewToken } from "./api/auth/auth";
@@ -100,11 +102,11 @@ const App: React.FC = () => {
       "/expired": "สินค้าเหลือน้อย/สินค้าหมด",
       "/setting/employee": "ตั้งค่าพนักงาน",
       "/suppliers": "ผู้ผลิต",
-      "/purchase-orders": "คำสั่งซื้อ", 
-      "/stockTransaction": "ประวัติการเคลื่อนไหวของคลังสินค้า", 
-      "/discount": "จัดการส่วนลด",                
-      "/qc": "ตรวจสอบสินค้า",                
-      "/warehouse": "จัดการคลังสินค้า",                
+      "/purchase-orders": "คำสั่งซื้อ",
+      "/stockTransaction": "ประวัติการเคลื่อนไหวของคลังสินค้า",
+      "/discount": "จัดการส่วนลด",
+      "/qc": "ตรวจสอบสินค้า (QC)",
+      "/warehouse": "จัดการคลังสินค้า",
     };
 
     const menuName = pathToMenu[location.pathname];
@@ -166,7 +168,7 @@ const App: React.FC = () => {
       window.removeEventListener("mousemove", activityDetected);
       window.removeEventListener("keydown", activityDetected);
     };
-  }, []); 
+  }, []);
 
   return (
     <GlobalPopupProvider>
@@ -202,6 +204,8 @@ const App: React.FC = () => {
             <Route path="/reports/sales" element={<SalePage />} />
             <Route path="/employee-dashboard" element={<EmployeePage />} />
             <Route path="/qc/:poId" element={<QCInspectionPage />} />
+            <Route path="/refund" element={<RefundPage />} />
+            <Route path="/qc" element={<QCListPage />} />
 
             <Route
               path="/shop"

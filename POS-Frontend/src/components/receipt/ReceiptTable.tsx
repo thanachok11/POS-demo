@@ -29,6 +29,7 @@ const ReceiptTable: React.FC<ReceiptTableProps> = ({
                     <tr className="receipt-header-row">
                         <th className="receipt-header-cell">ลำดับ</th>
                         <th className="receipt-header-cell">วันที่</th>
+                        <th className="receipt-header-cell">ประเภท</th>
                         <th className="receipt-header-cell">พนักงาน</th>
                         <th className="receipt-header-cell">ยอดรวม</th>
                         <th className="receipt-header-cell">วิธีชำระเงิน</th>
@@ -39,20 +40,35 @@ const ReceiptTable: React.FC<ReceiptTableProps> = ({
                     {receipts.map((receipt, index) => (
                         <tr
                             key={receipt._id}
-                            className="receipt-row clickable-row"
+                            className={`receipt-row clickable-row ${receipt.isReturn ? "row-return" : "row-sale"
+                                }`}
                             onClick={() => onRowClick(receipt)}
                         >
-                            <td className="receipt-cell index-cell">
-                                {startIndex + index + 1}
-                            </td>
+                            <td className="receipt-cell index-cell">{startIndex + index + 1}</td>
                             <td className="receipt-cell">
                                 {formatThaiDateTime(receipt.timestamp)}
                             </td>
+
+                            {/* 🔁 ประเภทใบเสร็จ */}
+                            <td
+                                className={`receipt-type ${receipt.isReturn ? "return-type" : "sale-type"
+                                    }`}
+                            >
+                                {receipt.isReturn ? "ใบคืนสินค้า 🔁" : "ใบขาย 🛒"}
+                            </td>
+
                             <td className="receipt-cell">{receipt.employeeName}</td>
-                            <td className="receipt-cell">
+                            <td
+                                className={`receipt-cell ${receipt.isReturn ? "negative" : ""
+                                    }`}
+                            >
                                 {receipt.totalPrice.toLocaleString()} ฿
                             </td>
-                            <td className={`receipt-cell payment-${receipt.paymentMethod.replace(/\s+/g, "-").toLowerCase()}`}>
+                            <td
+                                className={`receipt-cell payment-${receipt.paymentMethod
+                                    .replace(/\s+/g, "-")
+                                    .toLowerCase()}`}
+                            >
                                 {receipt.paymentMethod}
                             </td>
                         </tr>

@@ -55,7 +55,6 @@ const ProductSchema: Schema = new Schema(
 
 // ✅ ดัชนีเพื่อค้นหาสินค้าเร็ว
 ProductSchema.index({ name: 1 });
-ProductSchema.index({ barcode: 1 });
 ProductSchema.index({ category: 1, supplierId: 1 });
 
 export default mongoose.models.Product ||

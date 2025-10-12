@@ -16,7 +16,10 @@ import {
   faExclamationTriangle,
   faCog,
   faUserPlus,
-  faHandshake,
+  faTruck,
+  faPercent,
+  faVial,
+  faWarehouse,
 } from "@fortawesome/free-solid-svg-icons";
 import "../../styles/layout/Sidebar.css";
 
@@ -124,12 +127,12 @@ const Sidebar: React.FC<SidebarProps> = ({
               <span className="dropdown-text-stock">สต็อกสินค้า</span>
             </li>
             <li onClick={() => handleMenuClick("/warehouse", "จัดการคลังสินค้า")}>
-              <FontAwesomeIcon icon={faBarcode} className="icon" />{" "}
+              <FontAwesomeIcon icon={faWarehouse} className="icon" />{" "}
               <span className="dropdown-text-warehouse">จัดการคลังสินค้า</span>
             </li>
-            <li onClick={() => handleMenuClick("/qc", "ตรวจสอบสินค้า")}>
-              <FontAwesomeIcon icon={faBarcode} className="icon" />{" "}
-              <span className="dropdown-text-qc">ตรวจสอบสินค้า</span>
+            <li onClick={() => handleMenuClick("/qc", "ตรวจสอบสินค้า (QC)")}>
+              <FontAwesomeIcon icon={faVial} className="icon" />{" "}
+              <span className="dropdown-text-qc">ตรวจสอบ QC</span>
             </li>
             <li onClick={() => handleMenuClick("/createOrder", "นำเข้าสินค้าใหม่")}>
               <FontAwesomeIcon icon={faCartPlus} className="icon" />{" "}
@@ -171,12 +174,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <span className="dropdown-text-employee">พนักงาน</span>
                 </li>
                 <li onClick={() => handleMenuClick("/suppliers", "ผู้ผลิต")}>
-                  <FontAwesomeIcon icon={faHandshake} className="icon" />{" "}
+                  <FontAwesomeIcon icon={faTruck} className="icon" />{" "}
                   <span className="dropdown-text-suppliers">ผู้ผลิต</span>
                 </li>
 
                 <li onClick={() => handleMenuClick("/discount", "จัดการส่วนลด")}>
-                  <FontAwesomeIcon icon={faHandshake} className="icon" />{" "}
+                  <FontAwesomeIcon icon={faPercent} className="icon" />{" "}
                   <span className="dropdown-text-discount">ส่วนลด</span>
                 </li>
               </ul>

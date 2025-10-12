@@ -8,7 +8,7 @@ interface StockTransaction {
     _id: string;
     productId: Product | null; // ✅ ป้องกัน null
     type: string;
-    totalQuantity: number;
+    quantity: number;
     userId: { username: string } | null;
     createdAt: string;
 }
@@ -44,7 +44,7 @@ const TransactionTable: React.FC<Props> = ({
                         <td className="stock-cell">
                             {t.productId?.name || "ไม่พบสินค้า"}
                         </td>
-                        <td className="stock-cell">{t.totalQuantity}</td>
+                        <td className="stock-cell">{t.quantity}</td>
                         <td className="stock-cell">{getTypeLabel(t.type)}</td>
                         <td className="stock-cell">{t.userId?.username || "-"}</td>
                         <td className="stock-cell">

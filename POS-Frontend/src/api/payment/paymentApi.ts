@@ -2,14 +2,13 @@ import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-// ฟังก์ชันสำหรับบันทึกข้อมูลการชำระเงินและสร้างใบเสร็จ
 export const createPayment = async (paymentData: {
     saleId: string;
     employeeName: string;
     paymentMethod: "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code";
     amountReceived: number;
     amount: number;
-    change: number; // ✅ เพิ่มบรรทัดนี้
+    change: number;
     items: Array<{
         barcode: string;
         name: string;
@@ -19,18 +18,36 @@ export const createPayment = async (paymentData: {
     }>;
 }) => {
     try {
-        const response = await axios.post(`${API_BASE_URL}/payment/create`, paymentData);
+        // ✅ ดึง token จาก localStorage
+        const token = localStorage.getItem("token");
+
+        const response = await axios.post(
+            `${API_BASE_URL}/payment/create`,
+            paymentData,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`, // ✅ แนบ token มาด้วย
+                },
+            }
+        );
 
         if (response.data.success) {
             return response.data;
         } else {
-            return { success: false, message: "เกิดข้อผิดพลาดในการสร้างรายการชำระเงินและใบเสร็จ" };
+            return {
+                success: false,
+                message: "เกิดข้อผิดพลาดในการสร้างรายการชำระเงินและใบเสร็จ",
+            };
         }
     } catch (error) {
         console.error("เกิดข้อผิดพลาดในการสร้างรายการชำระเงินและใบเสร็จ:", error);
-        return { success: false, message: "เกิดข้อผิดพลาดในการสร้างรายการชำระเงินและใบเสร็จ" };
+        return {
+            success: false,
+            message: "เกิดข้อผิดพลาดในการสร้างรายการชำระเงินและใบเสร็จ",
+        };
     }
 };
+
 
 
 // ดึงข้อมูลการชำระเงินของออเดอร์
@@ -74,5 +91,24 @@ export const getAllReceipts = async () => {
     } catch (error) {
         console.error("เกิดข้อผิดพลาดในการดึงข้อมูลใบเสร็จทั้งหมด:", error);
         return { success: false, message: "ไม่พบข้อมูลใบเสร็จ" };
+    }
+};
+
+export const refundByReceipt = async (saleId: string, reason?: string) => {
+    try {
+        const token = localStorage.getItem("token");
+        const response = await axios.post(
+            `${API_BASE_URL}/payment/refund`,
+            { saleId, reason },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error refundByReceipt:", error);
+        return { success: false, message: "เกิดข้อผิดพลาดในการคืนสินค้า" };
     }
 };

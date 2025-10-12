@@ -84,6 +84,7 @@ const PurchaseOrderSchema = new Schema<IPurchaseOrder>(
                 "รอดำเนินการ",
                 "ได้รับสินค้าแล้ว",
                 "QC ผ่าน",
+                "QC ผ่านบางส่วน", // ✅ เพิ่มไว้ให้สอดคล้องกับ qcStatus
                 "ไม่ผ่าน QC - รอส่งคืนสินค้า",
                 "ไม่ผ่าน QC - คืนสินค้าแล้ว",
                 "ยกเลิก",
@@ -92,7 +93,13 @@ const PurchaseOrderSchema = new Schema<IPurchaseOrder>(
         },
         qcStatus: {
             type: String,
-            enum: ["รอตรวจสอบ", "ผ่าน", "ไม่ผ่าน"],
+            enum: [
+                "รอตรวจสอบ",
+                "ตรวจบางส่วน",
+                "ผ่านบางส่วน",
+                "ผ่าน",
+                "ไม่ผ่าน",
+            ],
             default: "รอตรวจสอบ",
         },
         poType: {
@@ -112,11 +119,9 @@ const PurchaseOrderSchema = new Schema<IPurchaseOrder>(
     },
     { timestamps: true }
 );
-
 /* ==========================
    ⚙️ Indexes
 ========================== */
-PurchaseOrderSchema.index({ purchaseOrderNumber: 1 });
 PurchaseOrderSchema.index({ supplierId: 1 });
 PurchaseOrderSchema.index({ location: 1 });
 PurchaseOrderSchema.index({ status: 1 });

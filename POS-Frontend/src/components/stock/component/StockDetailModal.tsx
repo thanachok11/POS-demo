@@ -301,7 +301,7 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({
                     <input
                       type="number"
                       name="quantity"
-                      value={stockData.quantity || 0}
+                      value={stockData.totalQuantity || 0}
                       onChange={handleStockChange}
                       disabled={!checkIsOtherSupplier()}
                     />
@@ -345,35 +345,6 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({
                     name="salePrice"
                     value={stockData?.salePrice || 0}
                     onChange={handleStockChange}
-                  />
-                </div>
-              </div>
-
-              {/* Row 3 */}
-              <div className="stock-form-row">
-                <div className="stock-form-group">
-                  <label>เลขล็อตสินค้า (Batch Number):</label>
-                  <input
-                    type="text"
-                    name="batchNumber"
-                    value={stockData?.batchNumber || ""}
-                    onChange={handleStockChange}
-                    readOnly
-                  />
-                </div>
-
-                <div className="stock-form-group">
-                  <label>วันหมดอายุ:</label>
-                  <input
-                    type="date"
-                    name="expiryDate"
-                    value={
-                      stockData?.expiryDate
-                        ? new Date(stockData.expiryDate).toISOString().split("T")[0]
-                        : ""
-                    }
-                    onChange={handleStockChange}
-                    readOnly
                   />
                 </div>
               </div>

@@ -7,6 +7,7 @@ import {
     cancelPurchaseOrder,
     returnPurchaseOrder,
 } from "../controllers/purchaseOrderController";
+import { getAllPurchaseOrders } from "../controllers/purchaseOrderController";
 
 const router = Router();
 
@@ -18,6 +19,7 @@ router.get("/purchase-orders", getPurchaseOrders);
 
 // ดึง PO ตาม ID
 router.get("/purchase-orders/:id", getPurchaseOrderById);
+router.get("/purchase-orders-qc", getAllPurchaseOrders);
 
 // ยืนยันรับสินค้า (ยังไม่เข้า stock)
 router.patch("/purchase-orders/:id/confirm", confirmPurchaseOrder);

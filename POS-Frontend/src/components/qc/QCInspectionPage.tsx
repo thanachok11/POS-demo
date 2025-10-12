@@ -139,19 +139,53 @@ const QCInspectionPage: React.FC = () => {
     const handleSubmitFinalQC = async () => {
         const token = localStorage.getItem("token") || "";
         setSaving(true);
+
         try {
+            // ✅ ตรวจว่ามีข้อมูล QC ของแต่ละล็อตหรือยัง
+            if (!po?.items?.length) return;
+
+            const total = po.items.length;
+            let passed = 0;
+            let failed = 0;
+            let pending = 0;
+
+            po.items.forEach((item: any) => {
+                const qc = qcData[item.batchNumber];
+                if (!qc || !qc.status || qc.status === "รอตรวจ") pending++;
+                else if (qc.status === "ผ่าน") passed++;
+                else if (qc.status === "ไม่ผ่าน") failed++;
+            });
+
+            if (pending === total) {
+                setPopupMessage("⚠️ กรุณาตรวจ QC อย่างน้อยหนึ่งล็อตก่อนสรุป");
+                setPopupSuccess(false);
+                setShowPopup(true);
+                setSaving(false);
+                return;
+            }
+
+            // ✅ เรียก backend เพื่อให้คำนวณสถานะรวมเอง
             const res = await updateQCStatus(poId!, { qcStatus: "ผ่าน" }, token);
+
             if (res.success) {
-                setPopupMessage("✅ QC ครบแล้วและเติมสต็อกสำเร็จ!");
+                setPopupMessage(
+                    `✅ สรุป QC สำเร็จ (${passed} ผ่าน / ${failed} ไม่ผ่าน / ${pending} รอตรวจ)`
+                );
                 setPopupSuccess(true);
                 setShowPopup(true);
+
+                // ✅ โหลดข้อมูล PO ใหม่ (สถานะจะอัปเดตแล้ว)
+                const updatedPO = await getPurchaseOrderById(poId!, token);
+                setPo(updatedPO.data);
+
                 setTimeout(() => navigate("/purchase-orders"), 1500);
             } else {
                 setPopupMessage("❌ ไม่สามารถสรุป QC ได้");
                 setPopupSuccess(false);
                 setShowPopup(true);
             }
-        } catch {
+        } catch (error) {
+            console.error(error);
             setPopupMessage("⚠️ เกิดข้อผิดพลาดในการสรุป QC");
             setPopupSuccess(false);
             setShowPopup(true);
@@ -160,6 +194,7 @@ const QCInspectionPage: React.FC = () => {
         }
     };
 
+
     /* =========================================================
        ✅ Rendering
     ========================================================= */
@@ -167,128 +202,138 @@ const QCInspectionPage: React.FC = () => {
     if (!po) return <p className="qc-error">ไม่พบข้อมูลใบสั่งซื้อ</p>;
 
     return (
-        <div className="qc-page">
-            <div className="qc-header">
-                <button className="qc-back-btn" onClick={() => navigate("/purchase-orders")}>
-                    <FontAwesomeIcon icon={faArrowLeft} /> กลับ
-                </button>
-                <h1>🧪 ตรวจสอบคุณภาพสินค้า (QC)</h1>
-                <p className="qc-subtitle">
-                    ใบสั่งซื้อ: <strong>{po.purchaseOrderNumber}</strong> / ผู้จัดส่ง:{" "}
-                    {po.supplierCompany}
-                </p>
-            </div>
+        <div className="display">
+            <div className="qc-container">
+                <div className="qc-header-wrapper">
+                    <h1 className="qc-header">🧪 ตรวจสอบคุณภาพสินค้า (QC)</h1>
+                    <p className="qc-subtitle">
+                        ใบสั่งซื้อ: <strong>{po.purchaseOrderNumber}</strong> / ผู้จัดส่ง:{" "}
+                        {po.supplierCompany}
+                    </p>
+                    <button className="qc-back-btn" onClick={() => navigate("/purchase-orders")}>
+                        <FontAwesomeIcon icon={faArrowLeft} /> กลับ
+                    </button>
+                </div>
 
-            <table className="qc-table">
-                <thead>
-                    <tr>
-                        <th>สินค้า</th>
-                        <th>Batch</th>
-                        <th>สถานะ QC</th>
-                        <th>หมายเหตุ</th>
-                        <th>แนบรูป</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {po.items.map((item: any, idx: number) => {
-                        const batchNumber = item.batchNumber;
-                        const qc = qcData[batchNumber] || {};
+                <table className="qc-table">
+                    <thead>
+                        <tr>
+                            <th>สินค้า</th>
+                            <th>Batch</th>
+                            <th>สถานะ QC</th>
+                            <th>หมายเหตุ</th>
+                            <th>แนบรูป</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {po.items.map((item: any, idx: number) => {
+                            const batchNumber = item.batchNumber;
+                            const qc = qcData[batchNumber] || {};
 
-                        return (
-                            <tr key={idx}>
-                                <td>{item.productName}</td>
-                                <td>{batchNumber}</td>
-                                <td>
-                                    <select
-                                        value={qc.status || "รอตรวจ"}
-                                        onChange={(e) =>
-                                            setQcData({
-                                                ...qcData,
-                                                [batchNumber]: {
-                                                    ...qc,
-                                                    status: e.target.value,
-                                                },
-                                            })
-                                        }
-                                    >
-                                        <option value="รอตรวจ">รอตรวจ</option>
-                                        <option value="ผ่าน">ผ่าน</option>
-                                        <option value="ไม่ผ่าน">ไม่ผ่าน</option>
-                                    </select>
-                                </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        placeholder="หมายเหตุ..."
-                                        value={qc.remarks || ""}
-                                        onChange={(e) =>
-                                            setQcData({
-                                                ...qcData,
-                                                [batchNumber]: {
-                                                    ...qc,
-                                                    remarks: e.target.value,
-                                                },
-                                            })
-                                        }
-                                    />
-                                </td>
-                                <td>
-                                    <label className="qc-upload-label">
-                                        <FontAwesomeIcon icon={faUpload} /> เลือกรูป
-                                        <input
-                                            type="file"
-                                            multiple
-                                            hidden
+                            return (
+                                <tr key={idx}>
+                                    <td>{item.productName}</td>
+                                    <td>{batchNumber}</td>
+                                    <td>
+                                        <select
+                                            value={qc.status || "รอตรวจ"}
                                             onChange={(e) =>
-                                                setFiles({
-                                                    ...files,
-                                                    [batchNumber]: Array.from(e.target.files || []),
+                                                setQcData({
+                                                    ...qcData,
+                                                    [batchNumber]: {
+                                                        ...qc,
+                                                        status: e.target.value,
+                                                    },
+                                                })
+                                            }
+                                        >
+                                            <option value="รอตรวจ">รอตรวจ</option>
+                                            <option value="ผ่าน">ผ่าน</option>
+                                            <option value="ไม่ผ่าน">ไม่ผ่าน</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="text"
+                                            placeholder="หมายเหตุ..."
+                                            value={qc.remarks || ""}
+                                            onChange={(e) =>
+                                                setQcData({
+                                                    ...qcData,
+                                                    [batchNumber]: {
+                                                        ...qc,
+                                                        remarks: e.target.value,
+                                                    },
                                                 })
                                             }
                                         />
-                                    </label>
-                                    {files[batchNumber]?.length > 0 && (
-                                        <p className="qc-file-count">
-                                            📎 {files[batchNumber].length} ไฟล์
-                                        </p>
-                                    )}
-                                </td>
-                                <td>
-                                    <button
-                                        className="qc-save-btn"
-                                        disabled={saving}
-                                        onClick={() => handleSubmitQC(item)}
-                                    >
-                                        <FontAwesomeIcon icon={faCheck} /> บันทึก
-                                    </button>
-                                </td>
-                            </tr>
-                        );
-                    })}
-                </tbody>
-            </table>
+                                    </td>
+                                    <td>
+                                        <label className="qc-upload-label">
+                                            <FontAwesomeIcon icon={faUpload} /> เลือกรูป
+                                            <input
+                                                type="file"
+                                                multiple
+                                                hidden
+                                                onChange={(e) =>
+                                                    setFiles({
+                                                        ...files,
+                                                        [batchNumber]: Array.from(e.target.files || []),
+                                                    })
+                                                }
+                                            />
+                                        </label>
+                                        {files[batchNumber]?.length > 0 && (
+                                            <p className="qc-file-count">
+                                                📎 {files[batchNumber].length} ไฟล์
+                                            </p>
+                                        )}
+                                    </td>
+                                    <td>
+                                        <button
+                                            className="qc-save-btn"
+                                            disabled={saving}
+                                            onClick={() => handleSubmitQC(item)}
+                                        >
+                                            <FontAwesomeIcon icon={faCheck} /> บันทึก
+                                        </button>
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
 
-            <div className="qc-finalize-section">
-                <button
-                    className={`qc-submit-btn ${allLotsPassed ? "active" : "disabled"}`}
-                    disabled={!allLotsPassed || saving}
-                    onClick={handleSubmitFinalQC}
-                >
-                    <FontAwesomeIcon icon={faCheck} /> สรุป QC และเติมสต็อก
-                </button>
+                <div className="qc-finalize-section">
+                    <button
+                        className={`qc-submit-btn ${saving ? "disabled" : "active"}`}
+                        disabled={saving}
+                        onClick={handleSubmitFinalQC}
+                    >
+                        <FontAwesomeIcon icon={faCheck} /> สรุปผลการตรวจสอบสินค้า
+                    </button>
 
-                {!allLotsPassed && (
-                    <p className="qc-hint">⚠️ ต้องตรวจและผ่าน QC ทุกล็อตก่อน</p>
-                )}
+                    {po.items.some(
+                        (item: any) =>
+                            !qcData[item.batchNumber] ||
+                            qcData[item.batchNumber].status === "รอตรวจ"
+                    ) && (
+                            <p className="qc-hint">
+                                ⚠️ มีสินค้าที่ยังไม่ได้ตรวจ QC ระบบจะเติมสต็อกเฉพาะสินค้าที่ “ผ่าน” เท่านั้น
+                            </p>
+                        )}
+                </div>
+
+
+
+                <GlobalPopup
+                    message={popupMessage}
+                    isSuccess={popupSuccess}
+                    show={showPopup}
+                    setShow={setShowPopup}
+                />
             </div>
-
-            <GlobalPopup
-                message={popupMessage}
-                isSuccess={popupSuccess}
-                show={showPopup}
-                setShow={setShowPopup}
-            />
         </div>
     );
 };

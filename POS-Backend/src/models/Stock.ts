@@ -66,6 +66,5 @@ StockSchema.methods.updateStatus = async function () {
 };
 
 StockSchema.index({ productId: 1 });
-StockSchema.index({ barcode: 1 });
 
 export default mongoose.models.Stock || mongoose.model<IStock>("Stock", StockSchema);

@@ -46,41 +46,105 @@
 /* =============================
    Card
 ============================= */
+/* ===============================
+   🧾 Purchase Order Card
+=============================== */
+
 .po-card {
-    background: #ffffff;
-    border-radius: 14px;
-    padding: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: var(--transition);
 }
 
 .po-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
 
-/* =============================
-   Header ในแต่ละ PO
-============================= */
+/* ===== Header ===== */
 .po-card-header {
     display: flex;
-    align-items: flex-start;
     justify-content: space-between;
-    margin-bottom: 12px;
+    align-items: center;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
 }
 
 .po-number {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #1e293b;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary);
     margin: 0;
 }
 
 .po-date {
-    font-size: 0.85rem;
-    color: #64748b;
-    /* slate-500 */
-    margin-top: 4px;
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-top: 0.2rem;
+}
+
+/* ===== PO Info Section ===== */
+.po-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 2rem;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+}
+
+.po-info p {
+    margin: 0;
+    color: var(--text-dark);
+}
+
+.po-info strong {
+    color: var(--primary);
+}
+
+/* ===== Total Summary ===== */
+.po-total {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-top: 0.75rem;
+    text-align: right;
+    color: #0f172a;
+    border-top: 2px solid #e2e8f0;
+    padding-top: 0.5rem;
+}
+
+/* ===== QC Status (in info) ===== */
+.po-info p:last-child {
+    font-weight: 500;
+}
+
+.po-info p:last-child::before {
+    content: "🧪 ";
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .po-card {
+        padding: 1rem;
+    }
+
+    .po-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .po-info {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .po-total {
+        text-align: left;
+    }
 }
 
 /* =============================
@@ -125,15 +189,6 @@
 /* =============================
    PO Info
 ============================= */
-.po-info p {
-    margin: 6px 0;
-    font-size: 0.95rem;
-    color: #334155;
-}
-
-.po-info strong {
-    color: #0f172a;
-}
 
 /* QC Status */
 .qc-status {
@@ -168,36 +223,137 @@
 /* =============================
    Items Table
 ============================= */
+/* ===============================
+   📋 ตารางรายการสินค้าในใบสั่งซื้อ
+=============================== */
+
 .po-items {
-    margin-top: 14px;
-    border-top: 1px solid #e2e8f0;
-    padding-top: 12px;
+    margin-top: 1.5rem;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1rem 1.5rem;
+    overflow-x: auto;
 }
 
 .po-items h4 {
-    font-size: 1rem;
+    margin-bottom: 1rem;
     font-weight: 600;
-    color: #1e293b;
-    margin-bottom: 8px;
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
+/* ===== Table structure ===== */
 .po-items-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.9rem;
-}
-
-.po-items-table th,
-.po-items-table td {
-    border: 1px solid #e5e7eb;
-    padding: 8px;
-    text-align: center;
+    font-size: 0.95rem;
 }
 
 .po-items-table th {
-    background: #f9fafb;
+    background: #e0f2fe;
+    color: #1fa1e7;
+    padding: 12px;
+    text-align: center;
     font-weight: 600;
-    color: #334155;
+}
+
+.po-items-table td {
+    text-align: center;
+    padding: 8px 10px;
+    border-bottom: 1px solid #eee;
+    color: var(--text-dark);
+}
+
+.po-items-table tbody tr:hover {
+    background: #f8fafc;
+    transition: var(--transition);
+}
+
+/* รวมทั้งหมดแถวท้าย */
+.po-items-table tfoot td {
+    background: #f1f5f9;
+    font-weight: bold;
+    padding: 10px;
+    border-top: 2px solid #ddd;
+}
+
+/* ===== QC Status Badge ===== */
+.qc-status {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-align: center;
+    min-width: 90px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* ✅ ผ่าน */
+.qc-pass {
+    background: #d1fae5;
+    color: #047857;
+    border: 1px solid #10b981;
+}
+
+/* ❌ ไม่ผ่าน */
+.qc-fail {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #ef4444;
+}
+
+/* 🧪 ผ่านบางส่วน / ตรวจบางส่วน */
+.qc-partial {
+    background: #fef9c3;
+    color: #92400e;
+    border: 1px solid #facc15;
+}
+
+/* ⏳ รอตรวจ */
+.qc-pending {
+    background: #e2e8f0;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .po-items-table thead {
+        display: none;
+    }
+
+    .po-items-table,
+    .po-items-table tbody,
+    .po-items-table tr,
+    .po-items-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .po-items-table tr {
+        background: #fff;
+        margin-bottom: 0.75rem;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 10px;
+    }
+
+    .po-items-table td {
+        text-align: left;
+        padding: 6px 0;
+        border: none;
+    }
+
+    .po-items-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--text-light);
+        display: block;
+    }
 }
 
 /* =============================
@@ -231,6 +387,65 @@
     background: #16a34a;
 }
 
+/* ===============================
+   🟢 Status Badge
+=================================*/
+
+
+.status-pending {
+    background: #fbbf24;
+}
+
+.status-received {
+    background: #10b981;
+}
+
+.status-qc-passed {
+    background: #22c55e;
+
+}
+
+.status-qc-pending-return {
+    background: #f59e0b;
+}
+
+.status-qc-returned {
+    background: #9ca3af;
+}
+
+.status-cancelled {
+    background: #ef4444;
+}
+
+
+.qc-status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: center;
+    min-width: 90px;
+    margin-left: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* ❌ ไม่ผ่าน */
+.qc-fail {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #ef4444;
+}
+
+/* 🧪 ผ่านบางส่วน / ตรวจบางส่วน */
+.qc-partial {
+    background: #fef9c3;
+    color: #92400e;
+    border: 1px solid #facc15;
+}
+
+/* ⏳ รอตรวจ */
+
 /* Cancel (แดง) */
 .po-cancel-button {
     background: #ef4444;
@@ -256,59 +471,6 @@
     border: 1px solid #cbd5e1;
     background: #fff;
     color: #1e293b;
-}
-
-/* =======================
-   QC Select Box
-======================= */
-.po-actions select {
-    padding: 6px 10px;
-    border-radius: 6px;
-    border: 1px solid #d1d5db;
-    font-size: 14px;
-    background-color: #ffffff;
-    color: #374151;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-}
-
-.po-actions select:hover {
-    border-color: #3b82f6;
-    box-shadow: 0 0 4px rgba(59, 130, 246, 0.4);
-}
-
-.po-actions select:focus {
-    outline: none;
-    border-color: #2563eb;
-    box-shadow: 0 0 6px rgba(37, 99, 235, 0.5);
-}
-
-/* ✅ Disabled state */
-.po-actions select:disabled {
-    background-color: #f3f4f6;
-    color: #9ca3af;
-    cursor: not-allowed;
-    border-color: #e5e7eb;
-    box-shadow: none;
-}
-
-/* ✅ ตัวเลือก QC แต่ละ status */
-.qc-status.qc-รอตรวจสอบ {
-    color: #f59e0b;
-    /* amber */
-    font-weight: 600;
-}
-
-.qc-status.qc-ผ่าน {
-    color: #10b981;
-    /* green */
-    font-weight: 600;
-}
-
-.qc-status.qc-ไม่ผ่าน {
-    color: #ef4444;
-    /* red */
-    font-weight: 600;
 }
 
 /* =========================

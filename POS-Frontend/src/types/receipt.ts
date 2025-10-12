@@ -5,6 +5,7 @@ export interface Item {
     name: string;
     price: number;
     totalQuantity: number;
+    quantity:string;
     subtotal: number;
     _id: string;
 }
@@ -23,6 +24,7 @@ export interface Receipt {
     _id: string;
     paymentId: string | Payment; 
     employeeName: string;
+    isReturn:string;
     items: Item[];
     totalPrice: number;
     paymentMethod: string;
@@ -30,4 +32,5 @@ export interface Receipt {
     changeAmount: number;
     discount:number;
     timestamp: string;
+    returnReason:string;
 }

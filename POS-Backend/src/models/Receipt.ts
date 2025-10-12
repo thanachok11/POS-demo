@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IReceiptItem {
+    [x: string]: unknown;
     barcode: string;
     name: string;
     price: number;

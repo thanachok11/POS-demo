@@ -4,7 +4,7 @@ import {
     getReceiptByPaymentId,
     deleteReceipt,
     getReceiptSummary,
-    processCustomerReturn
+    getReceiptBySaleId,
 } from "../controllers/receiptController";
 
 const router = express.Router();
@@ -13,6 +13,6 @@ router.get("/sales-summary", getReceiptSummary);          // 🔹 ดึงใ�
 router.get("/", getAllReceipts);          // 🔹 ดึงใบเสร็จทั้งหมด
 router.get("/paymentId/:paymentId", getReceiptByPaymentId); // 🔹 ดึงใบเสร็จจาก saleId
 router.delete("/:paymentId", deleteReceipt);   // 🔹 ลบใบเสร็จตาม saleId
-router.post("/return", processCustomerReturn);
+router.get("/receipt/:saleId", getReceiptBySaleId);
 
 export default router;

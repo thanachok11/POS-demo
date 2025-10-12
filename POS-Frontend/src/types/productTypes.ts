@@ -15,7 +15,7 @@ export interface Product {
 
 export interface StockItem {
     barcode: string;
-    totalQuantity: number;
+    quantity: number;
     salePrice:number;
     costPrice:number;
     status: string;

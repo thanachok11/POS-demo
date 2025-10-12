@@ -12,7 +12,7 @@ import productRoutes from "./routes/productRoutes";
 import uploadRoutes from "./routes/uploadRoutes";
 import { connectDB } from "./database";
 import Stock from "./routes/stockRoutes";
-
+import orderRoutes from './routes/orderRoutes';
 import Supplier from "./routes/supplierRoutes";
 import StockTransaction from "./routes/stockTransactionRoutes";
 import employeeRouter from './routes/employeeRoutes';
@@ -116,6 +116,7 @@ app.use("/api/", purchaseOrderRouter);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/discounts', discountRoute);
 app.use("/api/qc", qcRoutes);
+app.use('/api/', orderRoutes);
 
 // ============================
 // START SERVER

@@ -71,7 +71,30 @@ export const getPurchaseOrderById = async (req: Request, res: Response): Promise
     }
 };
 
+export const getAllPurchaseOrders = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const purchaseOrders = await PurchaseOrder.find()
+            .populate("supplierId", "companyName")
+            .sort({ createdAt: -1 });
 
+        res.status(200).json({
+            success: true,
+            data: purchaseOrders.map((po) => ({
+                _id: po._id,
+                purchaseOrderNumber: po.purchaseOrderNumber,
+                supplierCompany: po.supplierId?.companyName || "ไม่ระบุ",
+                createdAt: po.createdAt,
+                qcStatus: po.qcStatus || "รอตรวจ",
+            })),
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "ไม่สามารถดึงข้อมูลใบสั่งซื้อได้",
+            error,
+        });
+    }
+};
 /* ========================================================
    🧾 CREATE PURCHASE ORDER
    → สร้าง StockLot จริง (รอตรวจสอบ QC)
@@ -156,6 +179,7 @@ export const createPurchaseOrder = async (req: Request, res: Response): Promise<
             }
 
             // ✅ สร้าง StockLot จริง
+            // ✅ สร้าง StockLot จริง
             const stockLot = await StockLot.create({
                 stockId: stock._id,
                 productId: raw.productId,
@@ -166,13 +190,14 @@ export const createPurchaseOrder = async (req: Request, res: Response): Promise<
                 batchNumber,
                 expiryDate: raw.expiryDate,
                 barcode: productDoc.barcode,
-                quantity: 0,
+                quantity: raw.quantity, // ✅ แก้จาก 0 → raw.quantity
                 costPrice: raw.costPrice,
                 salePrice: raw.salePrice ?? raw.costPrice,
                 status: "รอตรวจสอบ QC",
                 isActive: false,
                 isTemporary: true,
             });
+
 
             itemsWithLot.push({
                 ...raw,
@@ -279,7 +304,7 @@ export const returnPurchaseOrder = async (req: Request, res: Response): Promise<
             return;
         }
 
-        if (po.status !== "ไม่ผ่าน QC - รอคืนสินค้า") {
+        if (po.status !== "ไม่ผ่าน QC - รอส่งคืนสินค้า") {
             res.status(400).json({ success: false, message: "PO นี้ไม่สามารถคืนสินค้าได้" });
             return;
         }

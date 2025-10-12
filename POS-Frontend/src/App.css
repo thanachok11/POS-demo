@@ -33,6 +33,17 @@ body {
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
 
+
+.app-container.sidebar-open .qc-container {
+  margin-left: 50px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
+
+.app-container.sidebar-closed .qc-container {
+  margin-left: 50px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
+
 /* ปกติ cart จะซ่อน */
 
 .app-container.sidebar-closed .search-grid {
@@ -79,6 +90,16 @@ body {
 }
 
 .app-container.sidebar-closed .stock-container {
+  margin-left: 50px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
+
+.app-container.sidebar-open .qclist-containerr {
+  margin-left: 50px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
+
+.app-container.sidebar-closed .qclist-containerr {
   margin-left: 50px;
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }

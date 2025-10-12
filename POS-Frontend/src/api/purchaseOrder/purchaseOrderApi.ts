@@ -73,6 +73,18 @@ export const getPurchaseOrderById = async (id: string, token: string) => {
     }
 };
 
+export const getAllPurchaseOrders = async (token: string) => {
+    try {
+        const res = await axios.get(`${API_BASE_URL}/purchase-orders-qc`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return res.data;
+    } catch (error: any) {
+        console.error("❌ Error fetching purchase orders:", error.message);
+        return { success: false, message: "โหลดข้อมูลใบสั่งซื้อไม่สำเร็จ" };
+    }
+};
+
 /* =========================================================
    ✅ CONFIRM PURCHASE ORDER (รอ QC)
 ========================================================= */
@@ -97,7 +109,7 @@ export const confirmPurchaseOrder = async (id: string, token: string) => {
 export const returnPurchaseOrder = async (id: string, token: string) => {
     try {
         const res = await axios.patch(
-            `${API_BASE_URL}/purchase-orders/${id}/return`,
+            `${API_BASE_URL}/purchase-orders/${id}/returnPo`,
             {},
             { headers: { Authorization: `Bearer ${token}` } }
         );

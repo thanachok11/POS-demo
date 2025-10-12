@@ -204,14 +204,15 @@ export const updateStock = async (req: Request, res: Response): Promise<void> =>
       stock.lastRestocked = new Date();
     }
 
-    // ✅ ประเมินสถานะสินค้าใหม่แบบ real-time
-    if (stock.quantity <= 0) {
+    // ✅ ใช้ totalQuantity แทน quantity
+    if (stock.totalQuantity <= 0) {
       stock.status = "สินค้าหมด";
-    } else if (stock.quantity <= stock.threshold) {
+    } else if (stock.totalQuantity <= stock.threshold) {
       stock.status = "สินค้าเหลือน้อย";
     } else {
       stock.status = "สินค้าพร้อมขาย";
     }
+
     await stock.save();
 
     res.status(200).json({
