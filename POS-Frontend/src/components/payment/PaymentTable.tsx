@@ -7,6 +7,7 @@ interface Payment {
     paymentMethod: string;
     amount: number;
     status: string;
+    type: string; // ✅ เพิ่ม field type
     createdAt: string;
 }
 
@@ -25,6 +26,17 @@ const PaymentTable: React.FC<PaymentTableProps> = ({
     getStatusEmoji,
     startIndex,
 }) => {
+    const getTypeEmoji = (type: string) => {
+        switch (type) {
+            case "SALE":
+                return "🟢 ขาย";
+            case "REFUND":
+                return "🔴 คืนเงิน";
+            default:
+                return "⚪ อื่นๆ";
+        }
+    };
+
     return (
         <table className="payment-table">
             <thead>
@@ -32,6 +44,7 @@ const PaymentTable: React.FC<PaymentTableProps> = ({
                     <th className="payment-header-cell">ลำดับ</th>
                     <th className="payment-header-cell">รหัสการขาย</th>
                     <th className="payment-header-cell">พนักงาน</th>
+                    <th className="payment-header-cell">ประเภท</th>
                     <th className="payment-header-cell">วิธีชำระเงิน</th>
                     <th className="payment-header-cell">จำนวนเงิน</th>
                     <th className="payment-header-cell">สถานะ</th>
@@ -45,10 +58,14 @@ const PaymentTable: React.FC<PaymentTableProps> = ({
                             <td className="payment-cell">{startIndex + index + 1}</td>
                             <td className="payment-cell">{payment.saleId}</td>
                             <td className="payment-cell">{payment.employeeName}</td>
+                            <td className="payment-cell">{getTypeEmoji(payment.type)}</td> {/* ✅ แสดง type */}
                             <td className="payment-cell">
                                 {getPaymentMethodEmoji(payment.paymentMethod)}
                             </td>
-                            <td className="payment-cell">
+                            <td
+                                className="payment-cell"
+                                style={{ color: payment.amount < 0 ? "red" : "green" }}
+                            >
                                 {payment.amount.toLocaleString()} บาท
                             </td>
                             <td className="payment-cell">{getStatusEmoji(payment.status)}</td>
@@ -59,7 +76,7 @@ const PaymentTable: React.FC<PaymentTableProps> = ({
                     ))
                 ) : (
                     <tr>
-                        <td colSpan={7} className="payment-no-data">
+                        <td colSpan={8} className="payment-no-data">
                             ไม่พบข้อมูลการชำระเงิน
                         </td>
                     </tr>

@@ -4,13 +4,24 @@ import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTimes,
-  faCartShopping,
   faMoneyBill,
   faQrcode,
   faCreditCard,
 } from "@fortawesome/free-solid-svg-icons";
 import { QRCodeSVG } from "qrcode.react";
 import generatePayload from "promptpay-qr";
+
+// ✅ เพิ่ม API ดึงส่วนลด
+import { getDiscounts } from "../../api/payment/discountApi";
+
+interface Discount {
+  _id: string;
+  code: string;
+  type: "percent" | "baht";
+  value: number;
+  description: string;
+  isActive: boolean;
+}
 
 interface CheckoutProps {
   cart: { barcode: string; name: string; price: number; totalQuantity: number }[];
@@ -30,66 +41,112 @@ const Checkout: React.FC<CheckoutProps> = ({
   onConfirmPayment,
   checkout,
 }) => {
+  // ==================== 💰 State เดิม ====================
   const [showNumpad, setShowNumpad] = useState(false);
   const [cashInput, setCashInput] = useState("");
   const [change, setChange] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [showCredit, setShowCredit] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [showQR, setShowQR] = useState(false);
   const [qrCode, setQrCode] = useState("");
   const [phoneNumber] = useState("0633133099");
+
+  // ==================== 🎟 ส่วนลด ====================
+  const [discounts, setDiscounts] = useState<Discount[]>([]);
+  const [selectedDiscount, setSelectedDiscount] = useState<Discount | null>(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [loading, setLoading] = useState(false);
+    const [popup, setPopup] = useState({
+        show: false,
+        message: "",
+        isSuccess: true,
+    });
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
 
-  // คำนวณยอดรวมใหม่เมื่อ cart เปลี่ยน
+  // ✅ โหลดส่วนลดทั้งหมด
   useEffect(() => {
-    const total = cart.reduce((acc, item) => acc + item.price * item.totalQuantity, 0);
-    setChange(null);
-    setCashInput("");
-  }, [cart]);
+       // ✅ โหลดข้อมูลส่วนลด
+       const fetchDiscounts = async () => {
+           try {
+               setLoading(true);
+               if (!token) throw new Error("Token not found");
+               const response = await getDiscounts(token);
+               const discountsData = Array.isArray(response)
+                   ? response
+                   : Array.isArray(response.data)
+                       ? response.data
+                       : [];
+               setDiscounts(discountsData);
+           } catch (err) {
+               console.error("โหลดข้อมูลส่วนลดล้มเหลว:", err);
+               setPopup({
+                   show: true,
+                   message: "❌ โหลดข้อมูลส่วนลดไม่สำเร็จ",
+                   isSuccess: false,
+               });
+           } finally {
+               setLoading(false);
+           }
+       };
+    fetchDiscounts();
+  }, []);
 
-  // สร้าง QR Code สำหรับ PromptPay
+  // ✅ คำนวณ QR code ใหม่
   useEffect(() => {
     const qr = generatePayload(phoneNumber, { amount: totalPrice });
     setQrCode(qr);
   }, [totalPrice, phoneNumber]);
 
+  // ✅ คำนวณยอดส่วนลด
+  useEffect(() => {
+    if (!selectedDiscount) {
+      setDiscountAmount(0);
+      return;
+    }
+
+    let discount = 0;
+    if (selectedDiscount.type === "percent") {
+      discount = (totalPrice * selectedDiscount.value) / 100;
+    } else if (selectedDiscount.type === "baht") {
+      discount = selectedDiscount.value;
+    }
+    setDiscountAmount(discount);
+  }, [selectedDiscount, totalPrice]);
+
+  // ✅ ยอดสุทธิหลังส่วนลด
+  const finalTotal = Math.max(totalPrice - discountAmount, 0);
+
+  // ✅ เงินสด
   const handleCashPayment = () => {
     const cashAmount = parseFloat(cashInput);
-    if (isNaN(cashAmount)) {
-      setError("กรุณาใส่จำนวนเงินให้ถูกต้อง");
-      setChange(null);
-    } else {
-      setChange(cashAmount - totalPrice);
-      setError(null);
-    }
+    setChange(isNaN(cashAmount) ? null : cashAmount - finalTotal);
   };
 
-  // 💵 เงินสด
   const confirmCashPayment = async () => {
     const cashAmount = parseFloat(cashInput);
     if (change !== null && change >= 0) {
       await checkout(cashAmount, "เงินสด");
-      onClose(); // ✅ แจ้ง ProductList ให้แสดง popup
+      onClose();
     }
   };
 
-  // 📱 QR Code
   const confirmQRPayment = async () => {
-    await checkout(totalPrice, "QR Code");
+    await checkout(finalTotal, "QR Code");
     onClose();
   };
 
-  // 💳 บัตรเครดิต
   const confirmCreditPayment = async () => {
     if (selectedCard) {
-      await checkout(totalPrice, "บัตรเครดิต");
+      await checkout(finalTotal, "บัตรเครดิต");
       onClose();
     }
   };
 
   return (
-    <div className="display">
+    <div className="checkout-display">
       <div className="checkout-modal">
         <div className="checkout-content">
           {/* 🧾 ด้านซ้าย: รายการสินค้า */}
@@ -109,19 +166,40 @@ const Checkout: React.FC<CheckoutProps> = ({
             </div>
 
             <div className="checkout-total">
-              <span className="checkout-total-label">ยอดรวม:</span>
-              <span className="checkout-total-price">
-                {totalPrice.toLocaleString()} ฿
-              </span>
+              <p>ยอดรวมสินค้า: {totalPrice.toLocaleString()} ฿</p>
+              {selectedDiscount && (
+                <p className="checkout-discount-amount">
+                  ส่วนลด: -{discountAmount.toLocaleString()} ฿
+                </p>
+              )}
+              <p className="checkout-final">
+                <strong>ยอดสุทธิ: {finalTotal.toLocaleString()} ฿</strong>
+              </p>
+            </div>
+            {/* ข้อความแจ้งเงินทอน */}
+
+            {/* 🎟 ส่วนลด */}
+            <div className="checkout-discount">
+              <label htmlFor="discount-select">เลือกส่วนลด:</label>
+              <select
+                id="discount-select"
+                onChange={(e) => {
+                  const selected = discounts.find(
+                    (d) => d._id === e.target.value
+                  );
+                  setSelectedDiscount(selected || null);
+                }}
+                value={selectedDiscount?._id || ""}
+              >
+                <option value="">-- ไม่มีส่วนลด --</option>
+                {discounts.map((d) => (
+                  <option key={d._id} value={d._id}>
+                    {d.code} ({d.type === "percent" ? `${d.value}%` : `${d.value}฿`})
+                  </option>
+                ))}
+              </select>
             </div>
 
-            {/* ข้อความแจ้งเงินทอน */}
-            {change !== null && change >= 0 && (
-              <p className="checkout-change">✅ จำนวนเงินถูกต้อง</p>
-            )}
-            {change !== null && change < 0 && (
-              <p className="checkout-error">❌ จำนวนเงินไม่เพียงพอ</p>
-            )}
           </div>
 
           {/* 💳 ด้านขวา: ปุ่มเลือกวิธีชำระเงิน */}
@@ -167,84 +245,116 @@ const Checkout: React.FC<CheckoutProps> = ({
 
             {/* 🧮 Number Pad สำหรับเงินสด */}
             {showNumpad && (
-              <div className="checkout-numpad">
-                <h3 className="checkout-numpad-title">กรุณาใส่จำนวนเงิน</h3>
-                <input
-                  type="text"
-                  className="checkout-numpad-input"
-                  value={
-                    Number(cashInput)
-                      ? Number(cashInput).toLocaleString()
-                      : ""
-                  }
-                  readOnly
-                />
+              <div className="checkout-numpad-overlay" onClick={() => setShowNumpad(false)}>
+                <div
+                  className="checkout-numpad-popup"
+                  onClick={(e) => e.stopPropagation()} // ป้องกันปิดเมื่อคลิกใน popup
+                >
+                  <button
+                    className="checkout-numpad-close"
+                    onClick={() => setShowNumpad(false)}
+                  >
+                    <FontAwesomeIcon icon={faTimes} />
+                  </button>
 
-                <div className="numpad-buttons">
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((num) => (
+                  <h3 className="checkout-numpad-title">กรุณาใส่จำนวนเงิน</h3>
+
+                  {/* ช่องแสดงจำนวนเงิน */}
+                  <input
+                    type="text"
+                    className="checkout-numpad-input"
+                    value={
+                      cashInput
+                        ? Number(cashInput).toLocaleString()
+                        : ""
+                    }
+                    readOnly
+                  />
+
+                  {/* ✅ แสดงสถานะเงิน */}
+                  {change !== null && (
+                    <p
+                      className={
+                        change >= 0 ? "checkout-change" : "checkout-error"
+                      }
+                    >
+                      {change >= 0
+                        ? `✅ จำนวนเงินถูกต้อง — เงินทอน ${change.toLocaleString()} ฿`
+                        : "❌ จำนวนเงินไม่เพียงพอ"}
+                    </p>
+                  )}
+
+                  {/* ปุ่มตัวเลข */}
+                  <div className="numpad-buttons">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((num) => (
+                      <button
+                        key={num}
+                        className="numpad-btn"
+                        onClick={() => {
+                          setCashInput(cashInput + num);
+                          setError(null);
+                        }}
+                      >
+                        {num}
+                      </button>
+                    ))}
+
                     <button
-                      key={num}
-                      className="numpad-btn"
+                      className="numpad-btn backspace-btn"
                       onClick={() => {
-                        setCashInput(cashInput + num);
+                        setCashInput(cashInput.slice(0, -1));
+                        setChange(null);
                         setError(null);
                       }}
                     >
-                      {num}
+                      ⬅
                     </button>
-                  ))}
 
-                  {/* ลบทีละตัว */}
-                  <button
-                    className="numpad-btn backspace-btn"
-                    onClick={() => {
-                      setCashInput(cashInput.slice(0, -1));
-                      setChange(null);
-                      setError(null);
-                    }}
-                  >
-                    ⬅
-                  </button>
+                    <button
+                      className="numpad-btn clear-btn"
+                      onClick={() => {
+                        setCashInput("");
+                        setChange(null);
+                        setError(null);
+                      }}
+                    >
+                      AC
+                    </button>
 
-                  {/* ล้างทั้งหมด */}
-                  <button
-                    className="numpad-btn clear-btn"
-                    onClick={() => {
-                      setCashInput("");
-                      setChange(null);
-                      setError(null);
-                    }}
-                  >
-                    AC
-                  </button>
+                    <button
+                      className="numpad-btn confirm-btn"
+                      onClick={handleCashPayment}
+                    >
+                      ยืนยัน
+                    </button>
+                  </div>
 
-                  {/* คำนวณเงินทอน */}
+                  {/* ปุ่มยืนยันชำระเงิน */}
                   <button
-                    className="numpad-btn confirm-btn"
-                    onClick={handleCashPayment}
+                    onClick={confirmCashPayment}
+                    className="checkout-confirm-btn"
+                    disabled={change === null || change < 0}
                   >
-                    ยืนยัน
+                    ยืนยันชำระเงิน
                   </button>
                 </div>
-
-                <button
-                  onClick={confirmCashPayment}
-                  className="checkout-btn checkout-confirm-btn"
-                  disabled={change === null || change < 0}
-                >
-                  ยืนยันชำระเงิน
-                </button>
               </div>
             )}
 
+
             {/* 📱 QR Code */}
             {showQR && (
-              <div className="qr-code-image">
-                <h3 className="qr-title">สแกน QR Code เพื่อชำระเงิน</h3>
-                {qrCode && <QRCodeSVG value={qrCode} size={256} />}
-                <button onClick={confirmQRPayment} className="qr-confirm-btn">
-                  ยืนยันชำระเงิน
-                </button>
+              <div className="qr-modal-overlay">
+                <div className="qr-modal-box">
+                  <button className="qr-modal-close" onClick={() => setShowQR(false)}>
+                    &times;
+                  </button>
+                  <h3 className="qr-title">สแกน QR Code เพื่อชำระเงิน</h3>
+                  {qrCode && <QRCodeSVG value={qrCode} size={256} />}
+                  <button onClick={confirmQRPayment} className="qr-confirm-btn">
+                    ยืนยันชำระเงิน
+                  </button>
+                </div>
               </div>
             )}
 

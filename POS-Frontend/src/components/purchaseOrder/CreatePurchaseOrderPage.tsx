@@ -9,8 +9,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 import { getSupplierData, getProductsBySupplier } from "../../api/suppliers/supplierApi";
-import { getWarehouseData } from "../../api/warehouse/warehouseApi";
 import { createPurchaseOrder } from "../../api/purchaseOrder/purchaseOrderApi";
+import { getWarehouseByProduct } from "../../api/purchaseOrder/purchaseOrderApi";
 
 import "../../styles/stock/CreateOrderPage.css";
 
@@ -19,13 +19,11 @@ const CreatePurchaseOrderPage: React.FC = () => {
 
     // ✅ States
     const [suppliers, setSuppliers] = useState<any[]>([]);
-    const [warehouses, setWarehouses] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
     const [items, setItems] = useState<any[]>([]);
 
     const [supplierId, setSupplierId] = useState("");
     const [supplierCompany, setSupplierCompany] = useState("");
-    const [warehouseId, setWarehouseId] = useState("");
 
     const [productId, setProductId] = useState("");
     const [quantity, setQuantity] = useState<number>(1);
@@ -37,28 +35,28 @@ const CreatePurchaseOrderPage: React.FC = () => {
     const [showSuccessPopup, setShowSuccessPopup] = useState(false);
     const [showErrorPopup, setShowErrorPopup] = useState(false);
 
+    const [warehouseId, setWarehouseId] = useState("");
+    const [warehouseName, setWarehouseName] = useState(""); // ✅ ชื่อคลัง
+    const [warehouseCode, setWarehouseCode] = useState(""); // ✅ รหัสคลัง
+
     /* ======================================================
-       🔹 โหลด Supplier + Warehouse พร้อมกัน
+       🔹 โหลด Supplier เริ่มต้น
     ====================================================== */
     useEffect(() => {
-        const fetchInitialData = async () => {
+        const fetchSuppliers = async () => {
             try {
                 const token = localStorage.getItem("token") || "";
-                const [supRes, whRes] = await Promise.all([
-                    getSupplierData(token),
-                    getWarehouseData(token),
-                ]);
+                const supRes = await getSupplierData(token);
                 setSuppliers(supRes.data || supRes);
-                setWarehouses(whRes.data || whRes);
             } catch (err) {
-                console.error("Load init data error:", err);
-                setMessage("❌ โหลดข้อมูลเริ่มต้นไม่สำเร็จ");
+                console.error("Load supplier error:", err);
+                setMessage("❌ โหลด Supplier ไม่สำเร็จ");
                 setShowErrorPopup(true);
             } finally {
                 setLoading(false);
             }
         };
-        fetchInitialData();
+        fetchSuppliers();
     }, []);
 
     /* ======================================================
@@ -86,6 +84,33 @@ const CreatePurchaseOrderPage: React.FC = () => {
             setProducts([]);
             setMessage("❌ โหลดสินค้าของ Supplier ไม่สำเร็จ");
             setShowErrorPopup(true);
+        }
+    };
+
+    /* ======================================================
+       🔹 ดึงคลังสินค้าของ Product โดยอัตโนมัติ
+    ====================================================== */
+    const fetchWarehouseByProduct = async (productId: string) => {
+        try {
+            const token = localStorage.getItem("token") || "";
+            const data = await getWarehouseByProduct(productId, token);
+
+            if (data.success && data.data?.location?._id) {
+                setWarehouseId(data.data.location._id);
+                setWarehouseName(data.data.location.name || "");
+                setWarehouseCode(data.data.location.code || "");
+                console.log("📦 warehouse ของสินค้านี้:", data.data.location.name);
+            } else {
+                setWarehouseId("");
+                setWarehouseName("");
+                setWarehouseCode("");
+                console.warn("⚠️ ไม่พบคลังของสินค้านี้");
+            }
+        } catch (err) {
+            console.error("❌ Fetch warehouse error:", err);
+            setWarehouseId("");
+            setWarehouseName("");
+            setWarehouseCode("");
         }
     };
 
@@ -138,8 +163,8 @@ const CreatePurchaseOrderPage: React.FC = () => {
        🔹 สร้างใบสั่งซื้อ (POST)
     ====================================================== */
     const handleSubmit = async () => {
-        if (!supplierId || !warehouseId || items.length === 0) {
-            setMessage("⚠️ กรุณากรอกข้อมูลให้ครบทุกช่อง");
+        if (!supplierId || items.length === 0) {
+            setMessage("⚠️ กรุณาเลือก Supplier และเพิ่มสินค้าอย่างน้อย 1 รายการ");
             setShowErrorPopup(true);
             return;
         }
@@ -152,7 +177,7 @@ const CreatePurchaseOrderPage: React.FC = () => {
                 purchaseOrderNumber,
                 supplierId,
                 supplierCompany,
-                location: warehouseId, // ✅ ใช้ warehouseId แทน location string
+                location: warehouseId, // ✅ ดึงอัตโนมัติจากสินค้า
                 items: items.map((i) => ({
                     productId: i.productId,
                     productName: i.productName,
@@ -170,8 +195,8 @@ const CreatePurchaseOrderPage: React.FC = () => {
                 setShowSuccessPopup(true);
                 setItems([]);
                 setSupplierId("");
-                setWarehouseId("");
                 setSupplierCompany("");
+                setWarehouseId("");
             } else {
                 throw new Error(res.message);
             }
@@ -215,19 +240,6 @@ const CreatePurchaseOrderPage: React.FC = () => {
                 </select>
             </div>
 
-            {/* Warehouse Selector */}
-            <div className="form-group-suppliers">
-                <label>เลือกคลังสินค้า:</label>
-                <select value={warehouseId} onChange={(e) => setWarehouseId(e.target.value)}>
-                    <option value="">-- เลือกคลังสินค้า --</option>
-                    {warehouses.map((w) => (
-                        <option key={w._id} value={w._id}>
-                            {w.name} ({w.code})
-                        </option>
-                    ))}
-                </select>
-            </div>
-
             {/* Products */}
             {supplierId ? (
                 <>
@@ -242,6 +254,7 @@ const CreatePurchaseOrderPage: React.FC = () => {
                                     setProductId(selected._id);
                                     setCostPrice(selected.costPrice);
                                     setSalePrice(selected.salePrice);
+                                    fetchWarehouseByProduct(selected._id); // ✅ ดึงคลังของสินค้านั้น
                                 }
                             }}
                         >
@@ -286,8 +299,18 @@ const CreatePurchaseOrderPage: React.FC = () => {
                                     </button>
                                 </div>
                             </div>
+
+                            {/* ✅ แสดงคลังที่ระบบดึงมา */}
+                            {warehouseName && (
+                                <div className="warehouse-display">
+                                    <p style={{ marginTop: "10px", color: "#007bff" }}>
+                                        📦 คลังสินค้าปัจจุบัน: <strong>{warehouseName}</strong> ({warehouseCode})
+                                    </p>
+                                </div>
+                            )}
                         </>
                     )}
+
                 </>
             ) : (
                 <p style={{ marginTop: "20px", fontStyle: "italic" }}>⚠️ กรุณาเลือก Supplier ก่อน</p>

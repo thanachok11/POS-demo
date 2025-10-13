@@ -473,6 +473,15 @@
     color: #1e293b;
 }
 
+.warehouse-display {
+    background: #eef6ff;
+    border-left: 4px solid #007bff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-top: 10px;
+    font-size: 0.95rem;
+}
+
 /* =========================
    Popup Overlay
 ========================= */

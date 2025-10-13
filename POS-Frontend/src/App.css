@@ -34,6 +34,7 @@ body {
 }
 
 
+
 .app-container.sidebar-open .qc-container {
   margin-left: 50px;
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
@@ -110,6 +111,16 @@ body {
 }
 
 .app-container.sidebar-closed .stock-transaction-container {
+  margin-left: 50px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
+
+.app-container.sidebar-open .refund-container {
+  margin-left: 50px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
+
+.app-container.sidebar-closed .refund-container {
   margin-left: 50px;
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }

@@ -222,7 +222,7 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen }) => {
 
     setCart((prev) =>
       prev.map((i) =>
-        i.barcode === selectedProductBarcode ? { ...i, quantity: value } : i
+        i.barcode === selectedProductBarcode ? { ...i, totalQuantity: value } : i
       )
     );
     setShowNumberPad(false);

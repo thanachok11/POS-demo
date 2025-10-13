@@ -7,19 +7,15 @@ export interface IStock extends Document {
   supplierId?: mongoose.Types.ObjectId;
   supplierName?: string;
   location?: mongoose.Types.ObjectId;
-
   totalQuantity: number; // ✅ รวมจำนวนจากทุกล็อต
   threshold?: number;
   status: "สินค้าพร้อมขาย" | "สินค้าหมด" | "สินค้าเหลือน้อย";
-
   costPrice: number;
   salePrice: number;
   barcode: string;
-
   lastRestocked?: Date;
   notes?: string;
   isActive: boolean;
-
   createdAt: Date;
   updatedAt: Date;
 

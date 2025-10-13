@@ -119,7 +119,6 @@
    Scrollable Table
 =========================== */
 .supplier-table-wrapper {
-    flex: 1;
     overflow-y: auto;
     margin-top: 12px;
     background: #fff;
@@ -133,20 +132,13 @@
     font-size: 14px;
 }
 
-.supplier-table thead {
-    background: linear-gradient(90deg, #0284c7, #0ea5e9);
-    color: #fff;
-    font-size: 0.95rem;
-}
 
 .supplier-table th {
-    position: sticky;
-    top: 0;
-    text-align: left;
-    padding: 12px;
-    font-weight: 600;
-    border-bottom: 2px solid #e5e7eb;
-    z-index: 5;
+    background: #e0f2fe;
+        color: #1fa1e7;
+        padding: 12px;
+        text-align: center;
+        font-weight: 600;
 
 }
 

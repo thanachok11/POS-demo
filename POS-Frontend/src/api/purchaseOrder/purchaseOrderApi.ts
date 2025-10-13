@@ -2,6 +2,18 @@ import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
+export const getWarehouseByProduct = async (productId: string, token: string) => {
+    try {
+        const res = await axios.get(`${API_BASE_URL}/stocks/by-product/${productId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return res.data; // ✅ { success, data, message }
+    } catch (error: any) {
+        console.error("❌ getWarehouseByProduct error:", error.response?.data || error.message);
+        throw error.response?.data || { success: false, message: "ไม่สามารถดึงข้อมูลคลังสินค้าได้" };
+    }
+};
+
 /* =========================================================
    🧾 CREATE PURCHASE ORDER
    สร้างใบสั่งซื้อใหม่ (พร้อม lot อัตโนมัติใน backend)

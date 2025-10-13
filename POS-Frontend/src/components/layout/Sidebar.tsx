@@ -20,6 +20,7 @@ import {
   faPercent,
   faVial,
   faWarehouse,
+  faMoneyBillTransfer,
 } from "@fortawesome/free-solid-svg-icons";
 import "../../styles/layout/Sidebar.css";
 
@@ -109,6 +110,10 @@ const Sidebar: React.FC<SidebarProps> = ({
             <li onClick={() => handleMenuClick("/reports/salehistory", "ประวัติการขาย")}>
               <FontAwesomeIcon icon={faHistory} className="icon" />{" "}
               <span className="dropdown-text-historysale">ประวัติการขาย</span>
+            </li>
+            <li onClick={() => handleMenuClick("/reports/refund", "คืนสินค้า")}>
+              <FontAwesomeIcon icon={faMoneyBillTransfer} className="icon" />{" "}
+              <span className="dropdown-text-refund">คืนสินค้า</span>
             </li>
           </ul>
 

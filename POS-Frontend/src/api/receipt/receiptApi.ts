@@ -5,7 +5,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
 // ดึงรายการใบเสร็จทั้งหมด
 export const fetchReceipts = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/receipts`);
+    const response = await axios.get(`${API_BASE_URL}/receipts/getReceipt`);
     return response.data.success ? response.data.receipts : [];
   } catch (error) {
     console.error("Error fetching receipts:", error);

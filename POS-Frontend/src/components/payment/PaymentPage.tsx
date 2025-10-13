@@ -11,8 +11,10 @@ interface Payment {
   paymentMethod: string;
   amount: number;
   status: string;
+  type: string;
   createdAt: string;
 }
+
 
 export default function PaymentPage() {
   const [payments, setPayments] = useState<Payment[]>([]);

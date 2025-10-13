@@ -72,7 +72,7 @@ const QCInspectionPage: React.FC = () => {
 
     const allQCChecked = po?.items?.every((item: any) => {
         const qc = qcData[item.batchNumber];
-        return qc && qc.status && qc.status !== "รอตรวจ";
+        return qc && qc.status && qc.status !== "รอตรวจสอบ";
     });
 
     /* =========================================================
@@ -99,7 +99,7 @@ const QCInspectionPage: React.FC = () => {
                 formData.append("productId", item.productId?._id || item.productId || "");
                 formData.append("supplierId", po.supplierId?._id || po.supplierId || "");
                 formData.append("warehouseId", po.location?._id || po.location || "");
-                formData.append("status", current.status || "รอตรวจ");
+                formData.append("status", current.status || "รอตรวจสอบ");
                 formData.append("remarks", current.remarks || "");
                 (files[batchNumber] || []).forEach((file) =>
                     formData.append("attachments", file)
@@ -151,7 +151,7 @@ const QCInspectionPage: React.FC = () => {
 
             po.items.forEach((item: any) => {
                 const qc = qcData[item.batchNumber];
-                if (!qc || !qc.status || qc.status === "รอตรวจ") pending++;
+                if (!qc || !qc.status || qc.status === "รอตรวจสอบ") pending++;
                 else if (qc.status === "ผ่าน") passed++;
                 else if (qc.status === "ไม่ผ่าน") failed++;
             });
@@ -169,7 +169,7 @@ const QCInspectionPage: React.FC = () => {
 
             if (res.success) {
                 setPopupMessage(
-                    `✅ สรุป QC สำเร็จ (${passed} ผ่าน / ${failed} ไม่ผ่าน / ${pending} รอตรวจ)`
+                    `✅ สรุป QC สำเร็จ (${passed} ผ่าน / ${failed} ไม่ผ่าน / ${pending} รอตรวจสอบ)`
                 );
                 setPopupSuccess(true);
                 setShowPopup(true);
@@ -237,7 +237,7 @@ const QCInspectionPage: React.FC = () => {
                                     <td>{batchNumber}</td>
                                     <td>
                                         <select
-                                            value={qc.status || "รอตรวจ"}
+                                            value={qc.status || "รอตรวจสอบ"}
                                             onChange={(e) =>
                                                 setQcData({
                                                     ...qcData,
@@ -248,7 +248,7 @@ const QCInspectionPage: React.FC = () => {
                                                 })
                                             }
                                         >
-                                            <option value="รอตรวจ">รอตรวจ</option>
+                                            <option value="รอตรวจสอบ">รอตรวจสอบ</option>
                                             <option value="ผ่าน">ผ่าน</option>
                                             <option value="ไม่ผ่าน">ไม่ผ่าน</option>
                                         </select>
@@ -317,7 +317,7 @@ const QCInspectionPage: React.FC = () => {
                     {po.items.some(
                         (item: any) =>
                             !qcData[item.batchNumber] ||
-                            qcData[item.batchNumber].status === "รอตรวจ"
+                            qcData[item.batchNumber].status === "รอตรวจสอบ"
                     ) && (
                             <p className="qc-hint">
                                 ⚠️ มีสินค้าที่ยังไม่ได้ตรวจ QC ระบบจะเติมสต็อกเฉพาะสินค้าที่ “ผ่าน” เท่านั้น

@@ -78,9 +78,11 @@
 }
 
 .receipt-table thead {
-    background: linear-gradient(90deg, #0284c7, #0ea5e9);
-    color: #fff;
-    font-size: 0.95rem;
+    background: #e0f2fe;
+        color: #1fa1e7;
+        padding: 12px;
+        text-align: center;
+        font-weight: 600;
 }
 
 .receipt-header-cell {

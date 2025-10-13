@@ -1,530 +1,795 @@
-/* 🛍 Modal */
-.checkout-modal {
+/* =============================
+   💳 Checkout Modal Layout
+============================= */
+.checkout-display {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    inset: 0;
+    background: rgba(3, 3, 3, 0.7);
+    backdrop-filter: blur(4px);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 3000;
+    z-index: 5000;
+}
+
+.checkout-modal {
+    width: 90%;
+    max-width: 1000px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s ease-in-out;
+    margin-left: 20px;
+    z-index: 5000;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(40px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 .checkout-content {
-    background: white;
-    width: 70%;
-    max-width: 800px;
-    padding: 20px;
-    border-radius: 10px;
     display: flex;
-    gap: 20px;
+    height: 80vh;
 }
 
-/* 🎯 แบ่ง Layout ซ้าย-ขวา */
+/* =============================
+   🧾 Left Panel (Items + Total)
+============================= */
 .checkout-left {
-    width: 50%;
-    border-right: 2px solid #ddd;
-    padding-right: 20px;
-}
-
-.checkout-right {
-    margin-top: 20px;
-    width: 50%;
+    flex: 1;
+    padding: 25px 30px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    justify-content: space-between;
+    border-right: 1px solid #e2e8f0;
+    background: #f9fafb;
 }
 
 .checkout-items {
-    background-color: #f9f9f9;
-    padding: 10px;
-    border-radius: 8px;
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-    margin-bottom: 15px;
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 10px;
 }
 
 .checkout-item {
     display: flex;
     justify-content: space-between;
-    padding: 8px;
-    border-bottom: 1px solid #ddd;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    font-size: 0.95rem;
 }
 
 .checkout-item-name {
-    font-weight: bold;
-    color: #333;
+    font-weight: 600;
+    color: #1e293b;
+    flex: 2;
 }
 
-.checkout-item-price {
-    color: #666;
-
-}
-
+.checkout-item-price,
 .checkout-item-quantity {
-    color: #999;
-
+    flex: 1;
+    text-align: right;
+    color: #475569;
 }
 
+/* =============================
+   🎟 Discount Selector
+============================= */
+.checkout-discount {
+    margin-top: 20px;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 14px 18px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.checkout-discount label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #334155;
+}
+
+.checkout-discount select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    font-size: 0.95rem;
+    outline: none;
+    transition: 0.2s;
+}
+
+.checkout-discount select:focus {
+    border-color: #0284c7;
+    background: #ffffff;
+}
+
+/* =============================
+   💰 Totals
+============================= */
 .checkout-total {
-    font-size: 18px;
-    font-weight: bold;
-    color: #e53935;
-    text-align: right;
-    margin-top: 10px;
+    margin-top: 25px;
+    padding: 16px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    font-size: 1rem;
+}
+
+.checkout-total p {
+    display: flex;
+    justify-content: space-between;
+    margin: 5px 0;
 }
 
 .checkout-total-label {
-    color: #333;
+    font-weight: 600;
+    color: #334155;
 }
 
-.checkout-total-price {
-    color: #e53935;
+.checkout-final {
+    margin-top: 8px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0284c7;
+    text-align: right;
 }
 
-.checkout-error {
-    margin-top: 1rem;
-    color: red;
-    font-weight: bold;
+.checkout-discount-amount {
+    color: #dc2626;
+    font-weight: 600;
 }
 
-.checkout-change {
-    color: green;
-    text-align: center;
-    margin-top: 10px;
-}
-
-.checkout-total {
-    font-size: 20px;
-    font-weight: bold;
-    color: #4caf50;
-}
-
-/* 🔢 Numpad */
-.checkout-numpad {
-    text-align: center;
-}
-
-.checkout-numpad-input {
-    width: 50%;
-    padding: 10px;
-    font-size: 20px;
-    text-align: center;
-    border: 2px solid #ddd;
-    border-radius: 5px;
-    margin-bottom: 10px;
-}
-
-.numpad-buttons {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-}
-
-.numpad-btn {
-    padding: 15px;
-    font-size: 18px;
-    border: none;
-    background: #6e90f7;
+/* =============================
+   💳 Right Panel (Payment)
+============================= */
+.checkout-right {
+    width: 350px;
+    background: linear-gradient(180deg, #1e3a8a, #3b82f6);
     color: white;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.numpad-btn:hover {
-    background: #e76f51;
-}
-
-.backspace-btn {
-    background-color: #f39c12;
-    color: white;
-    border-color: #e67e22;
-}
-
-.backspace-btn:hover {
-    background-color: #e67e22;
-}
-
-.clear-btn {
-    background: #e63946;
-}
-
-.clear-btn:hover {
-    background: #b32d3e;
-}
-
-.confirm-btn {
-    background: #2a9d8f;
-}
-
-.confirm-btn:hover {
-    background: #21867a;
-}
-
-/* ✅ ปุ่มเลือกการชำระเงิน */
-.checkout-payment-methods {
+    padding: 25px;
+    position: relative;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    width: 100%;
+    justify-content: flex-start;
 }
 
-.checkout-confirm-btn {
-    margin-top: 10px;
-    padding: 15px;
-    font-size: 18px;
-    width: 100%;
+.checkout-close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: transparent;
     border: none;
-    border-radius: 5px;
+    color: white;
+    font-size: 1.4rem;
     cursor: pointer;
-    color: rgb(255, 255, 255);
-    background-color: #28a745;
+    transition: 0.2s;
 }
 
-.checkout-confirm-btn:hover {
-    background-color: #0056b3;
+.checkout-close-btn:hover {
+    transform: scale(1.2);
 }
 
 .checkout-payment-buttons {
     display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 40px;
 }
 
 .checkout-payment-buttons button {
-    flex: 1;
-    padding: 5px 10px;
-    font-size: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.checkout-cash-btn {
-    background: #2a9d8f;
-    padding: 5px;
-    font-size: 18px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    color: white;
-    transition: background-color 0.3s, transform 0.2s;
-}
-
-.checkout-cash-btn:hover {
-    background: #21867a;
-    /* Darker shade of green for hover */
-    transform: scale(1.05);
-    /* Slightly enlarge the button on hover */
-}
-
-.checkout-cash-btn:active {
-    background: #1c6c65;
-    /* Even darker green when clicked */
-}
-
-.checkout-cash-btn:disabled {
-    background: #c6c6c6;
-    /* Grey background when disabled */
-    cursor: not-allowed;
-    /* Change cursor to not-allowed */
-}
-
-
-.checkout-qr-btn {
-    background: #e76f51;
-    padding: 5px;
-    font-size: 18px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    color: white;
-    transition: background-color 0.3s, transform 0.2s;
-}
-
-.checkout-qr-btn:hover {
-    background: #d0573f;
-    /* Darker shade of orange for hover */
-    transform: scale(1.05);
-    /* Slightly enlarge the button on hover */
-}
-
-.checkout-qr-btn:active {
-    background: #b0432f;
-    /* Even darker orange when clicked */
-}
-
-.checkout-qr-btn:disabled {
-    background: #c6c6c6;
-    /* Grey background when disabled */
-    cursor: not-allowed;
-    /* Change cursor to not-allowed */
-}
-
-
-.checkout-credit-btn {
-    background: #f4a261;
-    padding: 5px;
-    font-size: 18px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    color: white;
-    transition: background-color 0.3s, transform 0.2s;
-}
-
-.checkout-credit-btn:hover {
-    background: #d78f4e;
-    /* Darker shade of orange for hover */
-    transform: scale(1.05);
-    /* Slightly enlarge the button on hover */
-}
-
-.checkout-credit-btn:active {
-    background: #c17c3e;
-    /* Even darker orange when clicked */
-}
-
-.checkout-credit-btn:disabled {
-    background: #c6c6c6;
-    /* Grey background when disabled */
-    cursor: not-allowed;
-    /* Change cursor to not-allowed */
-}
-
-.checkout-bank-btn {
-    background-color: #007bff;
-    color: #fff;
-    padding: 12px 25px;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.checkout-bank-btn:hover {
-    background-color: #0056b3;
-    transform: scale(1.05);
-}
-
-.checkout-bank-btn:active {
-    background-color: #004085;
-}
-
-.checkout-bank-btn:disabled {
-    background-color: #c6c6c6;
-    cursor: not-allowed;
-}
-
-.checkout-bank-btn:disabled {
-    background-color: #c6c6c6;
-    cursor: not-allowed;
-}
-
-/* 🚀 ปรับปุ่มปิด */
-.checkout-close-btn {
-    display: block;
-    margin: 10px auto 0;
-    padding: 7px 15px;
-    margin-top: -30px;
-    margin-left: 370px;
-    font-size: 16px;
-    background: #d9534f;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.15);
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 1rem;
     cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-/* ข้อความแจ้งเตือน */
-.checkout-error {
-    color: red;
-    font-size: 16px;
-    margin-top: 10px;
+.checkout-payment-buttons button:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
 }
 
-.checkout-change {
-    font-size: 18px;
-    font-weight: bold;
-    color: green;
-    margin-top: 10px;
-}
-
-.checkout-close-btn:hover {
-    background: #c9302c;
-}
-
-.bank-transfer-info {
-    padding: 20px;
-    background-color: #f8f8f8;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    margin-top: 20px;
-}
-
-.bank-text {
-    font-size: 16px;
-    color: #333;
-    margin: 10px 0;
-}
-
-.bank-text p {
-    font-size: 14px;
-    color: #555;
-}
-
-.bank-transfer-info h3 {
-    font-size: 18px;
-    font-weight: bold;
-    color: #007bff;
-    margin-bottom: 10px;
-}
-
-.qr-code-image {
-    margin: 10px 0;
-    margin-left: 10px;
-    border-radius: 30px;
-}
-
-.qr-code-image svg {
-    margin-bottom: 20px;
-    border-radius: 12px;
-    margin-left: 55px;
-    border: 2px solid #e0e0e0;
-    padding: 8px;
-    background: #f9f9f9;
-}
-
-.qr-title {
-    font-size: 24px;
-    font-weight: bold;
-    margin-left: -10px;
-    margin-bottom: 10px;
-    text-align: center;
-}
-
-.qr-confirm-btn,
-.qr-close-btn {
+/* =============================
+   🧮 Numpad
+============================= */
+.checkout-numpad-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    padding: 10px;
-    margin-top: 10px;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
-}
-
-.qr-confirm-btn {
-    background: #28a745;
-    color: white;
-}
-
-.qr-close-btn {
-    background: #dc3545;
-    color: white;
-}
-
-.credit-options {
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
     display: flex;
+    align-items: center;
     justify-content: center;
-    gap: 10px;
-    margin: 15px 0;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
 }
 
-.credit-option {
-    padding: 10px 15px;
-    border: 2px solid #ccc;
-    border-radius: 5px;
-    cursor: pointer;
+.checkout-numpad-popup {
     background: white;
-    font-size: 16px;
-}
-
-.credit-title {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 10px;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.3);
+    width: 350px;
     text-align: center;
+    position: relative;
+    animation: slideUp 0.3s ease;
 }
 
-.credit-option.selected {
-    border-color: #007bff;
-    background: #007bff;
-    color: white;
+.checkout-numpad {
+    background: white;
+    color: #1e293b;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 25px;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.15);
 }
 
-.credit-confirm-btn,
-.credit-close-btn {
+.checkout-numpad-title {
+    text-align: center;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #0f172a;
+}
+
+.checkout-numpad-input {
     width: 100%;
+    text-align: right;
+    font-size: 1.3rem;
     padding: 10px;
-    margin-top: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+/* =============================
+   🎯 ปุ่มหลัก (ใช้กับ "ยืนยันชำระเงิน")
+============================= */
+.checkout-confirm-btn {
+    width: 100%;
+    padding: 14px 0;
+    margin-top: 15px;
     border: none;
-    border-radius: 5px;
-    font-size: 16px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
     cursor: pointer;
+    box-shadow: 0 4px 10px rgba(34, 197, 94, 0.4);
+    transition: all 0.25s ease;
 }
 
-.credit-confirm-btn {
-    background: #28a745;
-    color: white;
+.checkout-confirm-btn:hover {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(22, 163, 74, 0.5);
 }
 
-.credit-close-btn {
-    background: #dc3545;
-    color: white;
+.checkout-confirm-btn:active {
+    transform: scale(0.97);
+    box-shadow: 0 3px 6px rgba(22, 163, 74, 0.3);
 }
+
+.checkout-confirm-btn:disabled {
+    background: linear-gradient(135deg, #9ca3af, #6b7280);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* =============================
+   🔢 ปุ่มตัวเลข Numpad
+============================= */
+.numpad-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.numpad-btn {
+    padding: 18px;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    background: linear-gradient(135deg, #60a5fa, #2563eb);
+    color: white;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.4);
+    transition: all 0.2s ease-in-out;
+}
+
+.numpad-btn:hover {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    transform: translateY(-2px);
+}
+
+.numpad-btn:active {
+    transform: scale(0.96);
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+}
+
+/* =============================
+   🧩 ปุ่มพิเศษใน Numpad
+============================= */
+.backspace-btn {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 4px 10px rgba(234, 179, 8, 0.4);
+}
+
+.backspace-btn:hover {
+    background: linear-gradient(135deg, #d97706, #b45309);
+}
+
+.clear-btn {
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.4);
+}
+
+.clear-btn:hover {
+    background: linear-gradient(135deg, #dc2626, #991b1b);
+}
+
+.confirm-btn {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    box-shadow: 0 4px 10px rgba(34, 197, 94, 0.4);
+}
+
+.confirm-btn:hover {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+}
+
+/* =============================
+   💫 ปุ่มปิด (X)
+============================= */
+.checkout-numpad-close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+    border: none;
+    color: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(239, 68, 68, 0.4);
+    transition: all 0.25s ease;
+}
+
+.checkout-numpad-close:hover {
+    background: linear-gradient(135deg, #dc2626, #991b1b);
+    transform: rotate(90deg);
+}
+
+
 
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translate(-50%, -55%);
     }
 
     to {
         opacity: 1;
-        transform: translate(-50%, -50%);
     }
 }
 
-@keyframes bounceIn {
-    0% {
-        transform: scale(0);
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
         opacity: 0;
     }
 
-    60% {
-        transform: scale(1.1);
+    to {
+        transform: translateY(0);
         opacity: 1;
     }
+}
+/* =============================
+   🧭 Responsive for MacBook 13" (1280px)
+============================= */
+@media (max-width: 1280px) {
 
-    100% {
-        transform: scale(1);
+    /* 💳 Checkout Content */
+    .checkout-content {
+        width: 90%;
+        max-width: 950px;
+        gap: 20px;
+        padding: 20px;
+    }
+
+    /* 🧾 Left Panel */
+    .checkout-left {
+        padding-right: 20px;
+    }
+
+    .checkout-items {
+        max-height: 260px;
+        padding: 12px;
+    }
+
+    .checkout-item {
+        font-size: 0.9rem;
+        padding: 6px 8px;
+    }
+
+    .checkout-item-name {
+        font-size: 0.95rem;
+    }
+
+    /* 🎟 ส่วนลด */
+    .checkout-discount select {
+        font-size: 0.9rem;
+        padding: 8px;
+    }
+
+    /* 💰 Total Section */
+    .checkout-total {
+        font-size: 0.95rem;
+        padding: 12px;
+    }
+
+    .checkout-final {
+        font-size: 1.05rem;
+    }
+
+    /* 💳 Right Panel */
+    .checkout-right {
+        padding-left: 15px;
+    }
+
+    .checkout-payment-buttons {
+        gap: 8px;
+    }
+
+    .checkout-payment-buttons button {
+        font-size: 0.9rem;
+        padding: 10px;
+    }
+
+    /* 🔢 Numpad Popup */
+    .checkout-numpad-popup {
+        width: 340px;
+        padding: 20px;
+    }
+
+    .checkout-numpad-input {
+        font-size: 1.3rem;
+    }
+
+    .numpad-btn {
+        padding: 14px;
+        font-size: 1rem;
+    }
+
+    .checkout-confirm-btn {
+        font-size: 1rem;
+        padding: 12px;
+    }
+
+    /* 📱 QR Modal */
+    .qr-modal-box {
+        width: 320px;
+        padding: 20px;
+    }
+
+    .qr-modal-box svg {
+        width: 220px !important;
+        height: 220px !important;
+    }
+
+    .qr-title {
+        font-size: 1.1rem;
+    }
+
+    .qr-confirm-btn {
+        font-size: 1rem;
+        padding: 10px;
+    }
+
+    /* 💳 Credit Modal */
+    .credit-modal {
+        width: 340px;
+        padding: 18px;
+    }
+
+    .credit-option {
+        font-size: 0.9rem;
+        padding: 8px 14px;
+    }
+
+    /* ✅ ปุ่มปิด */
+    .checkout-close-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
     }
 }
 
-@keyframes shake {
-    0% {
-        transform: translateX(0);
+/* =============================
+   💻 สำหรับจอเล็กกว่า 1100px (Fallback)
+============================= */
+@media (max-width: 1100px) {
+    .checkout-content {
+        flex-direction: column;
+        height: auto;
+        overflow-y: auto;
     }
 
-    25% {
-        transform: translateX(-5px);
+    .checkout-left,
+    .checkout-right {
+        width: 100%;
+        border: none;
+        padding: 0;
     }
 
-    50% {
-        transform: translateX(5px);
+    .checkout-right {
+        align-items: stretch;
     }
 
-    75% {
-        transform: translateX(-5px);
+    .checkout-payment-buttons {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
     }
 
-    100% {
-        transform: translateX(0);
+    .checkout-payment-buttons button {
+        flex: 1 1 40%;
+        min-width: 140px;
     }
+}
+/* =============================
+   📱 QR Modal Overlay
+============================= */
+.qr-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
+}
+
+/* =============================
+   💳 QR Modal Box
+============================= */
+.qr-modal-box {
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.3);
+    width: 350px;
+    text-align: center;
+    position: relative;
+    animation: slideUp 0.3s ease;
+}
+
+.qr-modal-box h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #1e293b;
+}
+
+.qr-modal-box svg {
+    border-radius: 12px;
+    border: 2px solid #e5e7eb;
+    padding: 10px;
+    background: #f8fafc;
+    margin: 15px 0;
+}
+
+/* ✅ ปุ่มยืนยัน */
+.qr-confirm-btn {
+    background: #22c55e;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+    width: 100%;
+}
+
+.qr-confirm-btn:hover {
+    background: #16a34a;
+}
+
+/* ❌ ปุ่มปิด */
+.qr-modal-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    border: none;
+    background: #ef4444;
+    color: white;
+    font-size: 1.3rem;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.qr-modal-close:hover {
+    background: #dc2626;
+}
+
+/* ✨ Animation */
+@keyframes popUp {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* =============================
+   📱 Responsive Design for QR Code
+============================= */
+
+/* สำหรับจอเล็กกว่า 768px (มือถือแนวตั้ง) */
+@media (max-width: 768px) {
+    .qr-code-image {
+        width: 90%;
+        margin: 20px auto;
+        padding: 15px;
+        border-radius: 12px;
+    }
+
+    .qr-title {
+        font-size: 1.1rem;
+    }
+
+    .qr-code-image svg {
+        width: 200px !important;
+        height: 200px !important;
+    }
+
+    .qr-confirm-btn {
+        width: 100%;
+        font-size: 1rem;
+        padding: 10px;
+    }
+}
+
+/* สำหรับจอเล็กมาก (400px ลงไป) */
+@media (max-width: 400px) {
+    .qr-code-image svg {
+        width: 160px !important;
+        height: 160px !important;
+    }
+
+    .qr-title {
+        font-size: 1rem;
+    }
+
+    .qr-confirm-btn {
+        font-size: 0.95rem;
+        padding: 8px;
+    }
+}
+
+/* สำหรับแท็บเล็ตแนวนอนหรือจอกลาง */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .qr-code-image {
+        width: 70%;
+        margin: 25px auto;
+    }
+
+    .qr-code-image svg {
+        width: 240px !important;
+        height: 240px !important;
+    }
+}
+
+/* =============================
+   💳 Credit Card Modal
+============================= */
+.credit-modal {
+    background: white;
+    color: #1e293b;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 25px;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.15);
+    text-align: center;
+}
+
+.credit-title {
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.credit-options {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 15px;
+}
+
+.credit-option {
+    border: 1px solid #cbd5e1;
+    padding: 8px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #f8fafc;
+    transition: 0.2s;
+}
+
+.credit-option.selected {
+    background: #0284c7;
+    color: white;
+    border-color: #0284c7;
+}
+
+.credit-confirm-btn {
+    background: #0284c7;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.credit-confirm-btn:hover {
+    background: #0369a1;
+}
+
+/* =============================
+   ✅ Messages
+============================= */
+.checkout-change {
+    color: #16a34a;
+    font-weight: 600;
+    text-align: right;
+    margin-top: 5px;
+}
+
+.checkout-error {
+    color: #dc2626;
+    font-weight: 600;
+    text-align: right;
 }

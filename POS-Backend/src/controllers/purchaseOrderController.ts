@@ -35,6 +35,8 @@ export const getPurchaseOrders = async (_: Request, res: Response): Promise<void
             .populate("updatedBy")
             .populate("items.productId", "name barcode")
             .populate("items.stockId")
+            .populate("stockLots", "_id batchNumber status qcStatus")
+
             .sort({ createdAt: -1 });
 
         res.status(200).json({ success: true, message: "ดึงรายการ PO สำเร็จ", data: orders });
@@ -45,49 +47,74 @@ export const getPurchaseOrders = async (_: Request, res: Response): Promise<void
 };
 
 /* ==========================
-   ดึงรายละเอียด PO ตาม ID
+   📄 ดึงรายละเอียด PO ตาม ID
 ========================== */
 export const getPurchaseOrderById = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
 
         const po = await PurchaseOrder.findById(id)
-            .populate("supplierId")
-            .populate("location")
-            .populate("createdBy")
-            .populate("updatedBy")
+            .populate("supplierId", "companyName phoneNumber email") // ดึงข้อมูล supplier เพิ่มเติม
+            .populate("location", "name code") // คลังสินค้า
+            .populate("createdBy", "username email role")
+            .populate("updatedBy", "username email role")
             .populate("items.productId", "name barcode")
-            .populate("items.stockId");
+            .populate("items.stockId", "totalQuantity status")
+            .populate({
+                path: "stockLots", // ✅ เพิ่มส่วนนี้
+                populate: [
+                    { path: "productId", select: "name barcode" },
+                    { path: "stockId", select: "totalQuantity status" },
+                    { path: "supplierId", select: "companyName" },
+                    { path: "location", select: "name" },
+                ],
+            });
 
         if (!po) {
             res.status(404).json({ success: false, message: "ไม่พบ PurchaseOrder" });
             return;
         }
 
-        res.status(200).json({ success: true, message: "ดึงข้อมูล PO สำเร็จ", data: po });
+        res.status(200).json({
+            success: true,
+            message: "ดึงข้อมูล PO สำเร็จ ✅",
+            data: po,
+        });
     } catch (error) {
-        console.error("Get PO By ID Error:", error);
-        res.status(500).json({ success: false, message: "Server error while fetching PO" });
+        console.error("❌ Get PO By ID Error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Server error while fetching PO",
+        });
     }
 };
-
+/* ==========================
+   📋 ดึงรายการ PO ทั้งหมด
+========================== */
 export const getAllPurchaseOrders = async (req: Request, res: Response): Promise<void> => {
     try {
         const purchaseOrders = await PurchaseOrder.find()
             .populate("supplierId", "companyName")
-            .sort({ createdAt: -1 });
+            .populate("location", "name code") // คลังสินค้า
+            .populate("stockLots", "_id status qcStatus") // ✅ ดึงเฉพาะ field ที่จำเป็น
+            .sort({ createdAt: -1 })
+            .lean();
 
         res.status(200).json({
             success: true,
+            message: "ดึงรายการใบสั่งซื้อสำเร็จ ✅",
             data: purchaseOrders.map((po) => ({
                 _id: po._id,
                 purchaseOrderNumber: po.purchaseOrderNumber,
                 supplierCompany: po.supplierId?.companyName || "ไม่ระบุ",
+                totalLots: po.stockLots?.length || 0, // ✅ เพิ่มนับจำนวนล็อตใน PO
+                qcStatus: po.qcStatus || "รอตรวจสอบ",
+                status: po.status,
                 createdAt: po.createdAt,
-                qcStatus: po.qcStatus || "รอตรวจ",
             })),
         });
     } catch (error) {
+        console.error("❌ Get All PO Error:", error);
         res.status(500).json({
             success: false,
             message: "ไม่สามารถดึงข้อมูลใบสั่งซื้อได้",
@@ -97,7 +124,7 @@ export const getAllPurchaseOrders = async (req: Request, res: Response): Promise
 };
 /* ========================================================
    🧾 CREATE PURCHASE ORDER
-   → สร้าง StockLot จริง (รอตรวจสอบ QC)
+   → ยังไม่สร้าง StockLot (รอ confirm ก่อน)
 ======================================================== */
 export const createPurchaseOrder = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -114,7 +141,6 @@ export const createPurchaseOrder = async (req: Request, res: Response): Promise<
         }
 
         const { purchaseOrderNumber, supplierId, supplierCompany, location, items, invoiceNumber } = req.body;
-
         if (!Array.isArray(items) || items.length === 0) {
             res.status(400).json({ success: false, message: "Items are required" });
             return;
@@ -135,105 +161,42 @@ export const createPurchaseOrder = async (req: Request, res: Response): Promise<
             return;
         }
 
-        const supplierCode = (supplierDoc as any)?.code ?? "SP00";
-        const warehouseCode = (warehouseDoc as any)?.code ?? "WH00";
+        // ✅ สร้าง items พร้อมยอดรวม (แต่ยังไม่สร้าง lot)
+        const itemsWithTotal = items.map((it: any) => ({
+            ...it,
+            total: Number(it.quantity || 0) * Number(it.costPrice || 0),
+        }));
 
-        const itemsWithLot: any[] = [];
+        const totalAmount = itemsWithTotal.reduce((sum: number, it: any) => sum + Number(it.total || 0), 0);
 
-        for (const raw of items) {
-            const batchNumber =
-                raw.batchNumber && String(raw.batchNumber).trim() !== ""
-                    ? String(raw.batchNumber).trim()
-                    : await generateBatchNumber(
-                        warehouseCode,
-                        supplierCode,
-                        raw.productId.toString() // ✅ เพิ่ม productId
-                    );
-
-
-            const productDoc = await Product.findById(raw.productId)
-                .select("barcode name")
-                .lean<{ _id: mongoose.Types.ObjectId; barcode: string; name: string }>();
-            if (!productDoc) {
-                res.status(400).json({ success: false, message: `ไม่พบสินค้า ID: ${raw.productId}` });
-                return;
-            }
-
-            // ✅ ตรวจว่ามี Stock หลักหรือยัง
-            let stock = await Stock.findOne({
-                productId: raw.productId,
-                location: warehouseDoc._id,
-            });
-            if (!stock) {
-                stock = await Stock.create({
-                    productId: raw.productId,
-                    userId: decoded.userId,
-                    supplierId: supplierDoc._id,
-                    supplierName: supplierDoc.companyName,
-                    location: warehouseDoc._id,
-                    totalQuantity: 0,
-                    threshold: raw.threshold ?? 5,
-                    status: "สินค้าพร้อมขาย",
-                    isActive: true,
-                });
-            }
-
-            // ✅ สร้าง StockLot จริง
-            // ✅ สร้าง StockLot จริง
-            const stockLot = await StockLot.create({
-                stockId: stock._id,
-                productId: raw.productId,
-                supplierId: supplierDoc._id,
-                supplierName: supplierDoc.companyName,
-                userId: decoded.userId,
-                location: warehouseDoc._id,
-                batchNumber,
-                expiryDate: raw.expiryDate,
-                barcode: productDoc.barcode,
-                quantity: raw.quantity, // ✅ แก้จาก 0 → raw.quantity
-                costPrice: raw.costPrice,
-                salePrice: raw.salePrice ?? raw.costPrice,
-                status: "รอตรวจสอบ QC",
-                isActive: false,
-                isTemporary: true,
-            });
-
-
-            itemsWithLot.push({
-                ...raw,
-                stockId: stock._id,
-                stockLotId: stockLot._id,
-                barcode: productDoc.barcode,
-                batchNumber,
-                total: Number(raw.quantity || 0) * Number(raw.costPrice || 0),
-            });
-        }
-
-        const totalAmount = itemsWithLot.reduce((sum: number, it: any) => sum + Number(it.total || 0), 0);
-
+        // ✅ สร้าง PO จริง
         const po = await PurchaseOrder.create({
             purchaseOrderNumber,
             supplierId: supplierDoc._id,
             supplierCompany: supplierCompany ?? supplierDoc.companyName,
             location: warehouseDoc._id,
-            items: itemsWithLot,
+            items: itemsWithTotal,
             totalAmount,
             invoiceNumber: invoiceNumber || generateInvoiceNumber(),
             createdBy: decoded.userId,
             status: "รอดำเนินการ",
+            stockLots: [], // ✅ ยังไม่มีล็อตตอนนี้
         });
 
-        res.status(201).json({ success: true, message: "สร้างใบสั่งซื้อสำเร็จ ✅", data: po });
+        res.status(201).json({
+            success: true,
+            message: "สร้างใบสั่งซื้อสำเร็จ (ยังไม่สร้างล็อตสินค้า)",
+            data: po,
+        });
     } catch (error) {
         console.error("❌ Create PO Error:", error);
-        res.status(500).json({ success: false, message: "Server error while creating PO" });
+        res.status(500).json({
+            success: false,
+            message: "Server error while creating PO",
+        });
     }
 };
 
-/* ========================================================
-   📦 CONFIRM PURCHASE ORDER
-   → อัปเดต StockLot ทั้งหมดเป็น "รอ QC"
-======================================================== */
 export const confirmPurchaseOrder = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
@@ -260,23 +223,109 @@ export const confirmPurchaseOrder = async (req: Request, res: Response): Promise
             return;
         }
 
-        await StockLot.updateMany(
-            { _id: { $in: po.items.map((x: any) => x.stockLotId) } },
-            { $set: { status: "รอตรวจสอบ QC", qcStatus: "รอตรวจสอบ", isActive: false } }
-        );
+        const supplierDoc = await Supplier.findById(po.supplierId).lean<{
+            _id: mongoose.Types.ObjectId;
+            companyName: string;
+            code?: string;
+        } | null>();
+        const warehouseDoc = await Warehouse.findById(po.location).lean<{
+            _id: mongoose.Types.ObjectId;
+            name: string;
+            code?: string;
+        } | null>();
 
+        if (!supplierDoc || !warehouseDoc) {
+            res.status(400).json({ success: false, message: "ไม่พบข้อมูล Supplier หรือ Warehouse" });
+            return;
+        }
+
+        const supplierCode = supplierDoc.code ?? "SP00";
+        const warehouseCode = warehouseDoc.code ?? "WH00";
+
+        const stockLotIds: mongoose.Types.ObjectId[] = [];
+
+        // ✅ วนสร้าง StockLot ทีละชิ้น
+        for (const raw of po.items) {
+            const batchNumber =
+                raw.batchNumber && String(raw.batchNumber).trim() !== ""
+                    ? String(raw.batchNumber).trim()
+                    : await generateBatchNumber(warehouseCode, supplierCode, raw.productId.toString());
+
+            const productDoc = await Product.findById(raw.productId)
+                .select("barcode name")
+                .lean<{ _id: mongoose.Types.ObjectId; barcode: string; name: string } | null>();
+
+            if (!productDoc) {
+                console.warn(`⚠️ ไม่พบสินค้า ID: ${raw.productId}`);
+                continue;
+            }
+
+            let stock = await Stock.findOne({
+                productId: raw.productId,
+                location: warehouseDoc._id,
+            });
+
+            if (!stock) {
+                stock = await Stock.create({
+                    productId: raw.productId,
+                    userId: decoded.userId,
+                    supplierId: supplierDoc._id,
+                    supplierName: supplierDoc.companyName,
+                    location: warehouseDoc._id,
+                    barcode: productDoc.barcode,
+                    totalQuantity: 0,
+                    threshold: raw.threshold ?? 5,
+                    status: "สินค้าพร้อมขาย",
+                    isActive: true,
+                });
+            }
+
+            // ✅ สร้าง StockLot (รอตรวจสอบ QC)
+            const stockLot = await StockLot.create({
+                stockId: stock._id,
+                productId: raw.productId,
+                supplierId: supplierDoc._id,
+                supplierName: supplierDoc.companyName,
+                userId: decoded.userId,
+                location: warehouseDoc._id,
+                purchaseOrderNumber: po.purchaseOrderNumber,
+                barcode: productDoc.barcode,
+                batchNumber,
+                expiryDate: raw.expiryDate,
+                quantity: raw.quantity,
+                costPrice: raw.costPrice,
+                salePrice: raw.salePrice ?? raw.costPrice,
+                status: "รอตรวจสอบ QC",
+                isActive: false,
+                isTemporary: true,
+                purchaseOrderId: po._id,
+            });
+
+            // ✅ update item ใน PO ให้มี batchNumber ด้วย
+            raw.batchNumber = batchNumber;
+            stockLotIds.push(stockLot._id);
+        }
+
+        // ✅ update PO
         po.status = "ได้รับสินค้าแล้ว";
+        po.qcStatus = "รอตรวจสอบ";
+        po.stockLots = stockLotIds;
         po.receivedAt = new Date();
         po.updatedBy = (decoded as any).userId;
+        po.markModified("items"); // ✅ แจ้ง mongoose ว่า items เปลี่ยนแล้ว
+
         await po.save();
 
-        res.status(200).json({ success: true, message: "ยืนยันใบสั่งซื้อสำเร็จ (รอ QC)", data: po });
+        res.status(200).json({
+            success: true,
+            message: "✅ ยืนยันใบสั่งซื้อสำเร็จ (สร้างล็อตและ batchNumber แล้ว)",
+            data: po,
+        });
     } catch (error) {
         console.error("❌ Confirm PO Error:", error);
         res.status(500).json({ success: false, message: "Server error while confirming PO" });
     }
 };
-
 
 
 /* ========================================================

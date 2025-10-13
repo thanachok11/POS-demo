@@ -16,7 +16,7 @@ import StockDetailModal from "./component/StockDetailModal";
 import GlobalPopup from "../layout/GlobalPopup";
 import AddProductModal from "../product/AddProductModal";
 import StockTable from "./component/StockTable";
-
+import LowStockList from "./component/LowStockList";
 import Pagination from "./component/Pagination";
 import FilterControl from "./component/FilterControl";
 
@@ -25,6 +25,7 @@ interface StockItem {
   barcode: string;
   totalQuantity: number;
   status: string;
+  threshold: number; // ✅ พิมพ์ถูกและเป็น number
   updatedAt: string;
   productId: {
     _id: string;
@@ -37,6 +38,7 @@ interface StockItem {
   expiryDate?: string;
   isActive?: boolean;
 }
+
 
 const StockPage: React.FC = () => {
   const [stockData, setStockData] = useState<StockItem[]>([]);
@@ -272,16 +274,19 @@ const StockPage: React.FC = () => {
   const nearExpiryThreshold = new Date();
   nearExpiryThreshold.setDate(now.getDate() + 10);
 
+  const hasStatus = (item: StockItem, status: string) =>
+    item.status?.trim() === status;
+
   const summary = {
-    available: filteredStock.filter(item => item.status === "สินค้าพร้อมขาย").length,
-    lowStock: filteredStock.filter(item => item.totalQuantity < 5 && item.totalQuantity > 0).length,
-    expired: filteredStock.filter(item => item.expiryDate && new Date(item.expiryDate) < now).length,
-    nearExpiry: filteredStock.filter(item => {
-      if (!item.expiryDate) return false;
-      const exp = new Date(item.expiryDate);
+    available: filteredStock.filter(i => hasStatus(i, "สินค้าพร้อมขาย")).length,
+    lowStock: filteredStock.filter(i => hasStatus(i, "สินค้าเหลือน้อย")).length,
+    expired: filteredStock.filter(i => i.expiryDate && new Date(i.expiryDate) < now).length,
+    nearExpiry: filteredStock.filter(i => {
+      if (!i.expiryDate) return false;
+      const exp = new Date(i.expiryDate);
       return exp >= now && exp <= nearExpiryThreshold;
     }).length,
-    outOfStock: filteredStock.filter(item => item.totalQuantity === 0 || item.status === "สินค้าหมด").length,
+    outOfStock: filteredStock.filter(i => hasStatus(i, "สินค้าหมด") || i.totalQuantity === 0).length,
   };
 
   //  pagination
@@ -309,24 +314,27 @@ const StockPage: React.FC = () => {
               <label>✅ พร้อมขาย</label>
               <span>{summary.available}</span>
             </div>
+
             <div className="summary-item low">
               <label>⚠️ เหลือน้อย</label>
               <span>{summary.lowStock}</span>
             </div>
+
             <div className="summary-item near-expiry">
               <label>⏰ ใกล้หมดอายุ</label>
               <span>{summary.nearExpiry}</span>
             </div>
+
             <div className="summary-item expired">
               <label>🧨 หมดอายุแล้ว</label>
               <span>{summary.expired}</span>
             </div>
+
             <div className="summary-item out">
               <label>❌ สินค้าหมด</label>
               <span>{summary.outOfStock}</span>
             </div>
           </div>
-
 
           <div className="stock-controls">
             <div className="search-container">

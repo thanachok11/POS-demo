@@ -6,6 +6,7 @@ import Product from "../models/Product";
 import StockTransaction from "../models/StockTransaction";
 import Supplier from "../models/Supplier";
 import { verifyToken } from "../utils/auth";
+import Warehouse from "../models/Warehouse";
 
 //หาค่า ownerId จาก userId (รองรับ admin / employee)
 const getOwnerId = async (userId: string): Promise<string> => {
@@ -24,7 +25,47 @@ const getOwnerId = async (userId: string): Promise<string> => {
     throw new Error("Invalid user role");
   }
 };
+export const getStockByProductId = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { productId } = req.params;
 
+    if (!productId) {
+      res.status(400).json({ success: false, message: "กรุณาระบุ productId" });
+      return;
+    }
+
+    // ✅ ค้นหา stock ที่ผูกกับ productId นี้
+    const stock = await Stock.findOne({ productId })
+      .populate({
+        path: "productId",
+        select: "name barcode description",
+      })
+      .populate({
+        path: "location",
+        model: Warehouse,
+        select: "name code",
+      })
+      .populate({
+        path: "supplierId",
+        select: "companyName",
+      })
+      .lean();
+
+    if (!stock) {
+      res.status(404).json({ success: false, message: "ไม่พบข้อมูลคลังของสินค้านี้" });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "ดึงข้อมูลคลังสินค้าสำเร็จ ✅",
+      data: stock,
+    });
+  } catch (error) {
+    console.error("❌ Error in getStockByProductId:", error);
+    res.status(500).json({ success: false, message: "Server error while fetching stock data" });
+  }
+};
 // ดึง stock ทั้งหมด
 export const getStocks = async (req: Request, res: Response): Promise<void> => {
   try {

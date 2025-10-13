@@ -220,3 +220,4 @@ export async function applyQCToLotAndStock(opts: {
         await lot.save();
     }
 }
+

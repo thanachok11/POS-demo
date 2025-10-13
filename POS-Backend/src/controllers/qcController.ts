@@ -183,64 +183,64 @@ export const updateQCRecord = async (req: Request, res: Response): Promise<void>
 ========================================================= */
 export const updateQCStatus = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { id } = req.params; // PO ID
+        const { id } = req.params;
         const qcStatus = req.body.qcStatus || req.body.status;
 
         const token = req.header("Authorization")?.split(" ")[1];
         if (!token) {
             res.status(401).json({ success: false, message: "Unauthorized" });
-            return;
+            return
         }
+
 
         const decoded = verifyToken(token);
         if (typeof decoded === "string" || !("userId" in decoded)) {
             res.status(401).json({ success: false, message: "Invalid token" });
-            return;
+            return
         }
 
         const userId = (decoded as any).userId;
         const po = await PurchaseOrder.findById(id);
         if (!po) {
             res.status(404).json({ success: false, message: "ไม่พบใบสั่งซื้อ" });
-            return;
+            return
         }
 
-        // 🧩 ป้องกันการทำซ้ำ
         if (po.status === "QC ผ่าน") {
-            res.status(400).json({
-                success: false,
-                message: "ใบสั่งซื้อนี้ผ่าน QC แล้ว ไม่สามารถดำเนินการซ้ำได้",
-            });
-            return;
+            res.status(400).json({ success: false, message: "ใบสั่งซื้อนี้ผ่าน QC แล้ว" });
+            return
         }
+
 
         po.updatedBy = userId;
 
-        /* =========================================================
-           ✅ เติมสต็อกเฉพาะสินค้าที่ผ่าน QC
-        ========================================================= */
-        let passedCount = 0;
-        let failedCount = 0;
-        const totalCount = (po.items || []).length;
+        // ✅ Helper
+        const normalizeQCStatus = (v: string) => (v === "รอตรวจ" ? "รอตรวจสอบ" : v);
+        const mapQCToPOStatus = (qc: string): string => {
+            switch (qc) {
+                case "ผ่าน": return "QC ผ่าน";
+                case "ไม่ผ่าน": return "ไม่ผ่าน QC - รอส่งคืนสินค้า";
+                case "ผ่านบางส่วน":
+                case "ตรวจบางส่วน": return "QC ผ่านบางส่วน";
+                default: return "รอดำเนินการ";
+            }
+        };
+
+        let passedCount = 0, failedCount = 0;
+        const totalCount = po.items?.length || 0;
 
         for (const item of po.items as any[]) {
             const lot = await StockLot.findOne({ batchNumber: item.batchNumber });
             if (!lot) continue;
 
             if (lot.qcStatus === "ผ่าน") {
-                // ✅ ป้องกันการทำซ้ำ
                 const existingTxn = await StockTransaction.findOne({
                     stockLotId: lot._id,
                     type: "RESTOCK",
                     notes: { $regex: "QC ผ่าน", $options: "i" },
                 });
-                if (existingTxn) {
-                    passedCount++;
-                    item.qcStatus = "ผ่าน";
-                    continue;
-                }
+                if (existingTxn) { passedCount++; item.qcStatus = "ผ่าน"; continue; }
 
-                // ✅ อัปเดตล็อตและเติมสต็อก
                 lot.status = "สินค้าพร้อมขาย";
                 lot.isActive = true;
                 lot.isTemporary = false;
@@ -260,47 +260,31 @@ export const updateQCStatus = async (req: Request, res: Response): Promise<void>
                     quantity: lot.quantity,
                     costPrice: lot.costPrice,
                     userId,
-                    notes: `QC ผ่าน | PO ${po.purchaseOrderNumber} | Batch ${lot.batchNumber}`,
+                    notes: `นำเข้าสินค้าจาก | PO ${po.purchaseOrderNumber} `,
                 });
 
                 await updateStockTotalFromLots(lot.stockId.toString());
-                passedCount++;
-                item.qcStatus = "ผ่าน";
+                passedCount++; item.qcStatus = "ผ่าน";
             } else if (lot.qcStatus === "ไม่ผ่าน") {
                 lot.status = "รอคัดออก";
                 lot.isActive = false;
                 lot.isTemporary = true;
                 await lot.save();
-                failedCount++;
-                item.qcStatus = "ไม่ผ่าน";
+                failedCount++; item.qcStatus = "ไม่ผ่าน";
             } else {
-                // ยังไม่ได้ตรวจ
-                item.qcStatus = "รอตรวจ";
+                item.qcStatus = "รอตรวจสอบ";
             }
         }
 
-        /* =========================================================
-           📊 คำนวณสถานะรวมของ PO
-        ========================================================= */
-        let newQCStatus = "รอตรวจ";
+        // ✅ คำนวณ qcStatus ใหม่
+        let newQCStatus = "รอตรวจสอบ";
         if (passedCount === totalCount) newQCStatus = "ผ่าน";
         else if (failedCount === totalCount) newQCStatus = "ไม่ผ่าน";
         else if (passedCount > 0 && failedCount > 0) newQCStatus = "ผ่านบางส่วน";
         else if (passedCount > 0 || failedCount > 0) newQCStatus = "ตรวจบางส่วน";
 
-        po.qcStatus = newQCStatus;
-
-        // 🧭 สถานะใบ PO
-        if (passedCount === totalCount) {
-            po.status = "QC ผ่าน";
-        } else if (failedCount === totalCount) {
-            po.status = "ไม่ผ่าน QC - รอส่งคืนสินค้า";
-        } else if (passedCount > 0 && failedCount > 0) {
-            po.status = "QC ผ่านบางส่วน";
-        } else if (passedCount > 0 || failedCount > 0) {
-            po.status = "ตรวจบางส่วน";
-        }
-
+        po.qcStatus = normalizeQCStatus(newQCStatus);
+        po.status = mapQCToPOStatus(po.qcStatus);
         po.qcCheckedAt = new Date();
         await po.save();
 

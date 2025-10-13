@@ -54,7 +54,7 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = ({ po, onActionCompl
                                 ? "qc-pass"
                                 : po.qcStatus === "ไม่ผ่าน"
                                     ? "qc-fail"
-                                    : po.qcStatus === "ผ่านบางส่วน" || po.qcStatus === "ตรวจบางส่วน"
+                                    : po.qcStatus === "QC ผ่านบางส่วน" || po.qcStatus === "ตรวจบางส่วน"
                                         ? "qc-partial"
                                         : "qc-pending"
                             }`}
@@ -65,7 +65,10 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = ({ po, onActionCompl
 
             </div>
 
-            <PurchaseOrderItemsTable items={po.items} qcStatus={po.qcStatus} />
+            <PurchaseOrderItemsTable
+                items={po.items}
+                stockLots={po.stockLots}
+            />
             <div className="po-total">💰 รวมทั้งหมด: {grandTotal.toLocaleString()} ฿</div>
 
             <PurchaseOrderActions po={po} navigate={navigate} onActionComplete={onActionComplete} setPopup={setPopup} />

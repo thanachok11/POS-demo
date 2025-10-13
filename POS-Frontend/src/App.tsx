@@ -107,6 +107,7 @@ const App: React.FC = () => {
       "/discount": "จัดการส่วนลด",
       "/qc": "ตรวจสอบสินค้า (QC)",
       "/warehouse": "จัดการคลังสินค้า",
+      "/refund": "คืนสินค้า",
     };
 
     const menuName = pathToMenu[location.pathname];
@@ -204,7 +205,7 @@ const App: React.FC = () => {
             <Route path="/reports/sales" element={<SalePage />} />
             <Route path="/employee-dashboard" element={<EmployeePage />} />
             <Route path="/qc/:poId" element={<QCInspectionPage />} />
-            <Route path="/refund" element={<RefundPage />} />
+            <Route path="/reports/refund" element={<RefundPage />} />
             <Route path="/qc" element={<QCListPage />} />
 
             <Route

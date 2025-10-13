@@ -8,11 +8,11 @@ export interface IStockLot extends Document {
     supplierName?: string;
     userId: mongoose.Types.ObjectId;
     location?: mongoose.Types.ObjectId;
-
     batchNumber: string;
     expiryDate?: Date;
     barcode: string;
-
+    purchaseOrderId: mongoose.Types.ObjectId;
+    purchaseOrderNumber:string;
     quantity: number;
     costPrice: number;
     salePrice?: number;
@@ -39,9 +39,14 @@ const StockLotSchema = new Schema<IStockLot>(
         userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
         location: { type: Schema.Types.ObjectId, ref: "Warehouse" },
 
+        // ✅ ผูกกับใบสั่งซื้อ (PO)
+        purchaseOrderId: { type: Schema.Types.ObjectId, ref: "PurchaseOrder" },
+        purchaseOrderNumber: { type: String },
+
         batchNumber: { type: String, required: true },
         expiryDate: { type: Date },
         barcode: { type: String, required: true },
+
         quantity: { type: Number, default: 0 },
         costPrice: { type: Number, default: 0 },
         salePrice: { type: Number, default: 0 },
@@ -71,6 +76,7 @@ const StockLotSchema = new Schema<IStockLot>(
     },
     { timestamps: true }
 );
+
 
 // ✅ Method: อัปเดตสถานะอัตโนมัติ (เฉพาะ inventory)
 StockLotSchema.methods.updateStatus = async function () {
