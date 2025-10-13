@@ -1,4 +1,14 @@
 /* ตัว Container หลัก */
+.receipt-modal-header {
+    cursor: move;
+    /* ให้รู้ว่าลากได้ */
+    user-select: none;
+    color: white;
+    padding: 10px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
 .receipt-container {
     display: flex;
     flex-direction: column;
@@ -79,10 +89,10 @@
 
 .receipt-table thead {
     background: #e0f2fe;
-        color: #1fa1e7;
-        padding: 12px;
-        text-align: center;
-        font-weight: 600;
+    color: #1fa1e7;
+    padding: 12px;
+    text-align: center;
+    font-weight: 600;
 }
 
 .receipt-header-cell {

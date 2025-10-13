@@ -8,8 +8,9 @@ export const createPayment = async (paymentData: {
     employeeName: string;
     paymentMethod: "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code";
     amountReceived: number;
-    amount: number;
+    amount: number; // ✅ ยอดหลังหักส่วนลดแล้ว
     change: number;
+    discount?: number; // ✅ เพิ่มส่วนลด
     items: Array<{
         barcode: string;
         name: string;
@@ -17,6 +18,7 @@ export const createPayment = async (paymentData: {
         quantity: number;
         subtotal: number;
         profit?: number;
+        discount?: number; // ✅ เผื่อกรณีมีส่วนลดต่อสินค้า
     }>;
     isReturn?: boolean;
     reason?: string;
@@ -34,6 +36,7 @@ export const createPayment = async (paymentData: {
         return { success: false, message: "เกิดข้อผิดพลาดในการสร้างการชำระเงิน" };
     }
 };
+
 
 // ✅ ดึงข้อมูลการชำระเงินของออเดอร์
 export const getPaymentByOrderId = async (orderId: string) => {

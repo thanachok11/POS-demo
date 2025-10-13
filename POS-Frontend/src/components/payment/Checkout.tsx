@@ -30,9 +30,11 @@ interface CheckoutProps {
   onConfirmPayment: (method: string, amountReceived?: number) => void;
   checkout: (
     amountReceived: number,
-    selectedPaymentMethod: "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code"
+    selectedPaymentMethod: "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code",
+    discountAmount?: number // ✅ เพิ่มฟิลด์ส่วนลด
   ) => Promise<void>;
 }
+
 
 const Checkout: React.FC<CheckoutProps> = ({
   cart,
@@ -128,23 +130,22 @@ const Checkout: React.FC<CheckoutProps> = ({
   const confirmCashPayment = async () => {
     const cashAmount = parseFloat(cashInput);
     if (change !== null && change >= 0) {
-      await checkout(cashAmount, "เงินสด");
+      await checkout(cashAmount, "เงินสด", discountAmount); // ✅ ส่งส่วนลด
       onClose();
     }
   };
 
   const confirmQRPayment = async () => {
-    await checkout(finalTotal, "QR Code");
+    await checkout(finalTotal, "QR Code", discountAmount); // ✅ ส่งส่วนลด
     onClose();
   };
 
   const confirmCreditPayment = async () => {
     if (selectedCard) {
-      await checkout(finalTotal, "บัตรเครดิต");
+      await checkout(finalTotal, "บัตรเครดิต", discountAmount); // ✅ ส่งส่วนลด
       onClose();
     }
   };
-
   return (
     <div className="checkout-display">
       <div className="checkout-modal">
@@ -199,7 +200,6 @@ const Checkout: React.FC<CheckoutProps> = ({
                 ))}
               </select>
             </div>
-
           </div>
 
           {/* 💳 ด้านขวา: ปุ่มเลือกวิธีชำระเงิน */}

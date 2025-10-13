@@ -26,22 +26,20 @@ export const createPayment = async (req: Request, res: Response): Promise<void> 
             return;
         }
 
+        // ✅ รับค่าจาก body
         const {
             saleId,
             employeeName,
             paymentMethod,
             amountReceived,
             items,
-            isReturn = false,
-            reason,
+            discount = 0, // ✅ เพิ่มส่วนลด
         } = req.body;
 
         if (!saleId || !employeeName || !paymentMethod || !amountReceived || !items?.length) {
             res.status(400).json({ success: false, message: "ข้อมูลไม่ครบถ้วน" });
             return;
         }
-
-        const paymentType = isReturn ? "REFUND" : "SALE";
 
         // 💰 ดึงข้อมูลสินค้าและคำนวณกำไร
         const calculatedItems = await Promise.all(
@@ -53,14 +51,18 @@ export const createPayment = async (req: Request, res: Response): Promise<void> 
             })
         );
 
-        const totalPrice = calculatedItems.reduce((sum, i) => sum + i.subtotal, 0);
+        // ✅ คำนวณยอดรวมก่อนหักส่วนลด
+        const subtotal = calculatedItems.reduce((sum, i) => sum + i.subtotal, 0);
+
+        // ✅ คำนวณยอดรวมหลังหักส่วนลด
+        const totalPrice = Math.max(subtotal - discount, 0);
+
+        // ✅ คำนวณกำไรทั้งหมด
         const totalProfit = calculatedItems.reduce((sum, i) => sum + (i.profit || 0), 0);
 
         // 💵 คำนวณเงินทอน (เฉพาะการขายเงินสด)
         const changeAmount =
-            !isReturn && paymentMethod === "เงินสด" && amountReceived
-                ? amountReceived - totalPrice
-                : 0;
+            paymentMethod === "เงินสด" && amountReceived ? amountReceived - totalPrice : 0;
 
         // ✅ 1. สร้าง Payment
         const [newPayment] = await Payment.create(
@@ -69,12 +71,12 @@ export const createPayment = async (req: Request, res: Response): Promise<void> 
                     saleId,
                     employeeName,
                     paymentMethod,
-                    type: paymentType,
+                    type: "SALE",
                     amountReceived,
-                    amount: isReturn ? -Math.abs(totalPrice) : Math.abs(totalPrice), // ✅ ใช้ totalPrice
-                    profit: isReturn ? -Math.abs(totalProfit) : totalProfit,         // ✅ กำไรต่อบิล
+                    amount: totalPrice, // ✅ ใช้ยอดหลังหักส่วนลด
+                    discount, // ✅ เพิ่มส่วนลด
+                    profit: totalProfit,
                     status: "สำเร็จ",
-                    notes: isReturn ? `คืนสินค้า (${reason || "ไม่ระบุเหตุผล"})` : undefined,
                 },
             ],
             { session }
@@ -87,12 +89,12 @@ export const createPayment = async (req: Request, res: Response): Promise<void> 
                     paymentId: newPayment._id,
                     employeeName,
                     items: calculatedItems,
-                    totalPrice: isReturn ? -Math.abs(totalPrice) : totalPrice,
+                    totalPrice,
+                    discount, // ✅ บันทึกส่วนลดในใบเสร็จ
                     paymentMethod,
                     amountPaid: amountReceived,
                     changeAmount,
-                    isReturn,
-                    profit: isReturn ? -Math.abs(totalProfit) : totalProfit,
+                    profit: totalProfit,
                     timestamp: new Date(),
                 },
             ],
@@ -111,9 +113,7 @@ export const createPayment = async (req: Request, res: Response): Promise<void> 
 
         res.status(201).json({
             success: true,
-            message: isReturn
-                ? "✅ บันทึกการคืนสินค้าและใบเสร็จสำเร็จ"
-                : "✅ บันทึกการขายและใบเสร็จสำเร็จ",
+            message: "✅ บันทึกการขายและใบเสร็จสำเร็จ",
             payment: newPayment,
             receipt: newReceipt,
         });
