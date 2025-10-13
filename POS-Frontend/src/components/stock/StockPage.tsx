@@ -14,7 +14,7 @@ import "../../styles/stock/StockDetailModal.css";
 
 import StockDetailModal from "./component/StockDetailModal";
 import GlobalPopup from "../layout/GlobalPopup";
-import AddProductModal from "../product/AddProductModal";
+import AddProductModal from "../product/AddProduct/AddProductModal"
 import StockTable from "./component/StockTable";
 import LowStockList from "./component/LowStockList";
 import Pagination from "./component/Pagination";

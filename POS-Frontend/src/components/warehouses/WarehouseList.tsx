@@ -23,6 +23,7 @@ const WarehouseList = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
     const { showPopup, closePopup } = useGlobalPopup();
 
@@ -89,16 +90,24 @@ const WarehouseList = () => {
         setModalOpen(false);
         setSelectedWarehouse(null);
     };
-
+    // ✅ 1️⃣ คัดกรองข้อมูลตามช่องค้นหา
     const filtered = warehouses.filter((w) =>
         w.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         w.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
         w.location.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const totalPages = Math.ceil(filtered.length / itemsPerPage);
+    // ✅ 2️⃣ เรียงลำดับ code ตามตัวเลขจริง (WH001 → WH002 → WH003)
+    const sorted = [...filtered].sort((a, b) => {
+        const numA = parseInt(a.code.replace(/\D/g, ""), 10) || 0;
+        const numB = parseInt(b.code.replace(/\D/g, ""), 10) || 0;
+        return sortOrder === "asc" ? numA - numB : numB - numA;
+    });
+
+    // ✅ 3️⃣ จัดการ pagination
+    const totalPages = Math.ceil(sorted.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const current = filtered.slice(startIndex, startIndex + itemsPerPage);
+    const current = sorted.slice(startIndex, startIndex + itemsPerPage);
 
     return (
         <div className="display">
@@ -148,7 +157,12 @@ const WarehouseList = () => {
                     <table className="warehouse-table">
                         <thead>
                             <tr>
-                                <th>รหัสคลัง</th>
+                                <th
+                                    onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                                    style={{ cursor: "pointer" }}
+                                >
+                                    รหัสคลัง {sortOrder === "asc" ? "⬆️" : "⬇️"}
+                                </th>
                                 <th>ชื่อคลัง</th>
                                 <th>ที่ตั้ง</th>
                                 <th>รายละเอียด</th>

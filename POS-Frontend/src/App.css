@@ -40,11 +40,20 @@ body {
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
 
-.app-container.sidebar-closed .qc-container {
+.app-container.sidebar-closed .print-container {
   margin-left: 50px;
   transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
 
+.app-container.sidebar-open .print-container {
+  margin-left: 50px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
+
+.app-container.sidebar-closed .qc-container {
+  margin-left: 50px;
+  transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
 /* ปกติ cart จะซ่อน */
 
 .app-container.sidebar-closed .search-grid {

@@ -70,7 +70,6 @@
    Table Wrapper
 =========================== */
 .receipt-table-wrapper {
-    flex: 1;
     overflow-y: auto;
     margin-top: 12px;
     background: #fff;

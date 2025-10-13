@@ -40,7 +40,7 @@ export const addProductWithStock = async (req: Request, res: Response): Promise<
       description,
       category,
       barcode,
-      quantity,
+      totalQuantity,
       location,
       threshold,
       supplierId,
@@ -62,7 +62,7 @@ export const addProductWithStock = async (req: Request, res: Response): Promise<
       unitArray = [];
     }
 
-    const finalQuantity = Number(quantity) || 0;
+    const finalQuantity = Number(totalQuantity) || 0;
     const finalThreshold = Number(threshold) || 5;
     const finalCostPrice = Number(costPrice) || 0;
     const finalSalePrice =
@@ -74,11 +74,18 @@ export const addProductWithStock = async (req: Request, res: Response): Promise<
         : `BC${Date.now()}${Math.floor(1000 + Math.random() * 9000)}`;
 
     // ✅ supplier / warehouse ตรวจสอบก่อน
-    const supplierDoc = await Supplier.findById(supplierId);
-    if (!supplierDoc){
-       res.status(400).json({ success: false, message: "ไม่พบบริษัทผู้จัดจำหน่าย" });
-       return;
+    let supplierDoc = await Supplier.findById(supplierId);
+    if (!supplierDoc) {
+      supplierDoc = await Supplier.findOne({ companyName: "อื่นๆ" });
+      if (!supplierDoc) {
+        supplierDoc = await Supplier.create({
+          companyName: "อื่นๆ",
+          code: "SUP-OTH",
+          description: "ผู้จัดจำหน่ายทั่วไป",
+        });
+      }
     }
+
 
     // 🔧 แก้ส่วนนี้
     let warehouseDoc = null;

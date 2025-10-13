@@ -24,6 +24,7 @@ import purchaseOrderRouter from "./routes/purchaseOrderRoutes";
 import dashboardRoutes from './routes/dashboardRoutes';
 import discountRoute from './routes/discountRoutes';
 import qcRoutes from "./routes/qcRoutes";
+import StockLot from "./routes/stockLotRoutes";
 
 // Models
 import StockModel from "./models/Stock";
@@ -106,6 +107,7 @@ app.use("/api/category", categoryRoutes);
 app.use("/api/product", uploadRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/stocks", Stock);
+app.use('/api/stocklots', StockLot);
 app.use('/api/suppliers', Supplier);
 app.use('/api/employee', employeeRouter);
 app.use('/api/payment', createPayment);

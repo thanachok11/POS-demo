@@ -309,7 +309,20 @@
 .unit-row .remove-unit-btn:hover {
     color: #dc2626;
 }
+.unit-row select.add-product-form-input.small {
+    width: 45%;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 0.95rem;
+    background-color: #fff;
+    transition: border-color 0.2s ease;
+}
 
+.unit-row select.add-product-form-input.small:focus {
+    border-color: #2980b9;
+    outline: none;
+}
 /* ปุ่มเพิ่มหน่วย */
 .add-unit-btn {
     display: inline-block;

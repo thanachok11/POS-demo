@@ -89,7 +89,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
 
     // Socket.io realtime update (normalize ก่อนใช้งานเสมอ)
     useEffect(() => {
-        const socket = io("http://localhost:5000", { transports: ["websocket"] });
+        const socket = io("http://localhost:8080", { transports: ["websocket"] });
 
         socket.on("connect", () => {
             console.log("✅ Connected to socket server");

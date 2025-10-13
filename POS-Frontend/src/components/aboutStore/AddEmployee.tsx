@@ -86,14 +86,14 @@ const AddEmployee: React.FC<AddEmployeeProps> = ({
       if (employee && employee._id) {
         // ✅ แก้ไขข้อมูล
         response = await axios.put(
-          `http://localhost:5000/api/employee/${employee._id}`,
+          `http://localhost:8080/api/employee/${employee._id}`,
           formData,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
         // ✅ เพิ่มพนักงานใหม่
         response = await axios.post(
-          "http://localhost:5000/api/employee/register",
+          "http://localhost:8080/api/employee/register",
           formData,
           { headers: { Authorization: `Bearer ${token}` } }
         );
