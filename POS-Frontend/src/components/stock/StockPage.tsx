@@ -23,7 +23,7 @@ import FilterControl from "./component/FilterControl";
 interface StockItem {
   _id: string;
   barcode: string;
-  quantity: number;
+  totalQuantity: number;
   status: string;
   updatedAt: string;
   productId: {
@@ -175,6 +175,7 @@ const StockPage: React.FC = () => {
     switch (status) {
       case "สินค้าพร้อมขาย": return "";
       case "สินค้าหมด": return "❌";
+      case "สินค้าหมดอายุ": return "";
       default: return "⚠️";
     }
   };
@@ -205,7 +206,7 @@ const StockPage: React.FC = () => {
     if (selectedStatuses.length > 0) {
       let statusMatch = false;
 
-      if (selectedStatuses.includes("low10") && item.quantity < 10) {
+      if (selectedStatuses.includes("low10") && item.totalQuantity < 10) {
         statusMatch = true;
       }
       if (selectedStatuses.includes(item.status)) {
@@ -266,6 +267,22 @@ const StockPage: React.FC = () => {
     return matchesSearch && matchesFilter;
   });
 
+  // 🔢 Summary counts
+  const now = new Date();
+  const nearExpiryThreshold = new Date();
+  nearExpiryThreshold.setDate(now.getDate() + 10);
+
+  const summary = {
+    available: filteredStock.filter(item => item.status === "สินค้าพร้อมขาย").length,
+    lowStock: filteredStock.filter(item => item.totalQuantity < 5 && item.totalQuantity > 0).length,
+    expired: filteredStock.filter(item => item.expiryDate && new Date(item.expiryDate) < now).length,
+    nearExpiry: filteredStock.filter(item => {
+      if (!item.expiryDate) return false;
+      const exp = new Date(item.expiryDate);
+      return exp >= now && exp <= nearExpiryThreshold;
+    }).length,
+    outOfStock: filteredStock.filter(item => item.totalQuantity === 0 || item.status === "สินค้าหมด").length,
+  };
 
   //  pagination
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -282,7 +299,33 @@ const StockPage: React.FC = () => {
           <h2 className="stock-header">📦 จัดการสต็อกสินค้า</h2>
           {loading && <p className="loadingStock">⏳ Loading...</p>}
           {error && <p className="error-message">{error}</p>}
+          {/* 🔢 นับจำนวนสินค้า */}
+          <div className="stock-count">
+            รวมทั้งหมด: <span>{filteredStock.length}</span> รายการ
+          </div>
 
+          <div className="stock-summary">
+            <div className="summary-item available">
+              <label>✅ พร้อมขาย</label>
+              <span>{summary.available}</span>
+            </div>
+            <div className="summary-item low">
+              <label>⚠️ เหลือน้อย</label>
+              <span>{summary.lowStock}</span>
+            </div>
+            <div className="summary-item near-expiry">
+              <label>⏰ ใกล้หมดอายุ</label>
+              <span>{summary.nearExpiry}</span>
+            </div>
+            <div className="summary-item expired">
+              <label>🧨 หมดอายุแล้ว</label>
+              <span>{summary.expired}</span>
+            </div>
+            <div className="summary-item out">
+              <label>❌ สินค้าหมด</label>
+              <span>{summary.outOfStock}</span>
+            </div>
+          </div>
 
 
           <div className="stock-controls">
@@ -297,6 +340,7 @@ const StockPage: React.FC = () => {
                   setCurrentPage(1);
                 }}
               />
+
             </div>
 
             {/* ปุ่ม Filter อยู่ข้างๆช่องค้นหา */}

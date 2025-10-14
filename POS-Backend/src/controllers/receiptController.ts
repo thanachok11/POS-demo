@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import Receipt, { IReceipt } from "../models/Receipt";
+import Payment from "../models/Payment";
+import mongoose from "mongoose";
 
 // 📌 ดึงใบเสร็จทั้งหมด + populate ข้อมูลการชำระเงิน
 export const getAllReceipts = async (req: Request, res: Response): Promise<void> => {
@@ -27,12 +29,34 @@ export const getReceiptByPaymentId = async (req: Request, res: Response): Promis
     try {
         const { paymentId } = req.params;
 
-        const receipt = await Receipt.findOne({ paymentId })
-            .populate({
-                path: "paymentId",
-                model: "Payment",
-                select: "saleId paymentMethod amount status createdAt employeeName",
-            });
+        // ✅ ตรวจว่าเป็น ObjectId ที่ถูกต้องไหม
+        const isObjectId = mongoose.Types.ObjectId.isValid(paymentId);
+
+        let receipt;
+
+        if (isObjectId) {
+            // 🔍 ถ้าเป็น ObjectId → หาโดยตรงจาก Receipt
+            receipt = await Receipt.findOne({ paymentId })
+                .populate({
+                    path: "paymentId",
+                    model: "Payment",
+                    select: "saleId paymentMethod amount status createdAt employeeName",
+                });
+        } else {
+            // 🔍 ถ้าไม่ใช่ ObjectId → ไปหา Payment ที่มี saleId นี้ก่อน
+            const payment = await Payment.findOne({ saleId: paymentId });
+            if (!payment) {
+                res.status(404).json({ success: false, message: "ไม่พบข้อมูลการชำระเงินนี้" });
+                return;
+            }
+
+            receipt = await Receipt.findOne({ paymentId: payment._id })
+                .populate({
+                    path: "paymentId",
+                    model: "Payment",
+                    select: "saleId paymentMethod amount status createdAt employeeName",
+                });
+        }
 
         if (!receipt) {
             res.status(404).json({ success: false, message: "ไม่พบใบเสร็จ" });
@@ -41,6 +65,7 @@ export const getReceiptByPaymentId = async (req: Request, res: Response): Promis
 
         res.status(200).json({ success: true, receipt });
     } catch (error) {
+        console.error("❌ getReceiptByPaymentId error:", error);
         res.status(500).json({
             success: false,
             message: "เกิดข้อผิดพลาดในการดึงใบเสร็จ",
@@ -101,6 +126,48 @@ export const getReceiptSummary = async (req: Request, res: Response): Promise<vo
     }
 };
 
+export const getReceiptBySaleId = async (req: Request, res: Response) => {
+    try {
+        const { saleId } = req.params;
+
+        // ✅ ตรวจว่าเป็น ObjectId ไหม
+        const isObjectId = mongoose.Types.ObjectId.isValid(saleId);
+
+        let receipt;
+
+        // 🧾 1. ถ้าเป็น ObjectId → หาโดย _id หรือ paymentId
+        if (isObjectId) {
+            receipt = await Receipt.findOne({
+                $or: [{ _id: saleId }, { paymentId: saleId }],
+                isReturn: false,
+            }).populate("paymentId");
+        }
+        // 🧾 2. ถ้าเป็นเลข saleId แบบ string → หาโดย saleId จาก Payment
+        else {
+            const payment = await Payment.findOne({ saleId });
+            if (!payment) {
+                res.status(404).json({ success: false, message: "ไม่พบข้อมูลการขายนี้" });
+                return;
+            }
+
+            receipt = await Receipt.findOne({
+                paymentId: payment._id,
+                isReturn: false,
+            }).populate("paymentId");
+        }
+
+        if (!receipt) {
+            res.status(404).json({ success: false, message: "ไม่พบใบเสร็จนี้" });
+            return;
+        }
+
+        res.status(200).json({ success: true, receipt });
+    } catch (error) {
+        console.error("❌ getReceiptBySaleId error:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
 // 📌 ลบใบเสร็จตาม paymentId
 export const deleteReceipt = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -121,3 +188,4 @@ export const deleteReceipt = async (req: Request, res: Response): Promise<void> 
         });
     }
 };
+

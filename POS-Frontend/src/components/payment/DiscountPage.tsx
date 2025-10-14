@@ -205,7 +205,7 @@ const DiscountPage: React.FC = () => {
                                 setModalOpen(true);
                             }}
                         >
-                            ➕ เพิ่มรหัสส่วนลด
+                            เพิ่มรหัสส่วนลด
                         </button>
                     </div>
                 </div>

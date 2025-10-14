@@ -5,7 +5,8 @@ import "../../styles/stock/ExpiredPage.css";
 interface StockItem {
     _id: string;
     barcode: string;
-    quantity: number;
+    totalQuantity: number;
+    threshold:number;
     status: string;
     updatedAt: string;
     productId: {
@@ -57,9 +58,10 @@ const ExpiredPage: React.FC = () => {
     const expiryThreshold = new Date();
     expiryThreshold.setDate(now.getDate() + 30);
 
+    // ✅ ส่วน filter
     const filteredStock = stockData.filter((item) => {
         const exp = item.expiryDate ? new Date(item.expiryDate) : null;
-        const isLow = item.quantity < 5;
+        const isLow = item.totalQuantity < (item.threshold || 5); // ✅ ใช้ได้
         const isExpired = exp !== null && exp < now;
         const isNear = exp !== null && exp >= now && exp <= expiryThreshold;
 
@@ -77,6 +79,7 @@ const ExpiredPage: React.FC = () => {
 
         return matchesFilter && matchesSearch;
     });
+
 
     // ✅ pagination
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -152,7 +155,7 @@ const ExpiredPage: React.FC = () => {
                                 const exp = item.expiryDate ? new Date(item.expiryDate) : null;
                                 const isExpired = exp !== null && exp < now;
                                 const isNear = exp !== null && exp >= now && exp <= expiryThreshold;
-                                const isLow = item.quantity < 10;
+                                const isLow = item.totalQuantity < (item.threshold || 5); // ✅ ใช้ใน scope ของ map
 
                                 let rowClass = "";
                                 if (isExpired) rowClass = "expired-row";
@@ -175,7 +178,7 @@ const ExpiredPage: React.FC = () => {
                                         <td>{item.barcode}</td>
                                         <td>{item.productId?.name || "-"}</td>
                                         <td>{item.supplierId?.companyName || "-"}</td>
-                                        <td>{item.quantity}</td>
+                                        <td>{item.totalQuantity}</td>
                                         <td>{formatThaiDate(item.expiryDate)}</td>
                                         <td>
                                             {isExpired

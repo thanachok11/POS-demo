@@ -56,7 +56,7 @@ const DiscountModal: React.FC<DiscountModalProps> = ({
                     <h2>
                         {editData ? "✏️ แก้ไขรหัสส่วนลด" : "🎟️ เพิ่มรหัสส่วนลดใหม่"}
                     </h2>
-                    <button className="discount-modal-close" onClick={onClose}>
+                    <button className="modal-close" onClick={onClose}>
                         ✖
                     </button>
                 </div>
@@ -155,15 +155,15 @@ const DiscountModal: React.FC<DiscountModalProps> = ({
                             {loading
                                 ? "⏳ กำลังบันทึก..."
                                 : editData
-                                    ? "💾 บันทึกการแก้ไข"
-                                    : "✅ สร้างรหัสส่วนลด"}
+                                    ? "บันทึกการแก้ไข"
+                                    : "สร้างรหัสส่วนลด"}
                         </button>
                         <button
                             type="button"
                             className="discount-btn-cancel"
                             onClick={onClose}
                         >
-                            ❌ ยกเลิก
+                            ยกเลิก
                         </button>
                     </div>
                 </form>

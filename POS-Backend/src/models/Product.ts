@@ -1,37 +1,61 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema } from "mongoose";
 
-// Interface สำหรับ Product
 export interface IProduct extends Document {
   name: string;
   description: string;
   price: number;
   category: mongoose.Schema.Types.ObjectId;
   barcode: string;
+  productCode?: string; // ✅ เพิ่ม: ใช้สร้าง batchNumber สั้น ๆ เช่น PR001
   imageUrl?: string;
   public_id?: string;
-  userId: mongoose.Schema.Types.ObjectId; // เพิ่ม userId เพื่อเชื่อมโยงกับผู้ใช้
+  userId: mongoose.Schema.Types.ObjectId;
+  supplierId: mongoose.Schema.Types.ObjectId;
+  isSelfPurchased: boolean;
   createdAt: Date;
   updatedAt: Date;
-  isSelfPurchased: boolean;
 }
 
-// Schema ของ Product
 const ProductSchema: Schema = new Schema(
   {
     name: { type: String, required: true },
     description: { type: String, required: true },
-    category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
-    barcode: { type: String, required: true, unique: true },
-    imageUrl: { type: String }, // เก็บ URL ของภาพจาก Cloudinary
-    public_id: { type: String }, // เก็บ public_id ของภาพจาก Cloudinary
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    supplierId: { type: mongoose.Schema.Types.ObjectId, ref: "Supplier", required: true },
-    isSelfPurchased: { type: Boolean, default: false }
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      required: true,
+    },
+    barcode: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+    },
+    productCode: {
+      type: String,
+      trim: true,
+      unique: false, // ✅ ไม่จำเป็นต้อง unique ข้าม user
+    },
+    imageUrl: { type: String },
+    public_id: { type: String },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    supplierId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Supplier",
+      required: true,
+    },
+    isSelfPurchased: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
+
+// ✅ ดัชนีเพื่อค้นหาสินค้าเร็ว
 ProductSchema.index({ name: 1 });
 ProductSchema.index({ category: 1, supplierId: 1 });
 
-// Export model
-export default mongoose.models.Product || mongoose.model<IProduct>('Product', ProductSchema);
+export default mongoose.models.Product ||
+  mongoose.model<IProduct>("Product", ProductSchema);

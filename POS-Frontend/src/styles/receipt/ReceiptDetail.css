@@ -1,144 +1,236 @@
+/* 🌟 Overlay */
 .receipt-modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.45);
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 2000;
+    animation: fadeIn 0.25s ease-in-out;
 }
 
+/* 📦 Modal Container */
 .receipt-modal-content {
     background: #fff;
     border-radius: 10px;
-    padding: 20px;
-    width: 340px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
-    animation: fadeIn 0.2s ease-in-out;
+    padding: 14px;
+    width: 300px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    max-height: 95vh;
+    overflow-y: auto;
 }
 
+/* 🧾 Slip Receipt */
 .receipt-modal-paper {
-    width: 80mm;
+    width: 70mm;
     background: #fff;
     font-family: "Courier New", monospace;
-    font-size: 12px;
-    color: #000;
+    font-size: 11px;
+    color: #111;
     line-height: 1.4;
     border: 1px solid #ccc;
-    padding: 10px;
+    border-radius: 4px;
+    padding: 8px 6px;
+    margin: auto;
+    box-sizing: border-box;
+    letter-spacing: 0.3px;
 }
 
+/* 🟢/🔴 ประเภทใบเสร็จ */
+.receipt-modal-paper.sale {
+    border-top: 3px solid #16a34a;
+}
+
+.receipt-modal-paper.return {
+    border-top: 3px solid #dc2626;
+}
+
+/* 🏪 Header */
 .receipt-modal-header {
     text-align: center;
+    margin-bottom: 6px;
 }
 
 .receipt-store-name {
     font-weight: bold;
-    font-size: 14px;
+    font-size: 13px;
+    letter-spacing: 0.5px;
 }
 
 .receipt-store-branch,
 .receipt-store-contact {
+    font-size: 10px;
+    margin: 1px 0;
+    color: #555;
+}
+
+.receipt-type-title {
+    margin-bottom: 4px;
+    font-weight: bold;
     font-size: 11px;
-    margin: 2px 0;
+    text-align: center;
+    border-radius: 3px;
+    padding: 2px 0;
+}
+
+.receipt-type-title.sale {
+    background: #e7f8ee;
+    color: #16a34a;
+}
+
+.receipt-type-title.return {
+    background: #fdeaea;
+    color: #dc2626;
 }
 
 .receipt-separator {
     border: none;
-    border-top: 1px dashed #333;
-    margin: 6px 0;
+    border-top: 1px dashed #444;
+    margin: 5px 0;
 }
 
-.receipt-items-table {
-    width: 100%;
-    border-collapse: collapse;
+/* 📋 ข้อมูลใบเสร็จ */
+/* 📄 จัดแบบ inline ต่อเนื่องเหมือนใบเสร็จจริง */
+.receipt-info-inline {
+    font-family: "Courier New", monospace;
+    font-size: 10.5px;
+    margin-bottom: 6px;
+    line-height: 1.5;
 }
 
+.receipt-info-inline p {
+    margin: 0;
+    padding: 0;
+    white-space: pre-wrap;
+}
+
+.receipt-info-grid span:first-child {
+    text-align: left;
+    white-space: nowrap;
+}
+
+.receipt-info-grid span:last-child {
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* 🛍️ รายการสินค้า */
 .receipt-items-list {
     margin: 6px 0;
+    border-top: 1px dashed #444;
+    border-bottom: 1px dashed #444;
+    padding: 4px 0;
 }
 
+/* 🧾 รายการสินค้า: ให้ชื่อสินค้าขึ้นบรรทัดได้ */
 .receipt-item-row {
     display: flex;
     justify-content: space-between;
-    font-size: 14px;
+    align-items: flex-start;
+    gap: 4px;
+    font-size: 10.5px;
     margin: 3px 0;
+    line-height: 1.4;
 }
 
 .receipt-item-name {
     flex: 1;
     text-align: left;
+    word-break: break-word;
+    /* ✅ ให้ตัดคำ */
+    white-space: normal;
+    /* ✅ ยอมให้ขึ้นบรรทัดใหม่ */
+    overflow: hidden;
 }
 
 .receipt-item-total {
+    flex-shrink: 0;
     text-align: right;
-    min-width: 60px;
+    min-width: 55px;
+    white-space: nowrap;
+    /* ✅ ยอดรวมอยู่บรรทัดเดียว */
 }
 
+/* 💰 Summary */
 .receipt-summary {
-    border-top: 1px dashed #333;
-    margin-top: 8px;
-    padding-top: 4px;
+    margin-top: 6px;
+    font-size: 10.5px;
 }
 
 .receipt-summary p {
     display: flex;
     justify-content: space-between;
-    margin: 4px 0;
+    margin: 2px 0;
 }
 
 .receipt-summary .receipt-total {
-    border-top: 1px dashed #aaa;
-    border-bottom: 1px dashed #aaa;
-    padding: 5px 0;
-    margin-top: 6px;
+    border-top: 1px dashed #999;
+    border-bottom: 1px dashed #999;
+    padding: 4px 0;
+    margin-top: 5px;
     font-weight: bold;
-    font-size: 15px;
-}
-.receipt-footer {
-    text-align: center;
-    border-top: 1px dashed #333;
-    padding-top: 6px;
-    font-weight: bold;
+    font-size: 12px;
 }
 
+.receipt-total.negative strong {
+    color: #dc2626;
+}
+
+/* 🙏 Footer */
+.receipt-footer {
+    text-align: center;
+    border-top: 1px dashed #444;
+    padding-top: 5px;
+    margin-top: 6px;
+    font-weight: bold;
+    font-size: 10.5px;
+    color: #333;
+}
+
+.receipt-footer p {
+    margin: 2px 0;
+}
+
+/* 🔘 ปุ่ม */
 .receipt-modal-actions {
     display: flex;
     justify-content: space-between;
-    margin-top: 12px;
+    gap: 8px;
+    margin-top: 10px;
 }
 
 .receipt-btn-print,
 .receipt-btn-close {
     border: none;
-    padding: 8px 14px;
+    padding: 6px 10px;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 500;
+    flex: 1;
+    transition: all 0.2s ease;
 }
 
 .receipt-btn-print {
-    background: #1976d2;
-    color: white;
+    background: linear-gradient(90deg, #0284c7, #0ea5e9);
+    color: #fff;
 }
 
 .receipt-btn-print:hover {
-    background: #115293;
+    background: linear-gradient(90deg, #0369a1, #0284c7);
 }
 
 .receipt-btn-close {
-    background: #d32f2f;
-    color: white;
+    background: linear-gradient(90deg, #dc2626, #ef4444);
+    color: #fff;
 }
 
 .receipt-btn-close:hover {
-    background: #9a0007;
+    background: linear-gradient(90deg, #b91c1c, #dc2626);
 }
 
+/* 🖨️ Print Mode */
 @media print {
     body * {
         visibility: hidden;
@@ -153,9 +245,10 @@
         position: absolute;
         left: 0;
         top: 0;
-        width: 80mm;
+        width: 70mm;
         border: none;
-        padding: 5px;
+        padding: 4px;
+        box-shadow: none;
     }
 
     .receipt-modal-actions {
@@ -163,11 +256,41 @@
     }
 
     @page {
-        size: 80mm auto;
+        size: 70mm auto;
         margin: 0;
     }
 }
 
+/* 📱 Responsive */
+@media (max-width: 768px) {
+    .receipt-modal-content {
+        width: 85%;
+    }
+
+    .receipt-modal-paper {
+        width: 100%;
+        font-size: 10.5px;
+    }
+}
+
+@media (max-width: 480px) {
+    .receipt-modal-content {
+        width: 95%;
+        padding: 10px;
+    }
+
+    .receipt-modal-paper {
+        font-size: 10px;
+        padding: 6px;
+    }
+
+    .receipt-btn-print,
+    .receipt-btn-close {
+        flex: 1 1 100%;
+    }
+}
+
+/* ✨ Animation */
 @keyframes fadeIn {
     from {
         opacity: 0;

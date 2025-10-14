@@ -45,8 +45,8 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                                 className="product-card"
                                 onClick={() => addToCart(product)}
                             >
-                                {cartItem && cartItem.quantity > 0 && (
-                                    <div className="product-quantity-badge">{cartItem.quantity}</div>
+                                {cartItem && cartItem.totalQuantity > 0 && (
+                                    <div className="product-quantity-badge">{cartItem.totalQuantity}</div>
                                 )}
                                 <img src={product.imageUrl} alt={product.name} className="product-image" />
                                 <h2 className="product-title">{product.name}</h2>

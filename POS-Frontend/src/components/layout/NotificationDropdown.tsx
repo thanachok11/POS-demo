@@ -10,7 +10,7 @@ interface StockItem {
     barcode: string;
     name: string;
     imageUrl: string;
-    quantity: number;
+    totalQuantity: number;
     updatedAt: string;
     location: string;
     status: string;
@@ -44,7 +44,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
         barcode: raw.barcode ?? raw.productId?.barcode ?? "",
         name: raw.name ?? raw.productId?.name ?? "ไม่พบชื่อสินค้า",
         imageUrl: raw.imageUrl ?? raw.productId?.imageUrl ?? "",
-        quantity: Number(raw.quantity ?? 0),
+        totalQuantity: Number(raw.totalQuantity ?? 0),
         updatedAt: raw.updatedAt ?? new Date().toISOString(),
         location:
             typeof raw.location === "object"
@@ -66,7 +66,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                 : 5,
     });
 
-    const isLow = (item: StockItem) => item.quantity <= (item.threshold ?? 5);
+    const isLow = (item: StockItem) => item.totalQuantity <= (item.threshold ?? 5);
 
     // ✅ โหลด stock ครั้งแรก (normalize ก่อนใส่ state)
     const fetchStock = async () => {
@@ -173,7 +173,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                             {showLowStockList &&
                                 lowStockItems.map((item) => (
                                     <p key={item._id} className="notification-item clickable">
-                                        • {item.name} เหลือ {item.quantity} ชิ้น
+                                        • {item.name} เหลือ {item.totalQuantity} ชิ้น
                                     </p>
                                 ))}
                         </>

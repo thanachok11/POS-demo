@@ -1,16 +1,15 @@
 import React from "react";
 
-
 interface Product {
     name: string;
     barcode?: string;
 }
 interface StockTransaction {
     _id: string;
-    productId: Product;
+    productId: Product | null; // ✅ ป้องกัน null
     type: string;
     quantity: number;
-    userId: { username: string };
+    userId: { username: string } | null;
     createdAt: string;
 }
 interface Props {
@@ -19,7 +18,11 @@ interface Props {
     handleRowClick: (id: string) => void;
 }
 
-const TransactionTable: React.FC<Props> = ({ transactions, getTypeLabel, handleRowClick }) => {
+const TransactionTable: React.FC<Props> = ({
+    transactions,
+    getTypeLabel,
+    handleRowClick,
+}) => {
     return (
         <table className="stock-table">
             <thead>
@@ -33,17 +36,27 @@ const TransactionTable: React.FC<Props> = ({ transactions, getTypeLabel, handleR
             </thead>
             <tbody>
                 {transactions.map((t) => (
-                    <tr key={t._id} onClick={() => handleRowClick(t._id)} className="clickable-row">
-                        <td className="stock-cell">{t.productId.name}</td>
+                    <tr
+                        key={t._id}
+                        onClick={() => handleRowClick(t._id)}
+                        className="clickable-row"
+                    >
+                        <td className="stock-cell">
+                            {t.productId?.name || "ไม่พบสินค้า"}
+                        </td>
                         <td className="stock-cell">{t.quantity}</td>
                         <td className="stock-cell">{getTypeLabel(t.type)}</td>
-                        <td className="stock-cell">{t.userId.username}</td>
-                        <td className="stock-cell">{new Date(t.createdAt).toLocaleString("th-TH", { hour12: false })}</td>
+                        <td className="stock-cell">{t.userId?.username || "-"}</td>
+                        <td className="stock-cell">
+                            {new Date(t.createdAt).toLocaleString("th-TH", { hour12: false })}
+                        </td>
                     </tr>
                 ))}
                 {transactions.length === 0 && (
                     <tr>
-                        <td colSpan={5} style={{ textAlign: "center", padding: "20px" }}>ไม่พบรายการ</td>
+                        <td colSpan={5} style={{ textAlign: "center", padding: "20px" }}>
+                            ไม่พบรายการ
+                        </td>
                     </tr>
                 )}
             </tbody>

@@ -29,17 +29,22 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ receipt, onClose }) => {
             ? receipt.paymentId
             : null;
 
+    // ✅ รองรับใบคืน (ราคาติดลบ)
+    const isReturn = receipt.isReturn;
     const discount = receipt.discount ?? 0;
-    const subtotal = receipt.totalPrice / 1.07; // สมมติว่าราคารวม VAT แล้ว
+    const subtotal = Math.abs(receipt.totalPrice) / 1.07;
     const vat = subtotal * 0.07;
-    const netTotal = receipt.totalPrice - discount;
+    const netTotal = Math.abs(receipt.totalPrice) - discount;
 
     return (
         <div className="receipt-modal-overlay">
             <div className="receipt-modal-content">
-                <div className="receipt-modal-paper receipt-print-area">
+                <div className={`receipt-modal-paper receipt-print-area ${isReturn ? "return" : "sale"}`}>
                     {/* 🏪 Header */}
                     <div className="receipt-modal-header">
+                        <h3 className={`receipt-type-title ${isReturn ? "return" : "sale"}`}>
+                            {isReturn ? "🔁 ใบเสร็จคืนสินค้า" : "🧾 ใบเสร็จการขาย"}
+                        </h3>
                         <h2 className="receipt-store-name">EazyPOS Store</h2>
                         <p className="receipt-store-branch">สาขา ศรีเจริญ</p>
                         <p className="receipt-store-contact">โทร. 063-313-3099</p>
@@ -47,39 +52,41 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ receipt, onClose }) => {
                     </div>
 
                     {/* 📜 ข้อมูลใบเสร็จ */}
-                    <div className="receipt-info">
+                    <div className="receipt-info-inline">
                         {payment?.saleId && (
                             <p>
-                                <strong>รหัสการขาย:</strong> {payment.saleId}
+                                รหัสการขาย: {payment.saleId}
                             </p>
                         )}
                         <p>
-                            <strong>วันที่ออกใบเสร็จ:</strong>{" "}
-                            {formatThaiDateTime(payment?.createdAt ?? receipt.timestamp)}
+                            วันที่: {formatThaiDateTime(payment?.createdAt ?? receipt.timestamp)}
                         </p>
                         <p>
-                            <strong>พนักงาน:</strong> {receipt.employeeName ?? "ไม่ระบุ"}
+                            พนักงาน: {receipt.employeeName ?? "ไม่ระบุ"}
                         </p>
                         <p>
-                            <strong>วิธีชำระเงิน:</strong>{" "}
-                            {payment?.paymentMethod ?? receipt.paymentMethod}
+                            วิธีชำระ: {payment?.paymentMethod ?? receipt.paymentMethod}
                         </p>
+                        {isReturn && receipt.returnReason && (
+                            <p>เหตุผล: {receipt.returnReason}</p>
+                        )}
                     </div>
 
                     <hr className="receipt-separator" />
 
-                    {/* 🛒 รายการสินค้า (ไม่มี thead) */}
+                    {/* 🛒 รายการสินค้า */}
                     <div className="receipt-items-list">
-                        {receipt.items.map((item) => (
-                            <div key={item._id} className="receipt-item-row">
+                        {receipt.items.map((item, index) => (
+                            <div key={item._id || item.barcode || index} className="receipt-item-row">
                                 <span className="receipt-item-name">
-                                    {item.quantity} * {item.name}
+                                    {item.name} x {item.quantity}
                                 </span>
                                 <span className="receipt-item-total">
                                     {item.subtotal.toLocaleString()} ฿
                                 </span>
                             </div>
                         ))}
+
                     </div>
 
                     <hr className="receipt-separator" />
@@ -104,9 +111,10 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ receipt, onClose }) => {
                                 <strong>-{discount.toLocaleString()} ฿</strong>
                             </p>
                         )}
-                        <p className="receipt-total">
+                        <p className={`receipt-total ${isReturn ? "negative" : ""}`}>
                             <span>ยอดสุทธิ</span>
                             <strong>
+                                {isReturn ? "-" : ""}
                                 {netTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} ฿
                             </strong>
                         </p>
@@ -123,12 +131,10 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ receipt, onClose }) => {
 
                     {/* 🙏 Footer */}
                     <div className="receipt-footer">
-                        <p>🙏 ขอบคุณที่ใช้บริการ 🙏</p>
-                        {payment?.status === "สำเร็จ" && (
-                            <p style={{ fontSize: "11px", marginTop: "5px" }}>
-                                (เอกสารนี้ออกโดยระบบ EazyPOS)
-                            </p>
-                        )}
+                        <p>{isReturn ? "🔁 คืนสินค้าเรียบร้อย" : "🙏 ขอบคุณที่ใช้บริการ 🙏"}</p>
+                        <p style={{ fontSize: "11px", marginTop: "5px" }}>
+                            (เอกสารนี้ออกโดยระบบ EazyPOS)
+                        </p>
                     </div>
                 </div>
 

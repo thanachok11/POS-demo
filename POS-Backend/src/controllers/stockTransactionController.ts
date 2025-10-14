@@ -19,7 +19,7 @@ export const createTransaction = async (req: Request, res: Response): Promise<vo
             return;
         }
 
-        const { stockId, productId, type, quantity, referenceId, costPrice, salePrice, notes } =
+        const { stockId, stockLotId, productId, qcReference, source, type, quantity, referenceId, costPrice, salePrice, notes } =
             req.body;
 
         // ✅ ตรวจสอบ stock
@@ -63,16 +63,18 @@ export const createTransaction = async (req: Request, res: Response): Promise<vo
 
         await stock.save();
 
-        // ✅ สร้าง Transaction ใหม่
         const transaction = new StockTransaction({
             stockId,
+            stockLotId, // ✅ เพิ่มตรงนี้
             productId,
             type,
             quantity,
             referenceId,
+            qcReference,
             userId: decoded.userId,
             costPrice: costPrice ?? stock.costPrice ?? product.price,
             salePrice: salePrice ?? stock.salePrice ?? product.price,
+            source: source || "SELF",
             notes,
         });
 
@@ -106,7 +108,10 @@ export const getAllTransactions = async (_: Request, res: Response): Promise<voi
             })
             .populate("productId")
             .populate("userId")
+            .populate("stockLotId") // ✅ แสดงข้อมูลล็อต
+            .populate("qcReference")
             .sort({ createdAt: -1 });
+
 
         res.status(200).json({ success: true, data: transactions });
     } catch (error: any) {
@@ -142,3 +147,4 @@ export const getTransactionsByStock = async (req: Request, res: Response): Promi
         res.status(500).json({ success: false, message: "Server error" });
     }
 };
+

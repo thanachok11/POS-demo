@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom"; 
+import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
 import axios from "axios";
@@ -24,6 +24,11 @@ import StockTransaction from "./components/stock/StockTransaction";
 import ExpiredPage from "./components/stock/ExpiredPage";
 import BarcodePage from "./components/barcode/BarcodeStockPage";
 import DiscountPage from "./components/payment/DiscountPage";
+import WarehousePage from "./components/warehouses/WarehouseList"
+import { GlobalPopupProvider } from "./components/common/GlobalPopupEdit";
+import QCInspectionPage from "./components/qc/QCInspectionPage";
+import RefundPage from "./components/payment/RefundPage";
+import QCListPage from "./components/qc/QCListPage";
 
 import { jwtDecode } from "jwt-decode";
 import { renewToken } from "./api/auth/auth";
@@ -31,17 +36,17 @@ import { renewToken } from "./api/auth/auth";
 import "./App.css";
 
 // ✅ Interceptor ตรวจสอบ response
-axios.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    const status = error.response?.status;
-    if (status === 401 || status === 403) {
-      localStorage.removeItem("token");
-      window.location.href = "/";
-    }
-    return Promise.reject(error);
-  }
-);
+// axios.interceptors.response.use(
+//   (response) => response,
+//   (error) => {
+//     const status = error.response?.status;
+//     if (status === 401 || status === 403) {
+//       localStorage.removeItem("token");
+//       window.location.href = "/";
+//     }
+//     return Promise.reject(error);
+//   }
+// );
 
 // ✅ ฟังก์ชันเช็ค token หมดอายุ
 const isTokenValid = (token: string | null): boolean => {
@@ -97,9 +102,11 @@ const App: React.FC = () => {
       "/expired": "สินค้าเหลือน้อย/สินค้าหมด",
       "/setting/employee": "ตั้งค่าพนักงาน",
       "/suppliers": "ผู้ผลิต",
-      "/purchase-orders": "คำสั่งซื้อ", 
-      "/stockTransaction": "ประวัติการเคลื่อนไหวของคลังสินค้า", 
-      "/discount": "จัดการส่วนลด",                
+      "/purchase-orders": "คำสั่งซื้อ",
+      "/stockTransaction": "ประวัติการเคลื่อนไหวของคลังสินค้า",
+      "/discount": "จัดการส่วนลด",
+      "/qc": "ตรวจสอบสินค้า (QC)",
+      "/warehouse": "จัดการคลังสินค้า",
     };
 
     const menuName = pathToMenu[location.pathname];
@@ -161,52 +168,67 @@ const App: React.FC = () => {
       window.removeEventListener("mousemove", activityDetected);
       window.removeEventListener("keydown", activityDetected);
     };
-  }, []); 
+  }, []);
 
   return (
-    <div className={`app-container ${isSidebarOpen ? "sidebar-open" : "sidebar-closed"}`}>
-      <Header
-        toggleSidebar={toggleSidebar}
-        isSidebarOpen={isSidebarOpen}
-        isLoggedIn={isLoggedIn}
-        activeMenu={activeMenu || "ยินดีต้อนรับสู่ EAZYPOS"}
-      />
-
-      {isLoggedIn && (
-        <Sidebar
+    <GlobalPopupProvider>
+      <div className={`app-container ${isSidebarOpen ? "sidebar-open" : "sidebar-closed"}`}>
+        <Header
+          toggleSidebar={toggleSidebar}
           isSidebarOpen={isSidebarOpen}
-          openDropdown={openDropdown}
-          toggleDropdown={toggleDropdown}
-          handleMenuClick={handleMenuClick}
-          user={user}
+          isLoggedIn={isLoggedIn}
+          activeMenu={activeMenu || "ยินดีต้อนรับสู่ EAZYPOS"}
         />
-      )}
 
-      <div className="main-content">
-        <Routes>
-          <Route path="/" element={<Homepage />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/suppliers" element={<SupplierList />} />
-          <Route path="settingProfile" element={<UserSettings />} />
-          <Route path="/reports/salehistory" element={<PaymentPage />} />
-          <Route path="setting/employee" element={<EmployeeList />} />
-          <Route path="/reports/receipts" element={<ReceiptPage />} />
-          <Route path="/products/search" element={<Search />} />
-          <Route path="/purchase-orders" element={<PurchaseOrderPage />} />
-          <Route path="/reports/sales" element={<SalePage />} />
-          <Route path="/employee-dashboard" element={<EmployeePage />} />
-          <Route path="/shop" element={<ProductList isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />} />
-          <Route path="/stocks" element={<StockPage />} />
-          <Route path="/stockTransaction" element={<StockTransaction />} />
-          <Route path="/createOrder" element={<CreateOrder />} />
-          <Route path="/expired" element={<ExpiredPage />} />
-          <Route path="/barcode" element={<BarcodePage />} />
-          <Route path="/discount" element={<DiscountPage />} />
+        {isLoggedIn && (
+          <Sidebar
+            isSidebarOpen={isSidebarOpen}
+            openDropdown={openDropdown}
+            toggleDropdown={toggleDropdown}
+            handleMenuClick={handleMenuClick}
+            user={user}
+          />
+        )}
 
-        </Routes>
+        <div className="main-content">
+          <Routes>
+            <Route path="/" element={<Homepage />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/suppliers" element={<SupplierList />} />
+            <Route path="settingProfile" element={<UserSettings />} />
+            <Route path="/reports/salehistory" element={<PaymentPage />} />
+            <Route path="setting/employee" element={<EmployeeList />} />
+            <Route path="/reports/receipts" element={<ReceiptPage />} />
+            <Route path="/products/search" element={<Search />} />
+            <Route path="/purchase-orders" element={<PurchaseOrderPage />} />
+            <Route path="/reports/sales" element={<SalePage />} />
+            <Route path="/employee-dashboard" element={<EmployeePage />} />
+            <Route path="/qc/:poId" element={<QCInspectionPage />} />
+            <Route path="/refund" element={<RefundPage />} />
+            <Route path="/qc" element={<QCListPage />} />
+
+            <Route
+              path="/shop"
+              element={
+                <ProductList
+                  isSidebarOpen={isSidebarOpen}
+                  toggleSidebar={toggleSidebar}
+                />
+              }
+            />
+            <Route path="/stocks" element={<StockPage />} />
+            <Route path="/stockTransaction" element={<StockTransaction />} />
+            <Route path="/createOrder" element={<CreateOrder />} />
+            <Route path="/expired" element={<ExpiredPage />} />
+            <Route path="/barcode" element={<BarcodePage />} />
+            <Route path="/discount" element={<DiscountPage />} />
+            <Route path="/warehouse" element={<WarehousePage />} />
+          </Routes>
+        </div>
       </div>
-    </div>
+    </GlobalPopupProvider>
   );
+
 };
 
 export default App;

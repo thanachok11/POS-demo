@@ -8,7 +8,7 @@ export interface Product {
     barcode: string;
     name: string;
     price: number;
-    quantity: number;
+    totalQuantity: number;
     category: Category;
     imageUrl: string;
 }

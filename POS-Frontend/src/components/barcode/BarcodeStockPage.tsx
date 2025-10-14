@@ -46,7 +46,7 @@ const BarcodeStockPage: React.FC = () => {
     const [search, setSearch] = useState("");
     const [category, setCategory] = useState("");
     const [page, setPage] = useState(1);
-    const [limit, setLimit] = useState(8);
+    const [limit, setLimit] = useState(10);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -123,8 +123,8 @@ const BarcodeStockPage: React.FC = () => {
                                     setPage(1);
                                 }}
                             >
-                                <option value={8}>8</option>
-                                <option value={12}>12</option>
+                                <option value={10}>10</option>
+                                <option value={15}>15</option>
                                 <option value={20}>20</option>
                             </select>
                             <span> รายการต่อหน้า</span>

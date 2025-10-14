@@ -1,21 +1,30 @@
 import mongoose, { Schema, Document } from "mongoose";
 
+/* ==========================
+   📦 Interface: รายการสินค้าใน PO
+========================== */
 interface IPurchaseOrderItem {
     stockId: mongoose.Schema.Types.ObjectId;
     productId: mongoose.Schema.Types.ObjectId;
     productName: string;
+    barcode?: string; // ✅ เพิ่ม field barcode
     quantity: number;
-    costPrice: number;   // ราคาซื้อต่อหน่วย
-    total: number;       // quantity * costPrice
-    batchNumber?: string; // (บางกรณี supplier ยังไม่ได้แจ้ง batch)
+    costPrice: number;
+    total: number;
+    batchNumber?: string;
     expiryDate?: Date;
 }
 
+/* ==========================
+   📄 Interface: Purchase Order หลัก
+========================== */
 export interface IPurchaseOrder extends Document {
-    purchaseOrderNumber: string; // รหัส PO เช่น PO-2025-0001
+    purchaseOrderNumber: string;
     supplierId: mongoose.Schema.Types.ObjectId;
     supplierCompany: string;
-    location: string;  // คลังที่จะรับสินค้าเข้า
+    supplierCode?: string;
+    warehouseCode?: string;
+    location: mongoose.Schema.Types.ObjectId;
     orderDate: Date;
     status:
     | "รอดำเนินการ"
@@ -28,17 +37,26 @@ export interface IPurchaseOrder extends Document {
     items: IPurchaseOrderItem[];
     totalAmount: number;
     invoiceNumber?: string;
+    note?: string;
+    poType: "NORMAL" | "RETURN" | "TRANSFER";
+    receivedAt?: Date;
+    qcCheckedAt?: Date;
+    returnedAt?: Date;
     createdBy: mongoose.Schema.Types.ObjectId;
     updatedBy?: mongoose.Schema.Types.ObjectId;
     createdAt: Date;
     updatedAt: Date;
 }
 
+/* ==========================
+   🧾 Schema: รายการสินค้าใน PO
+========================== */
 const PurchaseOrderItemSchema = new Schema<IPurchaseOrderItem>(
     {
         stockId: { type: Schema.Types.ObjectId, ref: "Stock", required: true },
         productId: { type: Schema.Types.ObjectId, ref: "Product", required: true },
         productName: { type: String, required: true },
+        barcode: { type: String }, // ✅ เพิ่ม field barcode
         quantity: { type: Number, required: true },
         costPrice: { type: Number, required: true },
         total: { type: Number, required: true },
@@ -48,12 +66,17 @@ const PurchaseOrderItemSchema = new Schema<IPurchaseOrderItem>(
     { _id: false }
 );
 
+/* ==========================
+   📄 Schema: Purchase Order หลัก
+========================== */
 const PurchaseOrderSchema = new Schema<IPurchaseOrder>(
     {
         purchaseOrderNumber: { type: String, unique: true, required: true },
         supplierId: { type: Schema.Types.ObjectId, ref: "Supplier", required: true },
         supplierCompany: { type: String, required: true },
-        location: { type: String, required: true },
+        supplierCode: { type: String },
+        warehouseCode: { type: String },
+        location: { type: Schema.Types.ObjectId, ref: "Warehouse", required: true },
         orderDate: { type: Date, default: Date.now },
         status: {
             type: String,
@@ -61,6 +84,7 @@ const PurchaseOrderSchema = new Schema<IPurchaseOrder>(
                 "รอดำเนินการ",
                 "ได้รับสินค้าแล้ว",
                 "QC ผ่าน",
+                "QC ผ่านบางส่วน", // ✅ เพิ่มไว้ให้สอดคล้องกับ qcStatus
                 "ไม่ผ่าน QC - รอส่งคืนสินค้า",
                 "ไม่ผ่าน QC - คืนสินค้าแล้ว",
                 "ยกเลิก",
@@ -69,18 +93,43 @@ const PurchaseOrderSchema = new Schema<IPurchaseOrder>(
         },
         qcStatus: {
             type: String,
-            enum: ["รอตรวจสอบ", "ผ่าน", "ไม่ผ่าน"],
+            enum: [
+                "รอตรวจสอบ",
+                "ตรวจบางส่วน",
+                "ผ่านบางส่วน",
+                "ผ่าน",
+                "ไม่ผ่าน",
+            ],
             default: "รอตรวจสอบ",
+        },
+        poType: {
+            type: String,
+            enum: ["NORMAL", "RETURN", "TRANSFER"],
+            default: "NORMAL",
         },
         items: { type: [PurchaseOrderItemSchema], required: true },
         totalAmount: { type: Number, required: true },
         invoiceNumber: { type: String },
+        note: { type: String },
+        receivedAt: { type: Date },
+        qcCheckedAt: { type: Date },
+        returnedAt: { type: Date },
         createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
         updatedBy: { type: Schema.Types.ObjectId, ref: "User" },
     },
     { timestamps: true }
 );
+/* ==========================
+   ⚙️ Indexes
+========================== */
+PurchaseOrderSchema.index({ supplierId: 1 });
+PurchaseOrderSchema.index({ location: 1 });
+PurchaseOrderSchema.index({ status: 1 });
+PurchaseOrderSchema.index({ createdAt: -1 });
 
+/* ==========================
+   🚀 Export
+========================== */
 const PurchaseOrder =
     mongoose.models.PurchaseOrder ||
     mongoose.model<IPurchaseOrder>("PurchaseOrder", PurchaseOrderSchema);

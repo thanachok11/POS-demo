@@ -89,7 +89,7 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen }) => {
         const stock = await getStockData(token);
         const mappedStock: StockItem[] = stock.map((item: any) => ({
           barcode: item.barcode,
-          quantity: item.quantity,
+          totalQuantity: item.totalQuantity,
           status: item.status,
           supplier: item.supplier,
           costPrice: item.costPrice,   // 💰 ราคาทุน
@@ -122,7 +122,7 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen }) => {
               name: item.productId?.name || "",
               price: stockItem?.salePrice || item.productId?.price || 0, // ✅ ใช้ salePrice
               costPrice: stockItem?.costPrice || 0,
-              quantity: stockItem?.quantity || 0,
+              totalQuantity: stockItem?.totalQuantity || 0,
               category: {
                 _id: item.productId?.category?._id || "",
                 name: item.productId?.category?.name || "",
@@ -155,9 +155,9 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen }) => {
   const addToCart = (product: Product) => {
     const productStock = stockData.find(item => item.barcode === product.barcode);
     const currentCartItem = cart.find(item => item.barcode === product.barcode);
-    const currentQtyInCart = currentCartItem ? currentCartItem.quantity : 0;
+    const currentQtyInCart = currentCartItem ? currentCartItem.totalQuantity : 0;
 
-    if (productStock && currentQtyInCart + 1 > productStock.quantity) {
+    if (productStock && currentQtyInCart + 1 > productStock.totalQuantity) {
       setShowStockError(true);
       setErrorType("outOfStock");
       return;
@@ -168,11 +168,11 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen }) => {
       if (existingProduct) {
         return prevCart.map((item) =>
           item.barcode === product.barcode
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, totalQuantity: item.totalQuantity + 1 }
             : item
         );
       }
-      return [...prevCart, { ...product, quantity: 1 }];
+      return [...prevCart, { ...product, totalQuantity: 1 }];
     });
   };
 
@@ -185,14 +185,15 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen }) => {
     setErrorType("notFound");
     setShowStockError(true);
   };
-
-  const openNumberPad = (initialQty: number) => {
+  const openNumberPad = (initialQty: number, barcode: string) => {
+    setSelectedProductBarcode(barcode); // ✅ เก็บ barcode ของสินค้าที่กำลังแก้ไข
     setCurrentQuantity(initialQty.toString());
     setErrorMessage("");
     setIsEditing(false);
     setShowNumberPad(true);
     setNumpadErrorMessage("");
   };
+
 
   const handleQuantityChange = (value: string) => {
     setErrorMessage("");
@@ -214,7 +215,7 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen }) => {
     if (isNaN(value) || value <= 0) return;
 
     const stock = stockData.find((s) => s.barcode === selectedProductBarcode);
-    if (stock && value > stock.quantity) {
+    if (stock && value > stock.totalQuantity) {
       setNumpadErrorMessage("❌ สินค้าในคลังไม่พอ");
       return;
     }
@@ -227,7 +228,7 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen }) => {
     setShowNumberPad(false);
   };
 
-  const getTotalPrice = () => cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const getTotalPrice = () => cart.reduce((sum, i) => sum + i.price * i.totalQuantity, 0);
 
   const checkout = async (
     amountReceived: number,
@@ -246,8 +247,8 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen }) => {
         barcode: i.barcode,
         name: i.name,
         price: i.price, // ✅ ใช้ salePrice
-        quantity: i.quantity,
-        subtotal: i.price * i.quantity,
+        quantity: i.totalQuantity,
+        subtotal: i.price * i.totalQuantity,
       })),
       paymentMethod: method,
       amount: getTotalPrice(),
@@ -290,86 +291,109 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen }) => {
   // ======================= Render =======================
   return (
     <div className="display">
-      <div className="search-wrapper">
-        <SearchFilter
-          searchProduct={searchProduct}
-          setSearchProduct={setSearchProduct}
-          categoryFilter={categoryFilter}
-          setCategoryFilter={setCategoryFilter}
-          isSidebarOpen={isSidebarOpen}
-          products={products}
-          addToCart={addToCart}
-          onProductNotFound={handleProductNotFound}
-        />
-      </div>
+      <div className="pos-page">
+        <div className="pos-search-bar">
 
-      <div className="product-content-area">
-        <ProductGrid
-          products={products}
-          filteredProducts={filteredProducts}
-          cart={cart}
-          addToCart={addToCart}
-          errorMessage={errorMessage}
-          loading={loading}
-          searchProduct={searchProduct}
-          categoryFilter={categoryFilter}
-        />
-      </div>
+          <div className="search-wrapper">
+            <SearchFilter
+              searchProduct={searchProduct}
+              setSearchProduct={setSearchProduct}
+              categoryFilter={categoryFilter}
+              setCategoryFilter={setCategoryFilter}
+              isSidebarOpen={isSidebarOpen}
+              products={products}
+              addToCart={addToCart}
+              onProductNotFound={handleProductNotFound}
+            />
+          </div>
 
-      {cart.length > 0 && (
-        <CartSidebar
-          cart={cart}
-          isSidebarOpen={isSidebarOpen}
-          clearCart={clearCart}
-          removeFromCart={removeFromCart}
-          openNumberPad={openNumberPad}
-          getTotalPrice={getTotalPrice}
-          setShowCheckout={setShowCheckout}
-        />
-      )}
+          <div className="pos-main-content">
+            <div className="pos-product-area">
 
+              <ProductGrid
+                products={products}
+                filteredProducts={filteredProducts}
+                cart={cart}
+                addToCart={addToCart}
+                errorMessage={errorMessage}
+                loading={loading}
+                searchProduct={searchProduct}
+                categoryFilter={categoryFilter}
+              />
+            </div>
+            <div className="pos-cart-area">
+              {/* 🏪 หัวของตะกร้า */}
+              <div className="cart-header">
+                <h1 className="cart-store-title">EAZY POS</h1>
+                <p className="cart-store-subtitle">ระบบขายหน้าร้านอัจฉริยะ</p>
+              </div>
 
-      <StockErrorDialog
-        show={showStockError}
-        onClose={() => setShowStockError(false)}
-        messageType={errorType}
-      />
+              {/* 🛒 เนื้อหาตะกร้า */}
+              {cart.length > 0 ? (
+                <CartSidebar
+                  cart={cart}
+                  isSidebarOpen={isSidebarOpen}
+                  clearCart={clearCart}
+                  removeFromCart={removeFromCart}
+                  openNumberPad={openNumberPad}
+                  getTotalPrice={getTotalPrice}
+                  setShowCheckout={setShowCheckout}
+                />
+              ) : (
+                <div className="cart-empty">
+                  <img src="/images/empty-cart.svg" alt="ไม่มีสินค้าในตะกร้า" />
+                  <p>ยังไม่มีสินค้าในตะกร้า</p>
+                  <small>เลือกสินค้าทางด้านซ้ายเพื่อเริ่มขายได้เลย 💳</small>
+                </div>
+              )}
 
-      {showCheckout && (
-        <Checkout
-          cart={cart}
-          totalPrice={getTotalPrice()}
-          onClose={() => setShowCheckout(false)}
-          checkout={checkout}
-          onConfirmPayment={() => { }}
-        />
-      )}
+              <StockErrorDialog
+                show={showStockError}
+                onClose={() => setShowStockError(false)}
+                messageType={errorType}
+              />
 
-      {showNumberPad && (
-        <NumberPad
-          currentQuantity={currentQuantity}
-          handleQuantityChange={handleQuantityChange}
-          handleDeleteOne={handleDeleteOne}
-          handleClear={handleClear}
-          handleSetQuantity={handleSetQuantity}
-          setShowNumberPad={setShowNumberPad}
-          numpadErrorMessage={numpadErrorMessage}
-        />
-      )}
+              {showCheckout && (
+                <Checkout
+                  cart={cart}
+                  totalPrice={getTotalPrice()}
+                  onClose={() => setShowCheckout(false)}
+                  checkout={checkout}
+                  onConfirmPayment={() => { }}
+                />
+              )}
 
-      {popupVisible && (
-        <div className="payment-popup-overlay" onClick={() => setPopupVisible(false)}>
-          <div className="payment-popup" onClick={(e) => e.stopPropagation()}>
-            <h2>✅ ชำระเงินสำเร็จ!</h2>
-            <p>ขอบคุณที่ใช้บริการ 🎉</p>
-            <button className="payment-popup-close" onClick={() => setPopupVisible(false)}>
-              ปิด
-            </button>
+              {showNumberPad && (
+                <NumberPad
+                  currentQuantity={currentQuantity}
+                  handleQuantityChange={handleQuantityChange}
+                  handleDeleteOne={handleDeleteOne}
+                  handleClear={handleClear}
+                  handleSetQuantity={handleSetQuantity}
+                  setShowNumberPad={setShowNumberPad}
+                  numpadErrorMessage={numpadErrorMessage}
+                />
+              )}
+
+              {popupVisible && (
+                <div className="payment-popup-overlay" onClick={() => setPopupVisible(false)}>
+                  <div className="payment-popup" onClick={(e) => e.stopPropagation()}>
+                    <h2>✅ ชำระเงินสำเร็จ!</h2>
+                    <p>ขอบคุณที่ใช้บริการ 🎉</p>
+                    <button className="payment-popup-close" onClick={() => setPopupVisible(false)}>
+                      ปิด
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
+
+
 };
 
 export default ProductList;

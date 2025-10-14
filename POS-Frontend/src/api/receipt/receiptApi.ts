@@ -51,3 +51,17 @@ export const fetchSalesSummary = async (
     return { success: false, data: null };
   }
 };
+
+// ✅ ดึงใบเสร็จจาก saleId (สำหรับคืนสินค้า)
+export const fetchReceiptBySaleId = async (saleId: string) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`${API_BASE_URL}/receipts/receipt/${saleId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error("Error fetching receipt by saleId:", error);
+    return { success: false, message: "ไม่สามารถดึงข้อมูลใบเสร็จได้" };
+  }
+};

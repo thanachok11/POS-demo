@@ -6,11 +6,11 @@ import {
 import { getProductsAndStockBySupplier } from '../controllers/supplierController';
 
 const router = express.Router();
-router.get('/:supplierId',getSupplierById);
 router.get('/', getSuppliers);
-router.post('/add-suppliers', addSupplier)
 router.get('/:supplierId/products-with-stock', getProductsAndStockBySupplier);
-router.put("/:supplierId", updateSupplier);
+router.post("/create", addSupplier);
+router.get("/", getSuppliers);
+router.get("/:supplierId", getSupplierById);
 router.patch("/:supplierId", updateSupplier);
 router.delete("/:supplierId", deleteSupplier);
 

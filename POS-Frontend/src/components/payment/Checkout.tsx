@@ -13,7 +13,7 @@ import { QRCodeSVG } from "qrcode.react";
 import generatePayload from "promptpay-qr";
 
 interface CheckoutProps {
-  cart: { barcode: string; name: string; price: number; quantity: number }[];
+  cart: { barcode: string; name: string; price: number; totalQuantity: number }[];
   totalPrice: number;
   onClose: () => void;
   onConfirmPayment: (method: string, amountReceived?: number) => void;
@@ -43,7 +43,7 @@ const Checkout: React.FC<CheckoutProps> = ({
 
   // คำนวณยอดรวมใหม่เมื่อ cart เปลี่ยน
   useEffect(() => {
-    const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
+    const total = cart.reduce((acc, item) => acc + item.price * item.totalQuantity, 0);
     setChange(null);
     setCashInput("");
   }, [cart]);
@@ -102,7 +102,7 @@ const Checkout: React.FC<CheckoutProps> = ({
                     ราคา {item.price.toLocaleString()} บาท
                   </span>
                   <span className="checkout-item-quantity">
-                    x {item.quantity} รายการ
+                    x {item.totalQuantity} รายการ
                   </span>
                 </div>
               ))}
