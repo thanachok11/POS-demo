@@ -6,12 +6,13 @@ export interface IProduct extends Document {
   price: number;
   category: mongoose.Schema.Types.ObjectId;
   barcode: string;
-  productCode?: string; // ✅ เพิ่ม: ใช้สร้าง batchNumber สั้น ๆ เช่น PR001
+  productCode?: string;
   imageUrl?: string;
   public_id?: string;
   userId: mongoose.Schema.Types.ObjectId;
   supplierId: mongoose.Schema.Types.ObjectId;
   isSelfPurchased: boolean;
+  isActive: boolean; // ✅ เพิ่มใน interface
   createdAt: Date;
   updatedAt: Date;
 }
@@ -49,6 +50,13 @@ const ProductSchema: Schema = new Schema(
       required: true,
     },
     isSelfPurchased: { type: Boolean, default: false },
+
+    // ✅ เพิ่มฟิลด์นี้ เพื่อเปิด/ปิดขายสินค้า
+    isActive: {
+      type: Boolean,
+      default: true, // เปิดขายโดยค่าเริ่มต้น
+      index: true,   // เพิ่ม index เพื่อให้ filter เร็ว
+    },
   },
   { timestamps: true }
 );

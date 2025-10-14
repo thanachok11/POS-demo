@@ -1,5 +1,4 @@
 import React from "react";
-
 import { Product } from "../../types/productTypes";
 
 interface ProductGridProps {
@@ -23,6 +22,11 @@ const ProductGrid: React.FC<ProductGridProps> = ({
     searchProduct,
     categoryFilter,
 }) => {
+    // ✅ กรองเฉพาะสินค้าที่ isActive === true
+    const activeProducts = filteredProducts.filter((p) => p.isActive === true);
+
+    console.log("📦 Loaded Product:", activeProducts);
+
     return (
         <div className="product-list-wrapper">
             {errorMessage && <p className="error-message">{errorMessage}</p>}
@@ -30,27 +34,44 @@ const ProductGrid: React.FC<ProductGridProps> = ({
             <div className="product-grid">
                 {loading ? (
                     <p className="loading-message">⏳ กำลังโหลดสินค้า...</p>
-                ) : filteredProducts.length === 0 ? (
+                ) : activeProducts.length === 0 ? (
                     searchProduct.trim() !== "" || categoryFilter !== "" ? (
                         <p className="no-product-message">❌ ไม่พบสินค้าที่คุณค้นหา</p>
                     ) : (
                         <p className="no-product-message">🔍 ไม่พบข้อมูลสินค้าในร้านของคุณ</p>
                     )
                 ) : (
-                    filteredProducts.map((product) => {
-                        const cartItem = cart.find((i) => i.barcode === product.barcode);
+                    activeProducts.map((product) => {
+                        const cartItem = cart.find(
+                            (i) => i.barcode === product.barcode
+                        );
                         return (
                             <div
                                 key={product.barcode}
                                 className="product-card"
                                 onClick={() => addToCart(product)}
                             >
+                                {/* 🔢 Badge แสดงจำนวนในตะกร้า */}
                                 {cartItem && cartItem.totalQuantity > 0 && (
-                                    <div className="product-quantity-badge">{cartItem.totalQuantity}</div>
+                                    <div className="product-quantity-badge">
+                                        {cartItem.totalQuantity}
+                                    </div>
                                 )}
-                                <img src={product.imageUrl} alt={product.name} className="product-image" />
+
+                                {/* 🖼️ รูปสินค้า */}
+                                <img
+                                    src={product.imageUrl}
+                                    alt={product.name}
+                                    className="product-image"
+                                />
+
+                                {/* 🏷️ ชื่อสินค้า */}
                                 <h2 className="product-title">{product.name}</h2>
-                                <p className="product-price">฿{product.price.toLocaleString()}</p>
+
+                                {/* 💰 ราคา */}
+                                <p className="product-price">
+                                    ฿{product.price.toLocaleString()}
+                                </p>
                             </div>
                         );
                     })

@@ -15,7 +15,7 @@
 =========================== */
 .stock-header-wrapper {
     position: sticky;
-    margin-top: 20px;
+    margin-top: -10px;
     background: #fff;
     z-index: 20;
     padding: 16px 20px;
@@ -132,7 +132,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 16px;
-    margin: 16px 0 20px 0;
+    margin: 0px 0 -5px 0;
 }
 
 .summary-item {
@@ -199,8 +199,7 @@
     align-items: center;
     gap: 8px;
     font-size: 1rem;
-    margin-top: -20px;
-    margin-bottom: -20px;
+    margin-top: -45px;
     font-weight: 600;
     color: var(--text-dark);
     background: var(--bg-card);

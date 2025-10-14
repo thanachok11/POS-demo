@@ -183,27 +183,31 @@ export const addProductWithStock = async (req: Request, res: Response): Promise<
 };
 
 
-// อัปเดตสินค้า + สต็อก
+/* =====================================================
+   ✅ อัปเดตสินค้า + สต็อก (รวมรูปภาพและสถานะการขาย)
+===================================================== */
 export const updateProductWithStock = async (req: Request, res: Response): Promise<void> => {
   try {
-    const token = req.headers['authorization']?.split(' ')[1];
+    // ✅ ตรวจสอบ token
+    const token = req.headers["authorization"]?.split(" ")[1];
     if (!token) {
-      res.status(401).json({ success: false, message: 'No token provided' });
+      res.status(401).json({ success: false, message: "No token provided" });
       return;
     }
 
     const decoded = verifyToken(token);
-    if (typeof decoded === 'string' || !('userId' in decoded)) {
-      res.status(401).json({ success: false, message: 'Invalid token' });
+    if (typeof decoded === "string" || !("userId" in decoded)) {
+      res.status(401).json({ success: false, message: "Invalid token" });
       return;
     }
 
     const user = await User.findById(decoded.userId);
     if (!user) {
-      res.status(404).json({ success: false, message: 'User not found' });
+      res.status(404).json({ success: false, message: "User not found" });
       return;
     }
 
+    // ✅ ดึงข้อมูลจาก body
     const {
       productId: rawProductId,
       name,
@@ -220,33 +224,36 @@ export const updateProductWithStock = async (req: Request, res: Response): Promi
       batchNumber,
       expiryDate,
       notes,
+      isActive, // ✅ รับค่ามาจาก frontend
     } = req.body;
+
+    console.log("🟡 isActive received:", isActive);
 
     const productId = String(rawProductId);
     if (!mongoose.Types.ObjectId.isValid(productId)) {
-      res.status(400).json({ success: false, message: 'Invalid productId' });
+      res.status(400).json({ success: false, message: "Invalid productId" });
       return;
     }
 
     const product = await Product.findById(productId);
     if (!product) {
-      res.status(404).json({ success: false, message: 'ไม่พบสินค้า' });
+      res.status(404).json({ success: false, message: "ไม่พบสินค้า" });
       return;
     }
 
     const stock = await Stock.findOne({ productId: product._id });
     if (!stock) {
-      res.status(404).json({ success: false, message: 'ไม่พบสต็อกของสินค้า' });
+      res.status(404).json({ success: false, message: "ไม่พบสต็อกของสินค้า" });
       return;
     }
 
-    // parse barcode ให้เป็น string เสมอ
+    // ✅ สร้าง barcode ใหม่ (กรณีไม่มี)
     const finalBarcode =
       typeof barcode === "string" && barcode.trim() && barcode.trim() !== ","
         ? barcode.trim().replace(/^,+|,+$/g, "")
         : `BC${Date.now()}${Math.floor(1000 + Math.random() * 9000)}`;
 
-    // parse units ให้แน่นอน
+    // ✅ parse หน่วยสินค้า (units)
     let unitArray: any[] = [];
     try {
       if (typeof units === "string") {
@@ -261,12 +268,14 @@ export const updateProductWithStock = async (req: Request, res: Response): Promi
       unitArray = stock.units || [];
     }
 
+    // ✅ ตรวจสอบ supplier
     const supplierDoc = await Supplier.findById(supplierId || product.supplierId);
     if (!supplierDoc) {
-      res.status(400).json({ success: false, message: 'ไม่พบบริษัทผู้จัดจำหน่าย' });
+      res.status(400).json({ success: false, message: "ไม่พบบริษัทผู้จัดจำหน่าย" });
       return;
     }
 
+    // ✅ ตรวจสอบ warehouse
     let warehouseDoc = stock.location;
     if (location) {
       let foundWarehouse = null;
@@ -282,14 +291,23 @@ export const updateProductWithStock = async (req: Request, res: Response): Promi
       warehouseDoc = foundWarehouse._id;
     }
 
+    /* ============================================
+       ✅ ฟังก์ชันอัปเดตสินค้า + สต็อก
+    ============================================ */
     const updateProductData = async (imageUrl?: string, public_id?: string) => {
-
+      // 🧩 อัปเดตสินค้า
       product.name = name || product.name;
       product.description = description || product.description;
       product.category = category || product.category;
       product.barcode = finalBarcode;
       product.supplierId = supplierDoc._id;
 
+      // ✅ อัปเดตสถานะเปิด/ปิดขาย
+      if (typeof isActive !== "undefined") {
+        product.isActive = isActive === "true" || isActive === true;
+      }
+
+      // ✅ อัปโหลดรูปภาพใหม่ (ถ้ามี)
       if (imageUrl && public_id) {
         if (product.public_id) await cloudinary.uploader.destroy(product.public_id);
         product.imageUrl = imageUrl;
@@ -298,7 +316,12 @@ export const updateProductWithStock = async (req: Request, res: Response): Promi
 
       await product.save();
 
-      // Stock
+      // 🧩 อัปเดตสต็อก
+      stock.isActive =
+        typeof isActive !== "undefined"
+          ? isActive === "true" || isActive === true
+          : stock.isActive;
+
       stock.costPrice = costPrice !== undefined ? Number(costPrice) : stock.costPrice;
       stock.salePrice =
         salePrice !== undefined ? Number(salePrice) : stock.salePrice || stock.costPrice * 1.2;
@@ -312,32 +335,40 @@ export const updateProductWithStock = async (req: Request, res: Response): Promi
       stock.location = warehouseDoc;
       stock.units = unitArray;
       stock.barcode = finalBarcode;
-      if (quantity !== undefined && Number(quantity) > 0)
+
+      // ✅ ถ้าสต็อกกลับมา > 0 → อัปเดต lastRestocked
+      if (quantity !== undefined && Number(quantity) > 0) {
         stock.lastRestocked = new Date();
+      }
 
       await stock.save();
 
       res.status(200).json({
         success: true,
-        message: "Product and stock updated successfully",
+        message: "✅ Product and stock updated successfully",
         data: { product, stock },
       });
     };
 
+    /* ============================================
+       ✅ อัปโหลดรูปภาพผ่าน Cloudinary
+    ============================================ */
     if (req.file) {
-      cloudinary.uploader.upload_stream({ resource_type: 'auto' }, async (err, result) => {
-        if (err || !result) {
-          console.error(err);
-          res.status(500).json({ success: false, message: 'Error uploading image' });
-          return;
-        }
-        await updateProductData(result.secure_url, result.public_id);
-      }).end(req.file.buffer);
+      cloudinary.uploader
+        .upload_stream({ resource_type: "auto" }, async (err, result) => {
+          if (err || !result) {
+            console.error(err);
+            res.status(500).json({ success: false, message: "Error uploading image" });
+            return;
+          }
+          await updateProductData(result.secure_url, result.public_id);
+        })
+        .end(req.file.buffer);
     } else {
       await updateProductData();
     }
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error("❌ updateProductWithStock Error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };

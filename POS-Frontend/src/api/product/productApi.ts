@@ -65,23 +65,30 @@ export const uploadProduct = async (formData: FormData, token: string | null) =>
   }
 };
 
-
-// ฟังก์ชันสำหรับอัปโหลดสินค้าใหม่ (จากตัวอย่างก่อนหน้า)
-export const updateProductImage = async (formData: FormData, token: string | null) => {
+// ✅ อัปโหลดและอัปเดตข้อมูลสินค้า (รวมรูปภาพ)
+export const updateProductImage = async (
+  productId: string,
+  formData: FormData,
+  token: string | null
+) => {
   try {
-    const response = await axios.patch((`${API_BASE_URL}/product/update`), formData,
+    const response = await axios.patch(
+      `${API_BASE_URL}/product/${productId}/update-image`, // ✅ ชี้ไป endpoint ที่มี id
+      formData,
       {
         headers: {
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${token}`, // Include token in the Authorization header
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
         },
       }
     );
-    return response;
+    return response.data;
   } catch (error) {
+    console.error("❌ updateProductImage error:", error);
     throw error;
   }
 };
+
 
 
 export const updateProduct = async (id: string, updateData: any) => {

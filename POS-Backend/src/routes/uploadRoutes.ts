@@ -7,6 +7,6 @@ const router = Router();
 router.post('/upload', upload.single('image'), addProductWithStock);
 
 // Route สำหรับการอัปเดตข้อมูลสินค้าและสต็อก
-router.patch('/update', upload.single('image'), updateProductWithStock);
+router.patch("/:id/update-image", upload.single("image"), updateProductWithStock);
 
 export default router;

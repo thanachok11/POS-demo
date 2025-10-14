@@ -89,13 +89,15 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen }) => {
         const stock = await getStockData(token);
         const mappedStock: StockItem[] = stock.map((item: any) => ({
           barcode: item.barcode,
+          isActive: item.isActive, // ✅ ต้องมาจาก stock ตรง ๆ
           totalQuantity: item.totalQuantity,
           status: item.status,
           supplier: item.supplier,
-          costPrice: item.costPrice,   // 💰 ราคาทุน
-          salePrice: item.salePrice,   // 💸 ราคาขาย
+          costPrice: item.costPrice,
+          salePrice: item.salePrice,
           productId: {
             _id: item.productId?._id,
+            isActive: item.isActive, // ✅ และตรงนี้ด้วย (ให้สอดคล้องกัน)
             name: item.productId?.name || "",
             price: item.salePrice || item.productId?.price || 0,
             barcode: item.productId?.barcode || "",
@@ -120,6 +122,7 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen }) => {
               _id: item.productId?._id,
               barcode: item.productId?.barcode || "",
               name: item.productId?.name || "",
+              isActive: item.isActive,
               price: stockItem?.salePrice || item.productId?.price || 0, // ✅ ใช้ salePrice
               costPrice: stockItem?.costPrice || 0,
               totalQuantity: stockItem?.totalQuantity || 0,
@@ -129,7 +132,10 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen }) => {
               },
               imageUrl: item.productId?.imageUrl || "",
             };
+
           });
+          console.log("📦 Loaded Product:", mappedProducts);
+
           setProducts(mappedProducts);
         } else {
           setErrorMessage("ไม่พบข้อมูลสินค้า");
