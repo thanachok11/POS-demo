@@ -125,10 +125,6 @@
     font-size: 0.95rem;
 }
 
-.warehouse-table thead {
-    background: linear-gradient(90deg, #0284c7, #0ea5e9);
-    color: #fff;
-}
 
 .warehouse-table th,
 .warehouse-table td {
@@ -141,7 +137,11 @@
 }
 
 .warehouse-table th {
-    font-weight: 600;
+    background: #e0f2fe;
+        color: #1fa1e7;
+        padding: 12px;
+        text-align: center;
+        font-weight: 600;
 }
 
 .warehouse-table tbody tr:hover {

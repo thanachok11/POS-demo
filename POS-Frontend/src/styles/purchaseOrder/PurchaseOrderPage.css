@@ -378,13 +378,32 @@
 }
 
 /* Confirm (เขียว) */
-.po-actions button:not(.po-cancel-button):not(.po-return-button) {
-    background: #22c55e;
-    color: white;
+.qc-go-button {
+    background: #16a34a;
+    color: #fff;
+}
+.qc-go-button:hover {
+    background: #3cb96a;
+    color: #fff;
+}
+.po-actions .po-confirm-button {
+    background: #16a34a;
+    color: #fff;
 }
 
-.po-actions button:not(.po-cancel-button):not(.po-return-button):hover {
-    background: #16a34a;
+.po-actions .po-confirm-button:hover {
+    background: #3cb96a;
+    color: #fff;
+}
+
+.po-actions .btn-print {
+    background: #007bff;
+    color: #fff;
+}
+
+.po-actions .btn-print:hover {
+    background: #4694e7;
+    color: #fff;
 }
 
 /* ===============================
@@ -471,6 +490,15 @@
     border: 1px solid #cbd5e1;
     background: #fff;
     color: #1e293b;
+}
+
+.warehouse-display {
+    background: #eef6ff;
+    border-left: 4px solid #007bff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-top: 10px;
+    font-size: 0.95rem;
 }
 
 /* =========================
@@ -594,6 +622,7 @@
 .po-popup-close:hover {
     background: #2563eb;
 }
+
 
 /* =========================
    Animations

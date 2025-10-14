@@ -15,7 +15,8 @@ export interface Product {
 
 export interface StockItem {
     barcode: string;
-    quantity: number;
+    totalQuantity:number;
+ 
     salePrice:number;
     costPrice:number;
     status: string;
@@ -28,7 +29,7 @@ export interface PaymentItem {
     barcode: string;
     name: string;
     price: number;
-    quantity: number;
+    totalQuantity: number;
     subtotal: number;
 }
 

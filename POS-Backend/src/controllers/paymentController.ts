@@ -1,12 +1,18 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
-import Receipt, { IReceipt } from "../models/Receipt";
+import Receipt from "../models/Receipt";
 import Stock from "../models/Stock";
 import StockTransaction from "../models/StockTransaction";
 import Payment from "../models/Payment";
 import { verifyToken } from "../utils/auth";
-// ✅ ฟังก์ชันสำหรับสร้างการชำระเงิน (ทั้งขายและคืนสินค้า)
+
+/* ============================================================
+   🧾 สร้างการชำระเงิน (ทั้งขายและคืนสินค้า)
+============================================================ */
 export const createPayment = async (req: Request, res: Response): Promise<void> => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
         const token = req.header("Authorization")?.split(" ")[1];
         if (!token) {
@@ -20,93 +26,115 @@ export const createPayment = async (req: Request, res: Response): Promise<void> 
             return;
         }
 
+        // ✅ รับค่าจาก body
         const {
             saleId,
             employeeName,
             paymentMethod,
             amountReceived,
-            amount,
             items,
-            isReturn = false, // ✅ เพิ่ม flag สำหรับใบคืนสินค้า
-            reason,
+            discount = 0, // ✅ เพิ่มส่วนลด
         } = req.body;
 
-        if (!saleId || !employeeName || !paymentMethod || !amount || !items) {
+        if (!saleId || !employeeName || !paymentMethod || !amountReceived || !items?.length) {
             res.status(400).json({ success: false, message: "ข้อมูลไม่ครบถ้วน" });
             return;
         }
 
-        // ✅ ประเภทการชำระเงิน (ขายหรือคืน)
-        const paymentType = isReturn ? "REFUND" : "SALE";
+        // 💰 ดึงข้อมูลสินค้าและคำนวณกำไร
+        const calculatedItems = await Promise.all(
+            items.map(async (item: any) => {
+                const stock = await Stock.findOne({ barcode: item.barcode });
+                const costPrice = stock?.costPrice || 0;
+                const profit = (item.price - costPrice) * item.quantity;
+                return { ...item, profit };
+            })
+        );
 
-        // ✅ 1. สร้างข้อมูล Payment
-        const newPayment = new Payment({
-            saleId,
-            employeeName,
-            paymentMethod,
-            type: paymentType,
-            amountReceived,
-            amount: isReturn ? -Math.abs(amount) : Math.abs(amount), // 💵 ถ้าเป็นคืน ให้ติดลบ
-            status: "สำเร็จ",
-            notes: isReturn ? `คืนสินค้า (${reason || "ไม่ระบุเหตุผล"})` : undefined,
-        });
+        // ✅ คำนวณยอดรวมก่อนหักส่วนลด
+        const subtotal = calculatedItems.reduce((sum, i) => sum + i.subtotal, 0);
 
-        await newPayment.save();
+        // ✅ คำนวณยอดรวมหลังหักส่วนลด
+        const totalPrice = Math.max(subtotal - discount, 0);
 
-        // ✅ 2. คำนวณยอดรวม / เงินทอน
-        const totalPrice = items.reduce((total: number, item: any) => total + item.subtotal, 0);
-        let changeAmount = 0;
-        if (!isReturn && paymentMethod === "เงินสด" && amountReceived) {
-            changeAmount = amountReceived - totalPrice;
-        }
+        // ✅ คำนวณกำไรทั้งหมด
+        const totalProfit = calculatedItems.reduce((sum, i) => sum + (i.profit || 0), 0);
 
-        // ✅ 3. สร้างใบเสร็จ
-        const newReceipt = new Receipt({
-            paymentId: newPayment._id,
-            employeeName,
-            items,
-            totalPrice: isReturn ? -Math.abs(totalPrice) : Math.abs(totalPrice),
-            paymentMethod,
-            amountPaid: amountReceived,
-            changeAmount,
-            timestamp: new Date(),
-            profit: isReturn
-                ? -items.reduce((sum: number, i: any) => sum + (i.profit || 0), 0)
-                : items.reduce((sum: number, i: any) => sum + (i.profit || 0), 0),
-            ...(isReturn && { isReturn: true, returnReason: reason }),
-        });
+        // 💵 คำนวณเงินทอน (เฉพาะการขายเงินสด)
+        const changeAmount =
+            paymentMethod === "เงินสด" && amountReceived ? amountReceived - totalPrice : 0;
 
-        await newReceipt.save();
+        // ✅ 1. สร้าง Payment
+        const [newPayment] = await Payment.create(
+            [
+                {
+                    saleId,
+                    employeeName,
+                    paymentMethod,
+                    type: "SALE",
+                    amountReceived,
+                    amount: totalPrice, // ✅ ใช้ยอดหลังหักส่วนลด
+                    discount, // ✅ เพิ่มส่วนลด
+                    profit: totalProfit,
+                    status: "สำเร็จ",
+                },
+            ],
+            { session }
+        );
 
-        // ✅ 4. อัปเดต Payment ให้ชี้กลับ Receipt
-        newPayment.receiptId = newReceipt._id;
-        await newPayment.save();
+        // ✅ 2. สร้าง Receipt (ใช้ calculatedItems ที่มี profit ด้วย)
+        const [newReceipt] = await Receipt.create(
+            [
+                {
+                    paymentId: newPayment._id,
+                    employeeName,
+                    items: calculatedItems,
+                    totalPrice,
+                    discount, // ✅ บันทึกส่วนลดในใบเสร็จ
+                    paymentMethod,
+                    amountPaid: amountReceived,
+                    changeAmount,
+                    profit: totalProfit,
+                    timestamp: new Date(),
+                },
+            ],
+            { session }
+        );
 
-        // ✅ 5. ส่งผลลัพธ์กลับ
+        // ✅ 3. อัปเดต Payment ให้เชื่อม Receipt
+        await Payment.updateOne(
+            { _id: newPayment._id },
+            { $set: { receiptId: newReceipt._id } },
+            { session }
+        );
+
+        await session.commitTransaction();
+        session.endSession();
+
         res.status(201).json({
             success: true,
-            message: isReturn
-                ? "✅ บันทึกการคืนสินค้าและใบเสร็จสำเร็จ"
-                : "✅ บันทึกการขายและใบเสร็จสำเร็จ",
+            message: "✅ บันทึกการขายและใบเสร็จสำเร็จ",
             payment: newPayment,
             receipt: newReceipt,
         });
     } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
         console.error("❌ Error in createPayment:", error);
         res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการบันทึก", error });
     }
 };
 
-// ✅ ฟังก์ชันสำหรับดึงข้อมูลการชำระเงินทั้งหมด
+/* ============================================================
+   💳 ดึงข้อมูลการชำระเงินทั้งหมด
+============================================================ */
 export const getAllPayments = async (_: Request, res: Response): Promise<void> => {
     try {
         const payments = await Payment.find().populate("receiptId").sort({ createdAt: -1 });
-
         if (!payments.length) {
             res.status(404).json({ success: false, message: "ไม่พบข้อมูลการชำระเงิน" });
             return;
         }
-
         res.status(200).json({ success: true, data: payments });
     } catch (error) {
         console.error("Error retrieving all payments:", error);
@@ -114,6 +142,9 @@ export const getAllPayments = async (_: Request, res: Response): Promise<void> =
     }
 };
 
+/* ============================================================
+   🔁 คืนสินค้า (ทั้งใบหรือบางรายการ)
+============================================================ */
 export const processRefund = async (req: Request, res: Response): Promise<void> => {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -131,118 +162,117 @@ export const processRefund = async (req: Request, res: Response): Promise<void> 
             return;
         }
 
-        const { saleId, reason } = req.body;
+        // ✅ รองรับรับ items จาก body (คืนบางรายการ)
+        const { saleId, reason, paymentMethod, items } = req.body;
         if (!saleId) {
             res.status(400).json({ success: false, message: "กรุณาระบุรหัสการขายหรือรหัสใบเสร็จ" });
             return;
         }
+        if (!paymentMethod) {
+            res.status(400).json({ success: false, message: "กรุณาระบุวิธีคืนเงิน" });
+            return;
+        }
 
-        let payment;
-
-        // ✅ ตรวจว่าค่า saleId เป็น ObjectId ของ Receipt หรือไม่
+        // ✅ ดึงใบเสร็จต้นฉบับ
         const isObjectId = mongoose.Types.ObjectId.isValid(saleId);
-        if (isObjectId) {
-            // ถ้าเป็น ObjectId → หาใบเสร็จ แล้วดึง paymentId จากในนั้น
-            const receipt = await Receipt.findById(saleId).session(session);
-            if (!receipt) {
-                res.status(404).json({ success: false, message: "ไม่พบใบเสร็จนี้" });
-                return;
-            }
-            payment = await Payment.findById(receipt.paymentId).session(session);
-        } else {
-            // ถ้าเป็นเลขขาย → หา Payment จาก saleId ปกติ
-            payment = await Payment.findOne({ saleId }).session(session);
+        const receipt = isObjectId
+            ? await Receipt.findById(saleId).session(session)
+            : await Receipt.findOne({ saleId }).session(session);
+
+        if (!receipt) {
+            res.status(404).json({ success: false, message: "ไม่พบใบเสร็จนี้" });
+            return;
         }
 
+        // 🚫 ป้องกันคืนซ้ำ
+        if (receipt.isReturn || receipt.returnReceiptId) {
+            res.status(400).json({
+                success: false,
+                message: "⚠️ ใบเสร็จนี้ได้ทำรายการคืนสินค้าไปแล้ว ไม่สามารถคืนซ้ำได้",
+            });
+            return;
+        }
+
+
+        const payment = await Payment.findById(receipt.paymentId).session(session);
         if (!payment) {
-            res.status(404).json({ success: false, message: "ไม่พบข้อมูลการชำระเงินของรหัสนี้" });
+            res.status(404).json({ success: false, message: "ไม่พบข้อมูลการชำระเงินต้นทาง" });
             return;
         }
 
-        // 🧾 หาใบเสร็จต้นฉบับ
-        const originalReceipt = await Receipt.findOne({
-            paymentId: payment._id,
-            isReturn: false,
-        })
-            .populate("paymentId")
-            .session(session);
+        // ✅ ใช้เฉพาะสินค้าที่เลือกมาคืน
+        const refundItems = items && items.length > 0 ? items : receipt.items;
 
-        if (!originalReceipt) {
-            res.status(404).json({ success: false, message: "ไม่พบใบเสร็จต้นฉบับของการขายนี้" });
-            return;
-        }
+        // 💰 คำนวณยอดคืน/กำไรจากรายการที่เลือก
+        const refundAmount = refundItems.reduce((sum: number, i: any) => sum + Math.abs(i.subtotal), 0);
+        const refundProfit = refundItems.reduce((sum: number, i: any) => sum + Math.abs(i.profit || 0), 0);
 
-        // 💰 คำนวณยอดคืน
-        const refundAmount = originalReceipt.totalPrice;
-
-        // 📦 คืนสินค้าทั้งหมดในใบเสร็จ
-        for (const item of originalReceipt.items) {
+        // 📦 คืนสินค้าเข้าสต็อกเฉพาะรายการที่เลือก
+        for (const item of refundItems) {
             const stock = await Stock.findOne({ barcode: item.barcode }).session(session);
-            if (!stock) continue;
+            if (stock) {
+                stock.totalQuantity += item.quantity;
+                await stock.save({ session });
+                await stock.updateStatus();
 
-            stock.totalQuantity += item.quantity;
-            await stock.save({ session });
-            await stock.updateStatus();
-
-            await StockTransaction.create(
-                [
-                    {
-                        stockId: stock._id,
-                        productId: stock.productId,
-                        userId: decoded.userId,
-                        type: "RETURN",
-                        quantity: item.quantity,
-                        costPrice: stock.costPrice,
-                        salePrice: item.price,
-                        source: "CUSTOMER",
-                        notes: `คืนสินค้าทั้งใบเสร็จ (${reason || "ไม่ระบุเหตุผล"})`,
-                        referenceId: originalReceipt._id,
-                    },
-                ],
-                { session }
-            );
+                await StockTransaction.create(
+                    [
+                        {
+                            stockId: stock._id,
+                            productId: stock.productId,
+                            userId: decoded.userId,
+                            type: "RETURN",
+                            quantity: item.quantity,
+                            costPrice: stock.costPrice,
+                            salePrice: item.price,
+                            source: "CUSTOMER",
+                            notes: `คืนสินค้า ${reason || "ไม่ระบุเหตุผล"}`,
+                            referenceId: receipt._id,
+                        },
+                    ],
+                    { session }
+                );
+            }
         }
 
-        // 💳 สร้าง Payment ใหม่ (REFUND)
+        // 💳 สร้าง Payment ประเภท REFUND
         const [refundPayment] = await Payment.create(
             [
                 {
                     saleId: payment.saleId,
-                    employeeName: originalReceipt.employeeName,
-                    paymentMethod: "เงินสด",
+                    employeeName: receipt.employeeName,
+                    paymentMethod,
                     type: "REFUND",
                     amountReceived: refundAmount,
-                    amount: -Math.abs(refundAmount),
+                    amount: -refundAmount,
+                    profit: -refundProfit,
                     status: "สำเร็จ",
-                    notes: reason || "คืนสินค้าทั้งใบเสร็จ",
+                    notes: reason || "คืนสินค้าบางรายการ",
                 },
             ],
             { session }
         );
 
-        // 🧾 สร้าง Receipt ใหม่ (ใบคืนสินค้า)
+        // 🧾 สร้าง Receipt คืนสินค้าใหม่
         const [returnReceipt] = await Receipt.create(
             [
                 {
                     paymentId: refundPayment._id,
-                    originalReceiptId: originalReceipt._id,
-                    employeeName: originalReceipt.employeeName,
-                    items: originalReceipt.items.map((item: any) => ({
-                        barcode: item.barcode,
-                        name: item.name,
-                        price: item.price,
-                        quantity: item.quantity,
-                        subtotal: -Math.abs(item.subtotal),
-                        profit: -(item.profit || 0),
+                    originalReceiptId: receipt._id,
+                    employeeName: receipt.employeeName,
+                    items: refundItems.map((i: any) => ({
+                        ...i,
+                        subtotal: -Math.abs(i.subtotal),
+                        profit: -(i.profit || 0),
                     })),
-                    totalPrice: -Math.abs(originalReceipt.totalPrice),
-                    paymentMethod: "เงินสด",
+                    totalPrice: -refundAmount,
+                    paymentMethod,
                     amountPaid: refundAmount,
                     changeAmount: 0,
                     isReturn: true,
                     returnReason: reason,
                     timestamp: new Date(),
-                    profit: -(originalReceipt.profit || 0),
+                    profit: -refundProfit,
                 },
             ],
             { session }
@@ -252,14 +282,21 @@ export const processRefund = async (req: Request, res: Response): Promise<void> 
         refundPayment.receiptId = returnReceipt._id as any;
         await refundPayment.save({ session });
 
+        // 🔗 เชื่อมใบเสร็จต้นฉบับ (บันทึก reference แต่ไม่บังคับว่าคืนครบทั้งใบ)
+        await Receipt.updateOne(
+            { _id: receipt._id },
+            { $set: { returnReceiptId: returnReceipt._id } },
+            { session }
+        );
+
         await session.commitTransaction();
         session.endSession();
 
         res.status(200).json({
             success: true,
-            message: "✅ คืนสินค้าสำเร็จ (ออกใบเสร็จคืนสินค้าใหม่)",
+            message: "✅ คืนสินค้าสำเร็จ (บางรายการหรือทั้งใบ)",
             data: {
-                originalReceipt,
+                originalReceipt: receipt,
                 returnReceipt,
                 refundPayment,
             },
@@ -268,6 +305,7 @@ export const processRefund = async (req: Request, res: Response): Promise<void> 
         await session.abortTransaction();
         session.endSession();
         console.error("❌ processRefund Error:", error);
-        res.status(500).json({ success: false, message: "Server error" });
+        res.status(500).json({ success: false, message: "Server error", error });
     }
 };
+

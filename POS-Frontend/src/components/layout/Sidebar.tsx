@@ -20,6 +20,8 @@ import {
   faPercent,
   faVial,
   faWarehouse,
+  faMoneyBillTransfer,
+  faBoxesStacked
 } from "@fortawesome/free-solid-svg-icons";
 import "../../styles/layout/Sidebar.css";
 
@@ -110,6 +112,10 @@ const Sidebar: React.FC<SidebarProps> = ({
               <FontAwesomeIcon icon={faHistory} className="icon" />{" "}
               <span className="dropdown-text-historysale">ประวัติการขาย</span>
             </li>
+            <li onClick={() => handleMenuClick("/reports/refund", "คืนสินค้า")}>
+              <FontAwesomeIcon icon={faMoneyBillTransfer} className="icon" />{" "}
+              <span className="dropdown-text-refund">คืนสินค้า</span>
+            </li>
           </ul>
 
           {/* จัดการสินค้า */}
@@ -128,12 +134,13 @@ const Sidebar: React.FC<SidebarProps> = ({
             </li>
             <li onClick={() => handleMenuClick("/warehouse", "จัดการคลังสินค้า")}>
               <FontAwesomeIcon icon={faWarehouse} className="icon" />{" "}
-              <span className="dropdown-text-warehouse">จัดการคลังสินค้า</span>
+              <span className="dropdown-text-warehouse">คลังสินค้า</span>
             </li>
-            <li onClick={() => handleMenuClick("/qc", "ตรวจสอบสินค้า (QC)")}>
-              <FontAwesomeIcon icon={faVial} className="icon" />{" "}
-              <span className="dropdown-text-qc">ตรวจสอบ QC</span>
+            <li onClick={() => handleMenuClick("/stocklots", "ล็อตสินค้า")}>
+              <FontAwesomeIcon icon={faBoxesStacked} className="icon" />{" "}
+              <span className="dropdown-text-stockslot">ล็อตสินค้า</span>
             </li>
+
             <li onClick={() => handleMenuClick("/createOrder", "นำเข้าสินค้าใหม่")}>
               <FontAwesomeIcon icon={faCartPlus} className="icon" />{" "}
               <span className="dropdown-text-buyproduct">นำเข้าสินค้าใหม่</span>

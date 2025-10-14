@@ -7,7 +7,7 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
     try {
         const { saleId, userId, items, paymentMethod, amount, amountReceived, change } = req.body;
 
-        // 1. สร้าง Order
+        // ✅ 1. สร้าง Order
         const order = await Order.create({
             saleId,
             userId,
@@ -18,29 +18,37 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
             change,
         });
 
-        // 2. ลดสต็อก + log
+        // ✅ 2. ลดสต็อก + log
         for (const item of items) {
             const stock = await Stock.findOne({ barcode: item.barcode });
             if (!stock) continue;
 
-            if (stock.quantity < item.quantity) {
-                throw new Error(`สินค้า ${item.name} ไม่พอขาย (คงเหลือ ${stock.quantity})`);
+            const qtyToDeduct = Number(item.quantity) || 0;
+
+            if (qtyToDeduct <= 0) continue;
+
+            if (stock.totalQuantity < qtyToDeduct) {
+                throw new Error(`สินค้า ${item.name} ไม่พอขาย (คงเหลือ ${stock.totalQuantity})`);
             }
 
-            stock.quantity -= item.quantity;
+            // ✅ ลดจำนวนสินค้าคงเหลือ
+            stock.totalQuantity -= qtyToDeduct;
             await stock.updateStatus();
             await stock.save();
 
+            // ✅ log การขาย
             await StockTransaction.create({
                 stockId: stock._id,
                 productId: stock.productId,
                 type: "SALE",
-                quantity: item.quantity,
-                referenceId: order._id, // ✅ ใช้ ObjectId ของ Order
+                quantity: qtyToDeduct, 
+                referenceId: order._id,
                 userId,
                 salePrice: item.price,
                 notes: `ขายสินค้าออก (Order ${saleId})`,
             });
+
+            console.log(`📦 Stock Updated: ${item.name}`);
         }
 
         res.status(201).json({ success: true, message: "สร้าง Order สำเร็จ", data: order });

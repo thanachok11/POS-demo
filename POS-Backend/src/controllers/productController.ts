@@ -142,6 +142,7 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
         populate: { path: "category", model: "Category", select: "name" },
         select: "name description price barcode imageUrl category"
       })
+      .populate("location", "name code")
       .populate("supplierId", "companyName contactName")
       .lean();
 

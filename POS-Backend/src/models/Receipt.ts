@@ -1,26 +1,28 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IReceiptItem {
-    [x: string]: unknown;
     barcode: string;
     name: string;
     price: number;
     quantity: number;
     subtotal: number;
+    discount?: number; // ✅ ส่วนลดต่อสินค้า (ถ้ามี)
     profit?: number;
 }
 
 export interface IReceipt extends Document {
     paymentId?: mongoose.Types.ObjectId | null;
-    originalReceiptId?: mongoose.Types.ObjectId | null; // ✅ ใบเสร็จต้นทาง (กรณีคืนสินค้า)
+    originalReceiptId?: mongoose.Types.ObjectId | null; // ใบเสร็จต้นทาง (กรณีคืนสินค้า)
+    returnReceiptId?: mongoose.Types.ObjectId | null;   // ใบเสร็จคืน (กรณีถูกคืน)
     employeeName: string;
     items: IReceiptItem[];
-    totalPrice: number;
+    totalPrice: number; // ✅ ยอดรวมหลังหักส่วนลด
+    discount: number; // ✅ ส่วนลดรวมของใบเสร็จ (บาท)
     paymentMethod: "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code";
     amountPaid: number;
     changeAmount: number;
-    isReturn?: boolean; // ✅ เป็นใบเสร็จคืนสินค้าหรือไม่
-    returnReason?: string; // ✅ เหตุผลการคืนสินค้า
+    isReturn?: boolean; // เป็นใบเสร็จคืนสินค้าหรือไม่
+    returnReason?: string;
     profit?: number;
     timestamp: Date;
     createdAt?: Date;
@@ -34,15 +36,18 @@ const ReceiptItemSchema = new Schema<IReceiptItem>(
         price: { type: Number, required: true },
         quantity: { type: Number, required: true },
         subtotal: { type: Number, required: true },
+        discount: { type: Number, default: 0 }, // ✅ ส่วนลดต่อสินค้า
         profit: { type: Number, default: 0 },
     },
-    { _id: false } // ไม่ต้องสร้าง _id ซ้ำใน items
+    { _id: false }
 );
 
 const ReceiptSchema = new Schema<IReceipt>(
     {
         paymentId: { type: Schema.Types.ObjectId, ref: "Payment", default: null },
-        originalReceiptId: { type: Schema.Types.ObjectId, ref: "Receipt", default: null }, // 🧩 อ้างถึงใบเสร็จต้นทาง
+        originalReceiptId: { type: Schema.Types.ObjectId, ref: "Receipt", default: null },
+        returnReceiptId: { type: Schema.Types.ObjectId, ref: "Receipt", default: null },
+
         employeeName: { type: String, required: true },
 
         items: {
@@ -55,6 +60,7 @@ const ReceiptSchema = new Schema<IReceipt>(
         },
 
         totalPrice: { type: Number, required: true },
+        discount: { type: Number, default: 0 }, // ✅ ส่วนลดรวมของใบเสร็จ
         paymentMethod: {
             type: String,
             enum: ["เงินสด", "โอนเงิน", "บัตรเครดิต", "QR Code"],
@@ -63,24 +69,22 @@ const ReceiptSchema = new Schema<IReceipt>(
         amountPaid: { type: Number, required: true },
         changeAmount: { type: Number, required: true },
 
-        // 🔁 คืนสินค้า
         isReturn: { type: Boolean, default: false },
         returnReason: { type: String, default: null },
 
-        // 💰 กำไรต่อใบเสร็จ
         profit: { type: Number, default: 0 },
-
-        // ⏰ เวลาออกใบเสร็จ
         timestamp: { type: Date, default: Date.now },
     },
     { timestamps: true }
 );
 
-// ✅ Index เพื่อดึงข้อมูลเร็วขึ้น
+// ✅ Index เพื่อ query เร็วขึ้น
 ReceiptSchema.index({ timestamp: -1 });
 ReceiptSchema.index({ employeeName: 1 });
 ReceiptSchema.index({ isReturn: 1 });
 ReceiptSchema.index({ originalReceiptId: 1 });
+ReceiptSchema.index({ returnReceiptId: 1 });
+ReceiptSchema.index({ discount: 1 }); // ✅ เพื่อรายงานยอดส่วนลด
 
 const Receipt = mongoose.model<IReceipt>("Receipt", ReceiptSchema);
 export default Receipt;

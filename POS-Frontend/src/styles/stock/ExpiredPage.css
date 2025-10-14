@@ -105,19 +105,14 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-/* thead */
-.expired-table thead {
-    background: linear-gradient(90deg, #0284c7, #0ea5e9);
-    color: #fff;
-    font-size: 0.95rem;
-}
+
 
 .expired-table th {
-    font-size: 14px;
-    font-weight: 600;
-    padding: 10px 12px;
-    text-align: center;
-    border-bottom: 2px solid #e5e7eb;
+    background: #e0f2fe;
+        color: #1fa1e7;
+        padding: 12px;
+        text-align: center;
+        font-weight: 600;
 }
 
 /* tbody */

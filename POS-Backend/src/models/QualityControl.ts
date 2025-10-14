@@ -8,7 +8,7 @@ export interface IQC extends Document {
     userId: mongoose.Schema.Types.ObjectId; // ผู้ตรวจสอบ (เจ้าหน้าที่ QC)
     purchaseOrderId?: mongoose.Schema.Types.ObjectId; // ✅ ใบสั่งซื้อที่ล็อตนี้มาจาก
     stockLotId?: mongoose.Schema.Types.ObjectId; // ✅ ลิงก์ไปยัง StockLot เพื่อ sync สถานะ
-    status: "ผ่าน" | "ไม่ผ่าน" | "รอตรวจ"; // ผลการตรวจ
+    status: "ผ่าน" | "ไม่ผ่าน" | "รอตรวจสอบ"; // ผลการตรวจ
     issues?: string[]; // รายการปัญหาที่พบ เช่น ["กลิ่นผิดปกติ", "บรรจุภัณฑ์รั่ว"]
     temperature?: number; // อุณหภูมิระหว่างตรวจ (ถ้ามี)
     humidity?: number; // ความชื้นระหว่างตรวจ (ถ้ามี)
@@ -31,7 +31,7 @@ const QCSchema = new Schema<IQC>(
         purchaseOrderId: { type: Schema.Types.ObjectId, ref: "PurchaseOrder" },
         stockLotId: { type: Schema.Types.ObjectId, ref: "StockLot" },
 
-        status: { type: String, enum: ["ผ่าน", "ไม่ผ่าน", "รอตรวจ"], default: "รอตรวจ" },
+        status: { type: String, enum: ["ผ่าน", "ไม่ผ่าน", "รอตรวจสอบ"], default: "รอตรวจสอบ" },
         issues: [{ type: String }],
         temperature: Number,
         humidity: Number,

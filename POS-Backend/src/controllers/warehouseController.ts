@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import Warehouse from "../models/Warehouse";
 import Stock from "../models/Stock";
-
 import jwt from "jsonwebtoken";
 
 interface JwtPayload {
@@ -17,50 +16,75 @@ const verifyToken = (token: string): JwtPayload => {
     }
 };
 
-// 🏗️ ฟังก์ชันสร้างคลัง พร้อม gen code (WH01, WH02)
+// 🏗️ ฟังก์ชันสร้างคลัง พร้อม gen code (WH01, WH02, WH03...)
 export const createWarehouse = async (req: Request, res: Response): Promise<void> => {
     try {
         const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            throw new Error("Token not provided");
+        if (!authHeader?.startsWith("Bearer ")) {
+            res.status(401).json({ success: false, message: "Token not provided" });
+            return;
         }
 
         const token = authHeader.split(" ")[1];
         const decoded = verifyToken(token);
-
         const { name, location, description } = req.body;
-        if (!name) throw new Error("กรุณาระบุชื่อคลังสินค้า");
 
-        // 🔢 หาคลังล่าสุดของ user นี้ เพื่อรันลำดับ code
+        if (!name?.trim() || !location?.trim()) {
+            res.status(400).json({ success: false, message: "กรุณาระบุชื่อและที่ตั้งคลังสินค้า" });
+            return;
+        }
+
+        // 🔍 หาค่า code ที่สูงที่สุดในคลังของ user
         const lastWarehouse = await Warehouse.findOne({ userId: decoded.userId })
-            .sort({ createdAt: -1 })
+            .sort({ code: -1 }) // หาตามลำดับตัวอักษร เช่น WH01, WH02...
             .lean();
 
         let nextNumber = 1;
-        if (lastWarehouse && lastWarehouse.code) {
+        if (lastWarehouse?.code) {
             const match = lastWarehouse.code.match(/\d+$/);
             if (match) nextNumber = parseInt(match[0], 10) + 1;
         }
 
-        const code = `WH${nextNumber.toString().padStart(2, "0")}`;
+        const newCode = `WH${String(nextNumber).padStart(2, "0")}`;
 
         // ✅ สร้างคลังใหม่
-        const warehouse = new Warehouse({
-            name,
-            code,
-            location,
-            description,
+        const newWarehouse = new Warehouse({
+            name: name.trim(),
+            code: newCode,
+            location: location.trim(),
+            description: description || "",
             userId: decoded.userId,
         });
 
-        await warehouse.save();
+        await newWarehouse.save();
+
         res.status(201).json({
             success: true,
-            message: "สร้างคลังสินค้าเรียบร้อย ✅",
-            data: warehouse,
+            message: "✅ สร้างคลังสินค้าเรียบร้อย",
+            data: newWarehouse,
         });
     } catch (error: any) {
-        res.status(401).json({ error: error.message || "Unauthorized" });
+        if (error.code === 11000 && error.keyPattern?.code) {
+            // 🩹 ถ้า code ซ้ำจริง ๆ (เช่น concurrent request)
+            const randomCode = `WH${Date.now().toString().slice(-3)}`;
+            const fallbackWarehouse = new Warehouse({
+                ...req.body,
+                code: randomCode,
+            });
+            await fallbackWarehouse.save();
+            res.status(201).json({
+                success: true,
+                message: "✅ สร้างคลังด้วย code สำรอง (กันซ้ำ)",
+                data: fallbackWarehouse,
+            });
+            return;
+        }
+
+        console.error("❌ createWarehouse Error:", error);
+        res.status(500).json({
+            success: false,
+            message: error.message || "Server error while creating warehouse",
+        });
     }
 };
 

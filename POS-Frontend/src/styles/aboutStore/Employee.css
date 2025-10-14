@@ -108,7 +108,6 @@
    Table
 =========================== */
 .employee-table-wrapper {
-    flex: 1;
     overflow-y: auto;
     background: #fff;
     border-radius: 12px;
@@ -125,14 +124,6 @@
     font-size: 0.95rem;
 }
 
-.employee-table thead {
-    background: linear-gradient(90deg, #0284c7, #0ea5e9);
-    color: #fff;
-    text-align: center;
-    /* ✅ จัดหัวตารางให้อยู่ตรงกลาง */
-}
-
-.employee-table th,
 .employee-table td {
     text-align: center;
     /* ✅ ทุกเซลล์อยู่ตรงกลางแนวนอน */
@@ -144,8 +135,11 @@
 }
 
 .employee-table th {
+    background: #e0f2fe;
+    color: #1fa1e7;
+    padding: 12px;
+    text-align: center;
     font-weight: 600;
-    border-bottom: 2px solid #e5e7eb;
 }
 
 .employee-table tbody tr:hover {

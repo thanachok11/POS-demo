@@ -28,8 +28,7 @@ import WarehousePage from "./components/warehouses/WarehouseList"
 import { GlobalPopupProvider } from "./components/common/GlobalPopupEdit";
 import QCInspectionPage from "./components/qc/QCInspectionPage";
 import RefundPage from "./components/payment/RefundPage";
-import QCListPage from "./components/qc/QCListPage";
-
+import StockLotPage from "./components/stock/stocklot/StockLotPage";
 import { jwtDecode } from "jwt-decode";
 import { renewToken } from "./api/auth/auth";
 
@@ -107,6 +106,7 @@ const App: React.FC = () => {
       "/discount": "จัดการส่วนลด",
       "/qc": "ตรวจสอบสินค้า (QC)",
       "/warehouse": "จัดการคลังสินค้า",
+      "/refund": "คืนสินค้า",
     };
 
     const menuName = pathToMenu[location.pathname];
@@ -204,8 +204,8 @@ const App: React.FC = () => {
             <Route path="/reports/sales" element={<SalePage />} />
             <Route path="/employee-dashboard" element={<EmployeePage />} />
             <Route path="/qc/:poId" element={<QCInspectionPage />} />
-            <Route path="/refund" element={<RefundPage />} />
-            <Route path="/qc" element={<QCListPage />} />
+            <Route path="/reports/refund" element={<RefundPage />} />
+            <Route path="/stocklots" element={<StockLotPage />} />
 
             <Route
               path="/shop"
@@ -223,6 +223,7 @@ const App: React.FC = () => {
             <Route path="/barcode" element={<BarcodePage />} />
             <Route path="/discount" element={<DiscountPage />} />
             <Route path="/warehouse" element={<WarehousePage />} />
+
           </Routes>
         </div>
       </div>

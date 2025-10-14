@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
     getPurchaseOrders,
-    confirmPurchaseOrder,
-    cancelPurchaseOrder,
-    returnPurchaseOrder,
+
 } from "../../api/purchaseOrder/purchaseOrderApi";
 import PurchaseOrderCard from "./PurchaseOrderCard";
 import PurchaseOrderPopup from "./PurchaseOrderPopup";

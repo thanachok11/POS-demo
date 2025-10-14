@@ -222,7 +222,7 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen }) => {
 
     setCart((prev) =>
       prev.map((i) =>
-        i.barcode === selectedProductBarcode ? { ...i, quantity: value } : i
+        i.barcode === selectedProductBarcode ? { ...i, totalQuantity: value } : i
       )
     );
     setShowNumberPad(false);
@@ -232,12 +232,15 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen }) => {
 
   const checkout = async (
     amountReceived: number,
-    method: "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code"
+    method: "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code",
+    discountAmount: number = 0 // ✅ เพิ่มพารามิเตอร์ส่วนลด
   ) => {
     if (!user) {
       setErrorMessage("กรุณาเข้าสู่ระบบก่อนทำรายการ");
       return;
     }
+
+    const finalTotal = Math.max(getTotalPrice() - discountAmount, 0);
 
     const orderData = {
       saleId: new Date().getTime().toString(),
@@ -246,14 +249,15 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen }) => {
         productId: i._id,
         barcode: i.barcode,
         name: i.name,
-        price: i.price, // ✅ ใช้ salePrice
+        price: i.price,
         quantity: i.totalQuantity,
         subtotal: i.price * i.totalQuantity,
       })),
       paymentMethod: method,
-      amount: getTotalPrice(),
+      amount: finalTotal,
       amountReceived,
-      change: amountReceived - getTotalPrice(),
+      change: amountReceived - finalTotal,
+      discount: discountAmount, // ✅ เพิ่มส่วนลดใน order
     };
 
     try {
@@ -264,9 +268,10 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen }) => {
         saleId: orderData.saleId,
         employeeName: user.username,
         paymentMethod: method,
-        amount: getTotalPrice(),
+        amount: finalTotal,
         amountReceived,
-        change: amountReceived - getTotalPrice(),
+        change: amountReceived - finalTotal,
+        discount: discountAmount, // ✅ ส่งส่วนลดให้ backend
         items: orderData.items,
       });
 
@@ -280,6 +285,7 @@ const ProductList: React.FC<CartProps> = ({ isSidebarOpen }) => {
       console.error(err);
     }
   };
+
 
   // ======================= Filter =======================
   const filteredProducts = products.filter((p) => {

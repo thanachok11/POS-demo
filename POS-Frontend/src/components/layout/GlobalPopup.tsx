@@ -15,7 +15,7 @@ const GlobalPopup: React.FC<GlobalPopupProps> = ({
     isSuccess,
     show,
     setShow,
-    duration = 3000,
+    duration = 1500,
     onClose,
 }) => {
     const [progress, setProgress] = useState(100);

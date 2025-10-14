@@ -42,15 +42,19 @@
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    margin-top: 20px;
 }
 
-.discount-table thead {
-    background: linear-gradient(90deg, #0284c7, #0ea5e9);
-    color: #fff;
-    font-size: 0.95rem;
+.discount-table th {
+    position: sticky;
+    background: #e0f2fe;
+    color: #1fa1e7;
+    margin-top: 20px;
+    padding: 12px;
+    text-align: center;
+    font-weight: 600;
 }
 
-.discount-table th,
 .discount-table td {
     padding: 12px 14px;
     text-align: center;
@@ -60,15 +64,12 @@
     background: #f9fafb;
 }
 
-.discount-table tbody tr:hover {
-    background: #e0f2fe;
-    transition: 0.2s;
-}
 
 .discount-code {
     font-weight: 600;
     color: #0369a1;
 }
+
 /* 🔹 แถวของปุ่มจัดการ */
 .discount-actions {
     display: flex;
@@ -121,25 +122,26 @@
 /* ➕ ปุ่มเพิ่มส่วนลด */
 .discount-btn-add {
     align-self: flex-start;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: #2a9d8f;
-        color: #fff;
-        padding: 8px 14px;
-        border: none;
-        border-radius: 6px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background 0.2s;
-        transition: all 0.2s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #2a9d8f;
+    color: #fff;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    transition: all 0.2s ease-in-out;
 }
 
 .discount-btn-add:hover {
-background: #059669;
+    background: #059669;
     transform: scale(1.05);
 }
+
 .discount-modal-container.editing {
     border-top: 5px solid #0284c7;
     animation: pulseBorder 1.2s infinite alternate;
@@ -154,6 +156,7 @@ background: #059669;
         border-top-color: #22d3ee;
     }
 }
+
 /* ✨ Animation */
 @keyframes fadeIn {
     from {
@@ -275,21 +278,21 @@ background: #059669;
 
 .discount-btn-save {
     background: linear-gradient(90deg, #22c55e, #16a34a);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 10px 22px;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.25s ease;
-        box-shadow: 0 3px 8px rgba(22, 163, 74, 0.3);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 3px 8px rgba(22, 163, 74, 0.3);
 }
 
 .discount-btn-save:hover {
     background: linear-gradient(90deg, #16a34a, #15803d);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
 }
 
 .discount-btn-save:disabled {
@@ -299,21 +302,21 @@ background: #059669;
 
 .discount-btn-cancel {
     background: linear-gradient(90deg, #ef4444, #dc2626);
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        padding: 10px 22px;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.25s ease;
-        box-shadow: 0 3px 8px rgba(220, 38, 38, 0.3);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 3px 8px rgba(220, 38, 38, 0.3);
 }
 
 .discount-btn-cancel:hover {
     background: linear-gradient(90deg, #dc2626, #b91c1c);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
 }
 
 /* ✨ Animations */

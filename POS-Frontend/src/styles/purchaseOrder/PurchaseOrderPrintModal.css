@@ -1,0 +1,193 @@
+/* 🧾 ===== Scope ป้องกัน style ทับ ===== */
+.po-print-scope * {
+    all: unset;
+    all: revert;
+    box-sizing: border-box;
+    font-family: "TH Sarabun New", "Prompt", sans-serif;
+}
+
+/* ===== Modal Overlay ===== */
+.po-print-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+/* ===== Modal Container ===== */
+.po-print-modal {
+    background: #fff;
+    width: 90%;
+    max-width: 1100px;
+    border-radius: 12px;
+    overflow-y: auto;
+    padding: 30px 40px;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.3);
+    position: relative;
+    font-family: "TH Sarabun New", sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===== Header ===== */
+.po-print-scope .company-info {
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid #000;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.po-print-scope .company-logo {
+    width: 85px;
+    height: 85px;
+    object-fit: contain;
+    margin-right: 20px;
+}
+
+.po-print-scope .company-details h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.po-print-scope .company-details p {
+    margin: 1px 0;
+    font-size: 0.9rem;
+}
+
+.po-print-scope .po-title {
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 15px 0;
+    border-bottom: 1px solid #000;
+    padding-bottom: 5px;
+}
+
+/* ===== Info ===== */
+.po-print-scope .po-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+}
+
+.po-print-scope .po-info p {
+    margin: 2px 0;
+}
+
+/* ===== Table ===== */
+.po-print-scope .print-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    margin-top: 10px;
+}
+
+.po-print-scope .print-table th,
+.po-print-scope .print-table td {
+    border: 1px solid #000;
+    text-align: center;
+    padding: 6px;
+}
+
+.po-print-scope .print-table th {
+    background: #efefef;
+    font-weight: 700;
+}
+
+/* ===== Footer ===== */
+.po-print-scope .total-section {
+    text-align: right;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+.po-print-scope .footer-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 25px;
+}
+
+.po-print-scope .signature-block {
+    text-align: center;
+    width: 30%;
+}
+
+.po-print-scope .signature-block p {
+    margin: 3px 0;
+    font-size: 0.9rem;
+}
+
+.po-print-scope .qr-block {
+    text-align: center;
+    width: 20%;
+}
+
+/* ===== Buttons ===== */
+.po-print-scope .print-modal-buttons {
+    text-align: center;
+    margin-top: 25px;
+}
+
+.po-print-scope .btn-print-now {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-right: 8px;
+}
+
+.po-print-scope .btn-close {
+    background: #e53e3e;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* ===== Print Mode ===== */
+@media print {
+
+    body,
+    html {
+        background: white !important;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    .po-print-modal-overlay,
+    .btn-print-now,
+    .btn-close {
+        display: none !important;
+    }
+
+    .po-print-scope {
+        all: revert;
+        display: block;
+        background: white;
+        color: #000;
+        padding: 20px 40px;
+    }
+
+    @page {
+        size: A4 landscape;
+        margin: 1.2cm;
+    }
+
+    .po-print-scope .print-table th {
+        background: #eaeaea !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}

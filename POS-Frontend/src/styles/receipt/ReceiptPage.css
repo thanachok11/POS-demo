@@ -1,4 +1,14 @@
 /* ตัว Container หลัก */
+.receipt-modal-header {
+    cursor: move;
+    /* ให้รู้ว่าลากได้ */
+    user-select: none;
+    color: white;
+    padding: 10px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
 .receipt-container {
     display: flex;
     flex-direction: column;
@@ -60,7 +70,6 @@
    Table Wrapper
 =========================== */
 .receipt-table-wrapper {
-    flex: 1;
     overflow-y: auto;
     margin-top: 12px;
     background: #fff;
@@ -78,9 +87,11 @@
 }
 
 .receipt-table thead {
-    background: linear-gradient(90deg, #0284c7, #0ea5e9);
-    color: #fff;
-    font-size: 0.95rem;
+    background: #e0f2fe;
+    color: #1fa1e7;
+    padding: 12px;
+    text-align: center;
+    font-weight: 600;
 }
 
 .receipt-header-cell {

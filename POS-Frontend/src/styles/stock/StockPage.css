@@ -227,16 +227,13 @@
 }
 
 /* 🧠 Sticky Header */
-.stock-table thead th {
+.stock-table th {
     position: sticky;
-    top: 0;
-    background: #0ea5e9;
-    color: #fff;
-    font-weight: 600;
-    text-align: left;
+    background: #e0f2fe;
+    color: #1fa1e7;
     padding: 12px;
-    border-bottom: 2px solid #e5e7eb;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    font-weight: 600;
 }
 
 .stock-header-cell {

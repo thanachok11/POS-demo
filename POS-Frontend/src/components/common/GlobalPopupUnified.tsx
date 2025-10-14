@@ -22,13 +22,14 @@ const GlobalPopupUnified: React.FC<GlobalPopupProps> = ({
     onClose,
     onConfirm,
     autoClose = false,
-    duration = 2000,
+    duration,
 }) => {
+    const effectiveDuration = duration || (type === "success" ? 800 : 1500);
     const [progress, setProgress] = useState(100);
 
     useEffect(() => {
         if (!autoClose) return;
-        const step = 100 / (duration / 50);
+        const step = 100 / (effectiveDuration / 50);
         const timer = setInterval(() => {
             setProgress((p) => {
                 if (p <= 0) {
@@ -40,7 +41,8 @@ const GlobalPopupUnified: React.FC<GlobalPopupProps> = ({
             });
         }, 50);
         return () => clearInterval(timer);
-    }, [autoClose, duration, onClose]);
+    }, [autoClose, effectiveDuration, onClose]);
+
 
     return (
         <div className={`global-popup-overlay ${type}`}>

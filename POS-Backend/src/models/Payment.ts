@@ -3,13 +3,15 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IPayment extends Document {
     saleId: string; // รหัสคำสั่งซื้อ / POS session
     receiptId?: mongoose.Types.ObjectId | null | any;
-    employeeName: string; // ✅ พนักงานที่รับเงิน/คืนเงิน
+    employeeName: string; // พนักงานที่รับเงิน/คืนเงิน
     paymentMethod: "เงินสด" | "โอนเงิน" | "บัตรเครดิต" | "QR Code";
-    type: "SALE" | "REFUND"; // ✅ เพิ่มประเภทการชำระเงิน
-    amountReceived: number; // ✅ เป็นตัวเลข
-    amount: number; // ✅ ยอดเงินจริง (เช่น refund จะเป็นค่าลบ)
+    type: "SALE" | "REFUND"; // ประเภทการชำระเงิน
+    amountReceived: number; // จำนวนเงินที่ลูกค้าจ่ายมา
+    amount: number; // ยอดเงินจริง (refund จะเป็นค่าลบ)
+    discount: number; // ✅ ส่วนลดทั้งหมดของธุรกรรม (บาท)
+    profit: number; // กำไรของธุรกรรมนี้ (refund จะเป็นค่าลบ)
     status: "รอดำเนินการ" | "สำเร็จ" | "ล้มเหลว";
-    notes?: string; // ✅ เก็บเหตุผล เช่น "คืนสินค้า"
+    notes?: string; // เก็บเหตุผล เช่น "คืนสินค้า"
     createdAt: Date;
 }
 
@@ -30,6 +32,8 @@ const PaymentSchema = new Schema<IPayment>(
         },
         amountReceived: { type: Number, required: true },
         amount: { type: Number, required: true },
+        discount: { type: Number, default: 0 }, // ✅ เพิ่มส่วนลด
+        profit: { type: Number, default: 0 },
         status: {
             type: String,
             enum: ["รอดำเนินการ", "สำเร็จ", "ล้มเหลว"],
@@ -41,10 +45,12 @@ const PaymentSchema = new Schema<IPayment>(
     { timestamps: true }
 );
 
-// ✅ Index เพื่อให้ดึงข้อมูลเร็ว
+// ✅ Index เพื่อ query ได้ไวขึ้น
 PaymentSchema.index({ type: 1 });
 PaymentSchema.index({ receiptId: 1 });
 PaymentSchema.index({ createdAt: -1 });
+PaymentSchema.index({ profit: 1 });
+PaymentSchema.index({ discount: 1 }); // ✅ สำหรับรายงานส่วนลด
 
 const Payment = mongoose.model<IPayment>("Payment", PaymentSchema);
 export default Payment;

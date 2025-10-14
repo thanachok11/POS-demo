@@ -48,7 +48,6 @@
    Table Wrapper
 =========================== */
 .payment-table-wrapper {
-    flex: 1;
     overflow-y: auto;
     margin-top: 12px;
     background: #fff;
@@ -66,9 +65,11 @@
 }
 
 .payment-table thead {
-    background: linear-gradient(90deg, #0284c7, #0ea5e9);
-    color: #fff;
-    font-size: 0.95rem;
+    background: #e0f2fe;
+    color: #1fa1e7;
+    padding: 12px;
+    text-align: center;
+    font-weight: 600;
 }
 
 .payment-header-cell {

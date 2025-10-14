@@ -29,21 +29,32 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ receipt, onClose }) => {
             ? receipt.paymentId
             : null;
 
-    // ✅ รองรับใบคืน (ราคาติดลบ)
     const isReturn = receipt.isReturn;
     const discount = receipt.discount ?? 0;
-    const subtotal = Math.abs(receipt.totalPrice) / 1.07;
-    const vat = subtotal * 0.07;
-    const netTotal = Math.abs(receipt.totalPrice) - discount;
+
+    // ✅ ยอดรวมก่อนส่วนลด
+    const beforeDiscount = Math.abs(receipt.totalPrice) + discount;
+
+    // ✅ ยอดหลังหักส่วนลด (รวม VAT)
+    const afterDiscount = Math.abs(receipt.totalPrice);
+
+    // ✅ ยอดก่อนภาษี (แยก VAT ออกจากยอดสุทธิ)
+    const netBeforeVat = afterDiscount / 1.07;
+
+    // ✅ ภาษีมูลค่าเพิ่ม 7%
+    const vat = afterDiscount - netBeforeVat;
 
     return (
         <div className="receipt-modal-overlay">
             <div className="receipt-modal-content">
-                <div className={`receipt-modal-paper receipt-print-area ${isReturn ? "return" : "sale"}`}>
+                <div
+                    className={`receipt-modal-paper receipt-print-area ${isReturn ? "return" : "sale"
+                        }`}
+                >
                     {/* 🏪 Header */}
                     <div className="receipt-modal-header">
                         <h3 className={`receipt-type-title ${isReturn ? "return" : "sale"}`}>
-                            {isReturn ? "🔁 ใบเสร็จคืนสินค้า" : "🧾 ใบเสร็จการขาย"}
+                            {isReturn ? "ใบเสร็จคืนสินค้า" : "ใบเสร็จการขาย"}
                         </h3>
                         <h2 className="receipt-store-name">EazyPOS Store</h2>
                         <p className="receipt-store-branch">สาขา ศรีเจริญ</p>
@@ -53,17 +64,12 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ receipt, onClose }) => {
 
                     {/* 📜 ข้อมูลใบเสร็จ */}
                     <div className="receipt-info-inline">
-                        {payment?.saleId && (
-                            <p>
-                                รหัสการขาย: {payment.saleId}
-                            </p>
-                        )}
+                        {payment?.saleId && <p>รหัสการขาย: {payment.saleId}</p>}
                         <p>
-                            วันที่: {formatThaiDateTime(payment?.createdAt ?? receipt.timestamp)}
+                            วันที่:{" "}
+                            {formatThaiDateTime(payment?.createdAt ?? receipt.timestamp)}
                         </p>
-                        <p>
-                            พนักงาน: {receipt.employeeName ?? "ไม่ระบุ"}
-                        </p>
+                        <p>พนักงาน: {receipt.employeeName ?? "ไม่ระบุ"}</p>
                         <p>
                             วิธีชำระ: {payment?.paymentMethod ?? receipt.paymentMethod}
                         </p>
@@ -77,7 +83,10 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ receipt, onClose }) => {
                     {/* 🛒 รายการสินค้า */}
                     <div className="receipt-items-list">
                         {receipt.items.map((item, index) => (
-                            <div key={item._id || item.barcode || index} className="receipt-item-row">
+                            <div
+                                key={item._id || item.barcode || index}
+                                className="receipt-item-row"
+                            >
                                 <span className="receipt-item-name">
                                     {item.name} x {item.quantity}
                                 </span>
@@ -86,7 +95,6 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ receipt, onClose }) => {
                                 </span>
                             </div>
                         ))}
-
                     </div>
 
                     <hr className="receipt-separator" />
@@ -94,16 +102,8 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ receipt, onClose }) => {
                     {/* 💰 สรุปยอด */}
                     <div className="receipt-summary">
                         <p>
-                            <span>ยอดก่อนภาษี</span>
-                            <strong>
-                                {subtotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} ฿
-                            </strong>
-                        </p>
-                        <p>
-                            <span>ภาษีมูลค่าเพิ่ม (VAT 7%)</span>
-                            <strong>
-                                {vat.toLocaleString(undefined, { maximumFractionDigits: 2 })} ฿
-                            </strong>
+                            <span>ยอดรวมก่อนส่วนลด</span>
+                            <strong>{beforeDiscount.toLocaleString()} ฿</strong>
                         </p>
                         {discount > 0 && (
                             <p>
@@ -111,13 +111,36 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ receipt, onClose }) => {
                                 <strong>-{discount.toLocaleString()} ฿</strong>
                             </p>
                         )}
+                        <p>
+                            <span>ยอดหลังหักส่วนลด (รวม VAT)</span>
+                            <strong>{afterDiscount.toLocaleString()} ฿</strong>
+                        </p>
+                        <p>
+                            <span>ยอดก่อนภาษี</span>
+                            <strong>
+                                {netBeforeVat.toLocaleString(undefined, {
+                                    maximumFractionDigits: 2,
+                                })} ฿
+                            </strong>
+                        </p>
+                        <p>
+                            <span>ภาษีมูลค่าเพิ่ม (VAT 7%)</span>
+                            <strong>
+                                {vat.toLocaleString(undefined, {
+                                    maximumFractionDigits: 2,
+                                })} ฿
+                            </strong>
+                        </p>
                         <p className={`receipt-total ${isReturn ? "negative" : ""}`}>
                             <span>ยอดสุทธิ</span>
                             <strong>
                                 {isReturn ? "-" : ""}
-                                {netTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} ฿
+                                {afterDiscount.toLocaleString(undefined, {
+                                    maximumFractionDigits: 2,
+                                })} ฿
                             </strong>
                         </p>
+
                         <hr />
                         <p>
                             <span>จำนวนเงินที่จ่าย</span>
@@ -151,5 +174,6 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ receipt, onClose }) => {
         </div>
     );
 };
+
 
 export default ReceiptModal;
