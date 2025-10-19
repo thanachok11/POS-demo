@@ -71,6 +71,7 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
       "defaultCostPrice",
       "defaultSalePrice",
       "isSelfPurchased",
+      "isActive", // ✅ เพิ่มตรงนี้
     ];
 
     const updates = Object.keys(req.body)
@@ -91,7 +92,7 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
 
     res.status(200).json({
       success: true,
-      message: "✅ Product updated successfully (no stock changes)",
+      message: "✅ Product updated successfully (including isActive status)",
       data: updatedProduct,
     });
   } catch (error: any) {
@@ -99,6 +100,7 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 
 export const deleteProduct = async (req: Request, res: Response): Promise<void> => {

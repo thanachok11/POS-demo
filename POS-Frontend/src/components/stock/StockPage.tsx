@@ -304,10 +304,7 @@ const StockPage: React.FC = () => {
           <h2 className="stock-header">📦 จัดการสต็อกสินค้า</h2>
           {loading && <p className="loadingStock">⏳ Loading...</p>}
           {error && <p className="error-message">{error}</p>}
-          {/* 🔢 นับจำนวนสินค้า */}
-          <div className="stock-count">
-            รวมทั้งหมด: <span>{filteredStock.length}</span> รายการ
-          </div>
+
 
           <div className="stock-summary">
             <div className="summary-item available">
@@ -377,7 +374,9 @@ const StockPage: React.FC = () => {
                 <option value={30}>30</option>
               </select>
               <span> รายการต่อหน้า</span>
+
             </div>
+
           </div>
           {/*  Add Product */}
           {user?.role !== "employee" && (
@@ -385,6 +384,10 @@ const StockPage: React.FC = () => {
               <FontAwesomeIcon icon={faPlus} /> เพิ่มสินค้า
             </button>
           )}
+          {/* 🔢 นับจำนวนสินค้า */}
+          <div className="stock-count">
+            รวมทั้งหมด: <span>{filteredStock.length}</span> รายการ
+          </div>
         </div>
         {/*  Table */}
         <div className="stock-table-wrapper">

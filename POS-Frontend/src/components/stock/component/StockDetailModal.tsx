@@ -124,24 +124,32 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({
         threshold: stockData.threshold,
         status: stockData.status,
         notes: stockData.notes,
-        isActive: stockData.isActive,
+        isActive: stockData.isActive, // ✅ เพิ่มค่านี้ไปให้แน่ ๆ
         costPrice: stockData.costPrice,
         salePrice: stockData.salePrice,
         batchNumber: stockData.batchNumber,
         expiryDate: stockData.expiryDate,
       };
 
-      // ✅ ใส่ quantity เฉพาะถ้า supplier เป็น “อื่นๆ”
+      // ✅ เพิ่มการอัปเดตสถานะไปที่ตัวสินค้า (product) ด้วย
+      const updatedProductData: any = {
+        ...formData,
+        isActive: stockData.isActive, // ✅ เพิ่มตรงนี้
+        
+      };
+
+      // ✅ เฉพาะกรณี supplier อื่นๆ ให้ส่ง quantity
       if (checkIsOtherSupplier()) {
         updatedStockData.quantity = stockData.quantity;
       }
 
-      // 🧩 Debug ก่อนส่ง
+      console.log("🧩 updatedProductData:", updatedProductData);
       console.log("🧩 updatedStockData:", updatedStockData);
 
-      // ✅ เริ่มอัปเดตข้อมูลสินค้า
-      await updateProduct(stock.productId._id, formData);
+      // ✅ อัปเดต product (รวมสถานะเปิด/ปิดขาย)
+      await updateProduct(stock.productId._id, updatedProductData);
 
+      // ✅ อัปเดต stock
       if (stock?.barcode) {
         await updateStock(stock.barcode, updatedStockData);
       }
@@ -150,14 +158,23 @@ const StockDetailModal: React.FC<StockDetailModalProps> = ({
       if (image) {
         const formDataUpload = new FormData();
         formDataUpload.append("image", image);
-        await updateProductImage(formDataUpload, token);
+        formDataUpload.append("name", formData.name);
+        formDataUpload.append("description", formData.description);
+        formDataUpload.append("category", formData.category?._id || "");
+        formDataUpload.append("isActive", String(stockData.isActive)); // ✅ แปลงเป็น string เพื่อแน่ใจว่า backend รับได้
+        formDataUpload.append("costPrice", String(stockData.costPrice));
+        formDataUpload.append("salePrice", String(stockData.salePrice));
+
+        await updateProductImage(stock.productId._id, formDataUpload, token); // ✅ ต้องส่ง id ด้วย
+      } else {
+        await updateProduct(stock.productId._id, updatedProductData);
       }
+
 
       onSuccess("✅ บันทึกการแก้ไขสำเร็จ", true);
       onClose();
     } catch (err: any) {
       console.error("❌ Update error:", err);
-
       let errorMessage = "เกิดข้อผิดพลาดในการอัปเดตข้อมูล";
 
       if (err.response) {

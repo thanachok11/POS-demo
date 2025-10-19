@@ -60,7 +60,7 @@ export default function HomePage() {
   const [stockTx, setStockTx] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
 
-  const [filter, setFilter] = useState<RangeKey>("weekly");
+  const [filter, setFilter] = useState<RangeKey>("daily");
   const [selectedDate] = useState<Date>(new Date());
 
   // ----- effects: top-level only -----
@@ -147,7 +147,7 @@ export default function HomePage() {
 
   // 3) Top products (เติมรูป)
   const topProductsFromApi = useMemo(() => {
-    const base = summaryData?.topProducts?.weekly || [];
+    const base = summaryData?.topProducts?.daily || [];
     return base.slice(0, 10).map((p: any) => ({
       name: p.name,
       barcode: p.barcode,
@@ -169,8 +169,8 @@ export default function HomePage() {
   }
 
   // ====== เส้นรายชั่วโมงวันนี้ ======
-  const weekBuckets = summaryData.weekly || [];
-  const lineData = weekBuckets.map((b: any) => ({
+  const dayBuckets = summaryData.daily || [];
+  const lineData = dayBuckets.map((b: any) => ({
     label:
       b?.hour !== undefined
         ? `${String(b.hour).padStart(2, "0")}:00`
@@ -263,7 +263,7 @@ export default function HomePage() {
 
           {/* เส้นรายชั่วโมง */}
           <section className="panel card-like area-receipt">
-            <h2 className="section-title">กราฟยอดขายรายสัปดาห์</h2>
+            <h2 className="section-title">กราฟยอดขายวันนี้ (รายชั่วโมง)</h2>
             <div className="chart-rect">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={lineData}>
@@ -331,8 +331,8 @@ export default function HomePage() {
             <div className="kpi-val">
               ฿
               {Number(
-                summaryData.summary?.weekly?.netSales ??
-                  summaryData.summary?.weekly?.totalSales ??
+                summaryData.summary?.daily?.netSales ??
+                  summaryData.summary?.daily?.totalSales ??
                   0
               ).toLocaleString()}
             </div>
@@ -340,13 +340,13 @@ export default function HomePage() {
           <div className="kpi card-like area-kpi2">
             <div className="kpi-head">จำนวนที่ขาย</div>
             <div className="kpi-val">
-              {Number(summaryData.summary?.weekly?.totalQuantity ?? 0).toLocaleString()} ชิ้น
+              {Number(summaryData.summary?.daily?.totalQuantity ?? 0).toLocaleString()} ชิ้น
             </div>
           </div>
           <div className="kpi card-like area-kpi3">
             <div className="kpi-head">กำไรรวม</div>
             <div className="kpi-val">
-              ฿{Number(summaryData.summary?.weekly?.totalProfit ?? 0).toLocaleString()}
+              ฿{Number(summaryData.summary?.daily?.totalProfit ?? 0).toLocaleString()}
             </div>
           </div>
           <div className="kpi card-like area-kpi4">

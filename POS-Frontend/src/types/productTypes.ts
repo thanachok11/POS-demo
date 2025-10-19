@@ -5,6 +5,7 @@ export interface Category {
 
 export interface Product {
     _id: string;
+    isActive:boolean;
     barcode: string;
     name: string;
     price: number;

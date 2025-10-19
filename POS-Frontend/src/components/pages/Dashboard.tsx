@@ -1,30 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, lazy, Suspense } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { th } from "date-fns/locale";
-import { Line } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
 import "../../styles/page/POSDashboard.css";
+import { Line } from "react-chartjs-2";
 import { fetchSalesSummary } from "../../api/receipt/receiptApi";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+// ✅ Lazy Load Component
+const SalesSummaryChart = lazy(() => import("./SalesSummaryChart"));
 
 type RangeKey = "daily" | "weekly" | "monthly";
 
@@ -143,9 +126,9 @@ export default function SalesSummary() {
       <div className="dashboard-filters">
         {(["daily", "weekly", "monthly"] as RangeKey[]).map((type) => (
           <button
+            type="button"
             key={type}
             className={filter === type ? "active" : ""}
-            type="button"
             onClick={() => setFilter(type)}
           >
             {type === "daily"
