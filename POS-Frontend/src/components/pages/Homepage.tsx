@@ -480,35 +480,101 @@ export default function HomePage() {
       ? "กราฟยอดขายสัปดาห์นี้ (รายวัน)"
       : "กราฟยอดขายเดือนนี้ (รายสัปดาห์)";
 
-  const rangeSeries = Array.isArray(summaryData?.[filter])
-    ? summaryData[filter]
-    : [];
-  const lineData = (rangeSeries as any[])
-    .map((entry: any) => {
-      const iso = entry?.formattedDate?.iso || entry?.date;
-      const baseDate = iso ? toBangkokDate(new Date(iso)) : null;
-      if (!baseDate) return null;
-      let label: string;
-      let sortValue: number;
-      if (filter === "daily") {
-        const hour =
-          typeof entry?.hour === "number" ? entry.hour : baseDate.getHours();
-        label = `${String(hour).padStart(2, "0")}:00`;
-        sortValue = hour;
-      } else {
-        label = baseDate.toLocaleDateString("th-TH", {
-          day: "2-digit",
-          month: "short",
-        });
-        sortValue = baseDate.getTime();
-      }
-      const value = Number(entry?.netSales ?? entry?.totalSales ?? 0);
-      return { label, value, sortValue };
-    })
-    .filter(Boolean) as Array<{ label: string; value: number; sortValue: number }>;
-  const sortedLineData = lineData
-    .sort((a, b) => a.sortValue - b.sortValue)
-    .map((item) => ({ label: item.label, value: item.value }));
+  const rangeEntries = useMemo(() => {
+    const raw = Array.isArray(summaryData?.[filter]) ? summaryData[filter] : [];
+    return raw
+      .map((entry: any, idx: number) => {
+        const iso = entry?.formattedDate?.iso || entry?.date || entry?.day;
+        const baseDate = iso ? toBangkokDate(new Date(iso)) : null;
+        if (!baseDate) return null;
+        return {
+          entry,
+          baseDate,
+          index: idx,
+          sales: Number(entry?.netSales ?? entry?.totalSales ?? entry?.sales ?? 0),
+          profit: Number(entry?.totalProfit ?? entry?.profit ?? entry?.netProfit ?? 0),
+          quantity: Number(
+            entry?.totalQuantity ??
+              entry?.quantity ??
+              entry?.soldQuantity ??
+              entry?.units ??
+              0
+          ),
+        };
+      })
+      .filter(
+        (item): item is {
+          entry: any;
+          baseDate: Date;
+          index: number;
+          sales: number;
+          profit: number;
+          quantity: number;
+        } => !!item && isDateInRange(item.baseDate, currentRange)
+      );
+  }, [summaryData, filter, currentRangeKey]);
+
+  const hasRangeEntries = rangeEntries.length > 0;
+
+  const aggregatedTotals = useMemo(
+    () =>
+      rangeEntries.reduce(
+        (acc, item) => {
+          acc.sales += item.sales;
+          acc.profit += item.profit;
+          acc.quantity += item.quantity;
+          return acc;
+        },
+        { sales: 0, profit: 0, quantity: 0 }
+      ),
+    [rangeEntries]
+  );
+
+  const lineChartData = useMemo(() => {
+    return rangeEntries
+      .map((item) => {
+        let label: string;
+        let sortValue: number;
+        if (filter === "daily") {
+          const hour =
+            typeof item.entry?.hour === "number"
+              ? item.entry.hour
+              : item.baseDate.getHours();
+          label = `${String(hour).padStart(2, "0")}:00`;
+          const marker = new Date(item.baseDate);
+          marker.setHours(hour, 0, 0, 0);
+          sortValue = marker.getTime();
+        } else if (filter === "weekly") {
+          label = item.baseDate.toLocaleDateString("th-TH", {
+            day: "2-digit",
+            month: "short",
+          });
+          sortValue = item.baseDate.getTime();
+        } else {
+          label =
+            item.entry?.weekLabel ||
+            item.entry?.label ||
+            item.baseDate.toLocaleDateString("th-TH", {
+              day: "2-digit",
+              month: "short",
+            });
+          sortValue = item.entry?.weekIndex ?? item.index ?? item.baseDate.getTime();
+        }
+        return { label, value: item.sales, sortValue };
+      })
+      .sort((a, b) => a.sortValue - b.sortValue)
+      .map((item) => ({ label: item.label, value: item.value }));
+  }, [rangeEntries, filter]);
+
+  const netSalesTotal = hasRangeEntries
+    ? aggregatedTotals.sales
+    : Number(summaryForRange?.netSales ?? summaryForRange?.totalSales ?? 0);
+  const quantityTotal = hasRangeEntries
+    ? aggregatedTotals.quantity
+    : Number(summaryForRange?.totalQuantity ?? summaryForRange?.quantity ?? 0);
+  const profitTotal = hasRangeEntries
+    ? aggregatedTotals.profit
+    : Number(summaryForRange?.totalProfit ?? summaryForRange?.profit ?? 0);
 
   const paymentStats = useMemo(() => {
     let sumAmount = 0;
@@ -615,15 +681,39 @@ export default function HomePage() {
     [poPie]
   );
 
-  const stockRows = useMemo(
-    () =>
-      [...(stockTx || [])].sort(
+  const stockTimeline = useMemo(() => {
+    return [...(stockTx || [])]
+      .sort(
         (a, b) =>
           new Date(b.createdAt || 0).getTime() -
           new Date(a.createdAt || 0).getTime()
-      ),
-    [stockTx]
-  );
+      )
+      .slice(0, 12)
+      .map((row) => {
+        const stamp = row.createdAt ? toBangkokDate(new Date(row.createdAt)) : null;
+        const when = stamp
+          ? stamp.toLocaleString("th-TH", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "-";
+        return {
+          id: row.id,
+          when,
+          tone: row.tone || "adjust",
+          type: row.type || "-",
+          typeLabel: row.typeLabel || row.type || "-",
+          name: row.productName || "-",
+          barcode: row.barcode && row.barcode !== "-" ? row.barcode : "",
+          reference: row.reference || "-",
+          quantity: Number(row.quantity ?? 0),
+          userName: row.userName?.trim() ? row.userName : "",
+        };
+      });
+  }, [stockTx]);
 
   // ----- จากนี้จะมี early return ได้ เพราะ hooks ทั้งหมดข้างบนถูกเรียกทุกครั้งแล้ว -----
   if (loading) {
@@ -652,7 +742,7 @@ export default function HomePage() {
             <h2 className="section-title">{lineTitle}</h2>
             <div className="chart-rect">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={sortedLineData}>
+                <LineChart data={lineChartData}>
                   <defs>
                     <linearGradient id={GRADIENTS.purple.id} x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor={GRADIENTS.purple.from} stopOpacity={0.9} />
@@ -732,24 +822,16 @@ export default function HomePage() {
           <div className="kpi card-like area-kpi1">
             <div className="kpi-head">ยอดขายสุทธิ ({rangeLabel})</div>
             <div className="kpi-val">
-              {formatCurrency(
-                Number(
-                  summaryForRange?.netSales ??
-                    summaryForRange?.totalSales ??
-                    0
-                )
-              )}
+              {formatCurrency(netSalesTotal)}
             </div>
           </div>
           <div className="kpi card-like area-kpi2">
             <div className="kpi-head">จำนวนที่ขาย ({rangeLabel})</div>
-            <div className="kpi-val">
-              {Number(summaryForRange?.totalQuantity ?? 0).toLocaleString()} ชิ้น
-            </div>
+            <div className="kpi-val">{Number(quantityTotal).toLocaleString()} ชิ้น</div>
           </div>
           <div className="kpi card-like area-kpi3">
             <div className="kpi-head">กำไรรวม ({rangeLabel})</div>
-            <div className="kpi-val">{formatCurrency(Number(summaryForRange?.totalProfit ?? 0))}</div>
+            <div className="kpi-val">{formatCurrency(profitTotal)}</div>
           </div>
           <div className="kpi card-like area-kpi4">
             <div className="kpi-head">ค่าใช้จ่าย PO (QC ผ่าน {rangeLabel})</div>
@@ -759,104 +841,33 @@ export default function HomePage() {
           {/* Stock transactions */}
           <section className="panel card-like area-timeline">
             <h2 className="section-title">Recent Stock Transaction</h2>
-            <div className="table-scroll">
-              <table className="nice-table stock-table">
-                <thead>
-                  <tr>
-                    <th style={{ minWidth: 150 }}>วันที่</th>
-                    <th style={{ minWidth: 120 }}>ประเภท</th>
-                    <th style={{ minWidth: 180 }}>สินค้า</th>
-                    <th style={{ minWidth: 90, textAlign: "right" }}>จำนวน</th>
-                    <th style={{ minWidth: 130, textAlign: "right" }}>ต้นทุน/หน่วย</th>
-                    <th style={{ minWidth: 130, textAlign: "right" }}>ราคาขาย/หน่วย</th>
-                    <th style={{ minWidth: 160 }}>คลังสินค้า</th>
-                    <th style={{ minWidth: 160 }}>ซัพพลายเออร์</th>
-                    <th style={{ minWidth: 170 }}>อ้างอิง</th>
-                    <th style={{ minWidth: 140 }}>ผู้บันทึก</th>
-                    <th style={{ minWidth: 200 }}>หมายเหตุ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stockRows.map((row) => {
-                    const stamp = row.createdAt
-                      ? toBangkokDate(new Date(row.createdAt))
-                      : null;
-                    const formattedDate = stamp
-                      ? stamp.toLocaleString("th-TH", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : "-";
-                    const quantityDisplay = Number(row.quantity || 0).toLocaleString(
-                      "th-TH"
-                    );
-                    return (
-                      <tr key={row.id}>
-                        <td>{formattedDate}</td>
-                        <td>
-                          <span className={`type-pill ${row.tone}`}>{row.typeLabel}</span>
-                          <span className="subtext">{row.type || "-"}</span>
-                        </td>
-                        <td>
-                          <div className="primary-text">{row.productName || "-"}</div>
-                          <span className="subtext">
-                            {row.barcode && row.barcode !== "-"
-                              ? row.barcode
-                              : "ไม่มีบาร์โค้ด"}
-                          </span>
-                        </td>
-                        <td className={`qty-cell ${row.tone}`} style={{ textAlign: "right" }}>
-                          {quantityDisplay}
-                        </td>
-                        <td style={{ textAlign: "right" }}>
-                          {row.costPrice > 0 ? formatCurrency(row.costPrice) : "-"}
-                        </td>
-                        <td style={{ textAlign: "right" }}>
-                          {row.salePrice > 0 ? formatCurrency(row.salePrice) : "-"}
-                        </td>
-                        <td>
-                          <div className="primary-text">
-                            {row.locationName && row.locationName !== "-"
-                              ? row.locationName
-                              : "-"}
-                          </div>
-                        </td>
-                        <td>
-                          <div className="primary-text">
-                            {row.supplierName && row.supplierName !== "-"
-                              ? row.supplierName
-                              : "-"}
-                          </div>
-                        </td>
-                        <td>
-                          <div className="primary-text">{row.reference || "-"}</div>
-                          {row.poNumber && row.poNumber !== "-" && (
-                            <span className="subtext">PO: {row.poNumber}</span>
-                          )}
-                        </td>
-                        <td>
-                          <div className="primary-text">
-                            {row.userName?.trim() ? row.userName : "-"}
-                          </div>
-                        </td>
-                        <td>
-                          {row.notes?.trim() ? row.notes : <span className="muted">-</span>}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {stockRows.length === 0 && (
-                    <tr>
-                      <td colSpan={11} style={{ textAlign: "center", color: "#6b7280" }}>
-                        — ไม่มีข้อมูล —
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+            <div className="timeline">
+              {stockTimeline.map((item) => {
+                const toneClass = item.tone === "out" ? "danger" : item.tone === "in" ? "success" : "info";
+                return (
+                  <div key={item.id} className="timeline-item">
+                    <div className={`dot ${item.tone}`} />
+                    <div className="content">
+                      <div className="line1">
+                        <span className="when">{item.when}</span>
+                        <span className={`pill ${toneClass}`}>{item.typeLabel}</span>
+                      </div>
+                      <div className="line2">
+                        <span className="name">{item.name}</span>
+                        <span className="qty">× {Number(item.quantity).toLocaleString()}</span>
+                      </div>
+                      <div className="line3 muted">
+                        อ้างอิง: {item.reference}
+                        {item.barcode ? ` · บาร์โค้ด: ${item.barcode}` : ""}
+                      </div>
+                      {item.userName && (
+                        <div className="line4 muted">ผู้บันทึก: {item.userName}</div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+              {stockTimeline.length === 0 && <div className="muted">— ไม่มีข้อมูล —</div>}
             </div>
           </section>
 
