@@ -688,7 +688,6 @@ export default function HomePage() {
           new Date(b.createdAt || 0).getTime() -
           new Date(a.createdAt || 0).getTime()
       )
-      .slice(0, 12)
       .map((row) => {
         const stamp = row.createdAt ? toBangkokDate(new Date(row.createdAt)) : null;
         const when = stamp
@@ -841,33 +840,35 @@ export default function HomePage() {
           {/* Stock transactions */}
           <section className="panel card-like area-timeline">
             <h2 className="section-title">Recent Stock Transaction</h2>
-            <div className="timeline">
-              {stockTimeline.map((item) => {
-                const toneClass = item.tone === "out" ? "danger" : item.tone === "in" ? "success" : "info";
-                return (
-                  <div key={item.id} className="timeline-item">
-                    <div className={`dot ${item.tone}`} />
-                    <div className="content">
-                      <div className="line1">
-                        <span className="when">{item.when}</span>
-                        <span className={`pill ${toneClass}`}>{item.typeLabel}</span>
+            <div className="timeline-scroll">
+              <div className="timeline">
+                {stockTimeline.map((item) => {
+                  const toneClass = item.tone === "out" ? "danger" : item.tone === "in" ? "success" : "info";
+                  return (
+                    <div key={item.id} className="timeline-item">
+                      <div className={`dot ${item.tone}`} />
+                      <div className="content">
+                        <div className="line1">
+                          <span className="when">{item.when}</span>
+                          <span className={`pill ${toneClass}`}>{item.typeLabel}</span>
+                        </div>
+                        <div className="line2">
+                          <span className="name">{item.name}</span>
+                          <span className="qty">× {Number(item.quantity).toLocaleString()}</span>
+                        </div>
+                        <div className="line3 muted">
+                          อ้างอิง: {item.reference}
+                          {item.barcode ? ` · บาร์โค้ด: ${item.barcode}` : ""}
+                        </div>
+                        {item.userName && (
+                          <div className="line4 muted">ผู้บันทึก: {item.userName}</div>
+                        )}
                       </div>
-                      <div className="line2">
-                        <span className="name">{item.name}</span>
-                        <span className="qty">× {Number(item.quantity).toLocaleString()}</span>
-                      </div>
-                      <div className="line3 muted">
-                        อ้างอิง: {item.reference}
-                        {item.barcode ? ` · บาร์โค้ด: ${item.barcode}` : ""}
-                      </div>
-                      {item.userName && (
-                        <div className="line4 muted">ผู้บันทึก: {item.userName}</div>
-                      )}
                     </div>
-                  </div>
-                );
-              })}
-              {stockTimeline.length === 0 && <div className="muted">— ไม่มีข้อมูล —</div>}
+                  );
+                })}
+                {stockTimeline.length === 0 && <div className="muted">— ไม่มีข้อมูล —</div>}
+              </div>
             </div>
           </section>
 
