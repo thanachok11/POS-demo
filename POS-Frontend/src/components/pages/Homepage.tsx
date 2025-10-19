@@ -28,7 +28,14 @@ import { getProducts } from "../../api/product/productApi";
 
 import TopProductsSlider from "./TopProductsSlider";
 
-const COLORS = ["#6C5CE7", "#00C49F", "#FF6B6B", "#FFA62B", "#5AD8A6", "#845EC2"];
+const COLORS = [
+  "#6C5CE7",
+  "#00C49F",
+  "#FF6B6B",
+  "#FFA62B",
+  "#5AD8A6",
+  "#845EC2",
+];
 const GRADIENTS = {
   purple: { id: "gPurple", from: "#6C5CE7", to: "rgba(108,92,231,0.12)" },
   teal: { id: "gTeal", from: "#00C49F", to: "rgba(0,196,159,0.12)" },
@@ -138,7 +145,9 @@ export default function HomePage() {
 
   const [summaryData, setSummaryData] = useState<any>(null);
   const [payments, setPayments] = useState<PaymentEntry[]>([]);
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrderEntry[]>([]);
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrderEntry[]>(
+    []
+  );
   const [stockTx, setStockTx] = useState<StockTimelineEntry[]>([]);
   const [products, setProducts] = useState<any[]>([]);
 
@@ -149,7 +158,9 @@ export default function HomePage() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      try { setUser(jwtDecode(token)); } catch {}
+      try {
+        setUser(jwtDecode(token));
+      } catch {}
     }
     setLoading(false);
   }, []);
@@ -187,10 +198,7 @@ export default function HomePage() {
                 "-"
             ),
             paymentMethod:
-              item?.paymentMethod ||
-              item?.method ||
-              item?.channel ||
-              "ไม่ระบุ",
+              item?.paymentMethod || item?.method || item?.channel || "ไม่ระบุ",
             amount: sanitizeNumber(
               item?.amount ??
                 item?.total ??
@@ -199,7 +207,10 @@ export default function HomePage() {
                 item?.grandTotal
             ),
             profit: sanitizeNumber(
-              item?.profit ?? item?.netProfit ?? item?.totalProfit ?? item?.margin
+              item?.profit ??
+                item?.netProfit ??
+                item?.totalProfit ??
+                item?.margin
             ),
             employeeName:
               item?.employeeName ||
@@ -208,7 +219,8 @@ export default function HomePage() {
               item?.user?.name ||
               item?.staffName ||
               "-",
-            status: item?.status || item?.state || item?.paymentStatus || "ไม่ระบุ",
+            status:
+              item?.status || item?.state || item?.paymentStatus || "ไม่ระบุ",
             createdAt:
               item?.createdAt ||
               item?.paidAt ||
@@ -265,7 +277,8 @@ export default function HomePage() {
               tx?.docNo ||
               tx?.orderCode ||
               "-",
-            productName: tx?.productName || tx?.itemName || tx?.product?.name || "-",
+            productName:
+              tx?.productName || tx?.itemName || tx?.product?.name || "-",
             quantity: sanitizeNumber(tx?.quantity ?? tx?.qty),
           }));
         setStockTx(stockSanitized);
@@ -330,7 +343,11 @@ export default function HomePage() {
 
   const summaryForRange = summaryData?.summary?.[filter] || {};
   const rangeLabel =
-    filter === "daily" ? "วันนี้" : filter === "weekly" ? "สัปดาห์นี้" : "เดือนนี้";
+    filter === "daily"
+      ? "วันนี้"
+      : filter === "weekly"
+      ? "สัปดาห์นี้"
+      : "เดือนนี้";
   const lineTitle =
     filter === "daily"
       ? "กราฟยอดขายวันนี้ (รายชั่วโมง)"
@@ -363,7 +380,11 @@ export default function HomePage() {
       const value = Number(entry?.netSales ?? entry?.totalSales ?? 0);
       return { label, value, sortValue };
     })
-    .filter(Boolean) as Array<{ label: string; value: number; sortValue: number }>;
+    .filter(Boolean) as Array<{
+    label: string;
+    value: number;
+    sortValue: number;
+  }>;
   const sortedLineData = lineData
     .sort((a, b) => a.sortValue - b.sortValue)
     .map((item) => ({ label: item.label, value: item.value }));
@@ -443,7 +464,10 @@ export default function HomePage() {
   );
 
   const poPie = useMemo(() => {
-    const approvedTotalsByProduct: Record<string, { name: string; value: number }> = {};
+    const approvedTotalsByProduct: Record<
+      string,
+      { name: string; value: number }
+    > = {};
     purchaseInRange.forEach((po: any) => {
       const approvedBatches = new Set(
         (po.stockLots || [])
@@ -482,7 +506,9 @@ export default function HomePage() {
             new Date(a.createdAt || 0).getTime()
         )
         .map((t) => {
-          const stamp = t.createdAt ? toBangkokDate(new Date(t.createdAt)) : null;
+          const stamp = t.createdAt
+            ? toBangkokDate(new Date(t.createdAt))
+            : null;
           return {
             when: (stamp || new Date()).toLocaleString("th-TH", {
               day: "2-digit",
@@ -501,13 +527,61 @@ export default function HomePage() {
 
   // ----- จากนี้จะมี early return ได้ เพราะ hooks ทั้งหมดข้างบนถูกเรียกทุกครั้งแล้ว -----
   if (loading) {
-    return <div style={{ textAlign: "center", padding: 50 }}>⏳ กำลังตรวจสอบผู้ใช้...</div>;
+    return (
+      <div style={{ textAlign: "center", padding: 50 }}>
+        ⏳ กำลังตรวจสอบผู้ใช้...
+      </div>
+    );
   }
   if (!user) {
-    return <div style={{ textAlign: "center", padding: 50 }}>กรุณาเข้าสู่ระบบ</div>;
+    return (
+      <div className="display">
+        <div className="home-container">
+          {/* ส่วนข้อความต้อนรับ */}
+          <div className="text-section">
+            <h1 className="welcome-title">ยินดีต้อนรับสู่ระบบ POS</h1>
+            <p className="description">
+              ระบบที่ช่วยให้การขายของคุณเป็นเรื่องง่ายและสะดวกยิ่งขึ้น
+              รองรับการจัดการสินค้า รายงานยอดขาย และสต็อกสินค้าในที่เดียว!
+            </p>
+
+            {/* จุดเด่นของระบบ */}
+            <div className="features">
+              <div className="feature-item">
+                ✅ <strong>จัดการสินค้า:</strong> เพิ่ม ลบ
+                แก้ไขข้อมูลสินค้าได้ง่าย
+              </div>
+              <div className="feature-item">
+                📊 <strong>รายงานยอดขาย:</strong> ดูสรุปยอดขายแบบเรียลไทม์
+              </div>
+              <div className="feature-item">
+                📦 <strong>ระบบสต็อก:</strong>{" "}
+                ควบคุมปริมาณสินค้าให้อยู่ในระดับที่เหมาะสม
+              </div>
+              <div className="feature-item">
+                💳 <strong>รองรับการชำระเงิน:</strong> รับชำระเงินหลายช่องทาง
+              </div>
+            </div>
+          </div>
+
+          {/* ส่วนรูปภาพประกอบ */}
+          <div className="image-section">
+            <img
+              className="pos-image"
+              src="https://res.cloudinary.com/dboau6axv/image/upload/v1738153705/pos_ozpgmv.jpg"
+              alt="POS System"
+            />
+          </div>
+        </div>
+      </div>
+    );
   }
   if (!summaryData) {
-    return <div style={{ textAlign: "center", padding: 50 }}>⏳ กำลังโหลดข้อมูล...</div>;
+    return (
+      <div style={{ textAlign: "center", padding: 50 }}>
+        ⏳ กำลังโหลดข้อมูล...
+      </div>
+    );
   }
 
   // ====== UI ======
@@ -518,7 +592,11 @@ export default function HomePage() {
           {/* Top 5 */}
           <section className="panel card-like area-top5">
             <h2 className="section-title">สินค้าขายดี (Top 5)</h2>
-            <TopProductsSlider items={topProductsFromApi.slice(0, 5)} width={200} height={150} />
+            <TopProductsSlider
+              items={topProductsFromApi.slice(0, 5)}
+              width={200}
+              height={150}
+            />
           </section>
 
           {/* เส้นรายชั่วโมง */}
@@ -528,17 +606,44 @@ export default function HomePage() {
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={sortedLineData}>
                   <defs>
-                    <linearGradient id={GRADIENTS.purple.id} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={GRADIENTS.purple.from} stopOpacity={0.9} />
-                      <stop offset="100%" stopColor={GRADIENTS.purple.to} stopOpacity={0.4} />
+                    <linearGradient
+                      id={GRADIENTS.purple.id}
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="0%"
+                        stopColor={GRADIENTS.purple.from}
+                        stopOpacity={0.9}
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor={GRADIENTS.purple.to}
+                        stopOpacity={0.4}
+                      />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="label" />
                   <YAxis />
-                  <Tooltip formatter={(v: number) => formatCurrency(Number(v))} />
-                  <Line type="monotone" dataKey="value" stroke="#6C5CE7" strokeWidth={2} dot={false} />
-                  <Area type="monotone" dataKey="value" stroke="none" fill="url(#gPurple)" />
+                  <Tooltip
+                    formatter={(v: number) => formatCurrency(Number(v))}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#6C5CE7"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="value"
+                    stroke="none"
+                    fill="url(#gPurple)"
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -546,11 +651,15 @@ export default function HomePage() {
 
           {/* พาย 1: Payments */}
           <section className="panel card-like area-pie1">
-            <h2 className="section-title">Payment: รายได้ & กำไรรวม ({rangeLabel})</h2>
+            <h2 className="section-title">
+              Payment: รายได้ & กำไรรวม ({rangeLabel})
+            </h2>
             <div className="pie-rect">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Tooltip formatter={(v: number) => formatCurrency(Number(v))} />
+                  <Tooltip
+                    formatter={(v: number) => formatCurrency(Number(v))}
+                  />
                   <Legend verticalAlign="bottom" height={36} />
                   <Pie
                     data={paymentPie}
@@ -578,11 +687,15 @@ export default function HomePage() {
 
           {/* พาย 2: PO (QC ผ่าน) */}
           <section className="panel card-like area-pie2">
-            <h2 className="section-title">Purchase Orders (QC ผ่าน {rangeLabel})</h2>
+            <h2 className="section-title">
+              Purchase Orders (QC ผ่าน {rangeLabel})
+            </h2>
             <div className="pie-rect">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Tooltip formatter={(v: number) => formatCurrency(Number(v))} />
+                  <Tooltip
+                    formatter={(v: number) => formatCurrency(Number(v))}
+                  />
                   <Legend verticalAlign="bottom" height={36} />
                   <Pie
                     data={poPie}
@@ -608,9 +721,7 @@ export default function HomePage() {
             <div className="kpi-val">
               {formatCurrency(
                 Number(
-                  summaryForRange?.netSales ??
-                    summaryForRange?.totalSales ??
-                    0
+                  summaryForRange?.netSales ?? summaryForRange?.totalSales ?? 0
                 )
               )}
             </div>
@@ -618,12 +729,15 @@ export default function HomePage() {
           <div className="kpi card-like area-kpi2">
             <div className="kpi-head">จำนวนที่ขาย ({rangeLabel})</div>
             <div className="kpi-val">
-              {Number(summaryForRange?.totalQuantity ?? 0).toLocaleString()} ชิ้น
+              {Number(summaryForRange?.totalQuantity ?? 0).toLocaleString()}{" "}
+              ชิ้น
             </div>
           </div>
           <div className="kpi card-like area-kpi3">
             <div className="kpi-head">กำไรรวม ({rangeLabel})</div>
-            <div className="kpi-val">{formatCurrency(Number(summaryForRange?.totalProfit ?? 0))}</div>
+            <div className="kpi-val">
+              {formatCurrency(Number(summaryForRange?.totalProfit ?? 0))}
+            </div>
           </div>
           <div className="kpi card-like area-kpi4">
             <div className="kpi-head">ค่าใช้จ่าย PO (QC ผ่าน {rangeLabel})</div>
@@ -636,11 +750,19 @@ export default function HomePage() {
             <div className="timeline">
               {timeline.map((t, i) => (
                 <div key={i} className="timeline-item">
-                  <div className={`dot ${t.type.includes("OUT") ? "out" : "in"}`} />
+                  <div
+                    className={`dot ${t.type.includes("OUT") ? "out" : "in"}`}
+                  />
                   <div className="content">
                     <div className="line1">
                       <span className="when">{t.when}</span>
-                      <span className={`pill ${t.type.includes("OUT") ? "danger" : "success"}`}>{t.type}</span>
+                      <span
+                        className={`pill ${
+                          t.type.includes("OUT") ? "danger" : "success"
+                        }`}
+                      >
+                        {t.type}
+                      </span>
                     </div>
                     <div className="line2">
                       <span className="name">{t.name}</span>
@@ -650,33 +772,62 @@ export default function HomePage() {
                   </div>
                 </div>
               ))}
-              {timeline.length === 0 && <div className="muted">— ไม่มีข้อมูล —</div>}
+              {timeline.length === 0 && (
+                <div className="muted">— ไม่มีข้อมูล —</div>
+              )}
             </div>
           </section>
 
           {/* Payment history (วันนี้) + ตาราง */}
           <section className="panel card-like area-payment">
-            <h2 className="section-title">Payment (ประวัติการขาย{rangeLabel})</h2>
+            <h2 className="section-title">
+              Payment (ประวัติการขาย{rangeLabel})
+            </h2>
             <div className="chart-rect" style={{ marginBottom: 10 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={paySeries}>
                   <defs>
-                    <linearGradient id={GRADIENTS.teal.id} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={GRADIENTS.teal.from} stopOpacity={0.9} />
-                      <stop offset="100%" stopColor={GRADIENTS.teal.to} stopOpacity={0.4} />
+                    <linearGradient
+                      id={GRADIENTS.teal.id}
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="0%"
+                        stopColor={GRADIENTS.teal.from}
+                        stopOpacity={0.9}
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor={GRADIENTS.teal.to}
+                        stopOpacity={0.4}
+                      />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="hour" />
                   <YAxis />
-                  <Tooltip formatter={(v: number) => formatCurrency(Number(v))} />
-                  <Area type="monotone" dataKey="amount" stroke="#00C49F" fill="url(#gTeal)" strokeWidth={2} />
+                  <Tooltip
+                    formatter={(v: number) => formatCurrency(Number(v))}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="amount"
+                    stroke="#00C49F"
+                    fill="url(#gTeal)"
+                    strokeWidth={2}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
 
             <div style={{ overflow: "auto", maxHeight: 240 }}>
-              <table className="nice-table" style={{ width: "100%", fontSize: 14 }}>
+              <table
+                className="nice-table"
+                style={{ width: "100%", fontSize: 14 }}
+              >
                 <thead>
                   <tr>
                     <th>เวลา</th>
@@ -695,21 +846,32 @@ export default function HomePage() {
                         {(() => {
                           const stamp = p.createdAt || p.updatedAt;
                           return stamp
-                            ? toBangkokDate(new Date(stamp)).toLocaleString("th-TH")
+                            ? toBangkokDate(new Date(stamp)).toLocaleString(
+                                "th-TH"
+                              )
                             : "-";
                         })()}
                       </td>
                       <td>{p.saleId}</td>
                       <td>{p.paymentMethod}</td>
                       <td>{p.employeeName}</td>
-                      <td style={{ textAlign: "right" }}>{formatCurrency(Number(p.amount || 0))}</td>
-                      <td style={{ textAlign: "right" }}>{formatCurrency(Number(p.profit || 0))}</td>
+                      <td style={{ textAlign: "right" }}>
+                        {formatCurrency(Number(p.amount || 0))}
+                      </td>
+                      <td style={{ textAlign: "right" }}>
+                        {formatCurrency(Number(p.profit || 0))}
+                      </td>
                       <td>{p.status}</td>
                     </tr>
                   ))}
                   {paymentsInRange.length === 0 && (
                     <tr>
-                      <td colSpan={7} style={{ textAlign: "center", color: "#6b7280" }}>— ไม่มีรายการ —</td>
+                      <td
+                        colSpan={7}
+                        style={{ textAlign: "center", color: "#6b7280" }}
+                      >
+                        — ไม่มีรายการ —
+                      </td>
                     </tr>
                   )}
                 </tbody>
