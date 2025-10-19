@@ -62,7 +62,17 @@ type StockTimelineEntry = {
   type: string;
   reference: string;
   productName: string;
+  barcode: string;
   quantity: number;
+  costPrice: number;
+  salePrice: number;
+  locationName: string;
+  supplierName: string;
+  notes: string;
+  userName: string;
+  tone: "in" | "out" | "adjust";
+  typeLabel: string;
+  poNumber: string;
 };
 
 const sanitizeNumber = (value: any) => {
@@ -70,18 +80,90 @@ const sanitizeNumber = (value: any) => {
   return Number.isFinite(numeric) ? numeric : 0;
 };
 
-// helper: เทียบวันตามโซนเวลาไทย
-function isSameBangkokDay(d: Date, target: Date) {
-  const toBKK = (x: Date) =>
-    new Date(x.toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
-  const a = toBKK(d);
-  const b = toBKK(target);
+const toBangkokDate = (value: Date) =>
+  new Date(value.toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
+
+const getRangeBounds = (range: RangeKey, selected: Date) => {
+  const base = toBangkokDate(selected);
+  if (range === "daily") {
+    const start = new Date(base);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
+    return { start, end };
+  }
+
+  if (range === "weekly") {
+    const start = new Date(base);
+    start.setHours(0, 0, 0, 0);
+    const day = start.getDay();
+    const diff = (day + 6) % 7; // shift so that Monday is the first day of the week
+    start.setDate(start.getDate() - diff);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 7);
+    return { start, end };
+  }
+
+  const start = new Date(base.getFullYear(), base.getMonth(), 1);
+  const end = new Date(base.getFullYear(), base.getMonth() + 1, 1);
+  return { start, end };
+};
+
+const isDateInRange = (date: Date, range: { start: Date; end: Date }) =>
+  date >= range.start && date < range.end;
+
+const formatCurrency = (value: number) =>
+  `฿${Number(value || 0).toLocaleString("th-TH", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })}`;
+
+const RADIAN = Math.PI / 180;
+const renderPieValueLabel = (props: any) => {
+  const { cx, cy, midAngle, innerRadius, outerRadius, name, value } = props;
+  if (!outerRadius) return null;
+  const radius = innerRadius + (outerRadius - innerRadius) * 1.05;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+  const displayValue = `${name}: ${formatCurrency(Number(value || 0))}`;
   return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
+    <text
+      x={x}
+      y={y}
+      fill="#0f172a"
+      fontSize={12}
+      fontWeight={600}
+      textAnchor={x > cx ? "start" : "end"}
+      dominantBaseline="central"
+    >
+      {displayValue}
+    </text>
   );
-}
+};
+
+const STOCK_TYPE_META: Record<
+  string,
+  { label: string; tone: "in" | "out" | "adjust" }
+> = {
+  RESTOCK: { label: "รับเข้า", tone: "in" },
+  RETURN: { label: "รับคืน", tone: "in" },
+  TRANSFER_IN: { label: "โอนเข้า", tone: "in" },
+  TRANSFER_OUT: { label: "โอนออก", tone: "out" },
+  SALE: { label: "ขายออก", tone: "out" },
+  ISSUE: { label: "ตัดสต็อก", tone: "out" },
+  DAMAGE: { label: "สินค้าเสียหาย", tone: "out" },
+  ADJUST: { label: "ปรับสต็อก", tone: "adjust" },
+};
+
+const resolveStockMeta = (rawType: string) => {
+  const normalized = (rawType || "").toString().trim().toUpperCase();
+  return (
+    STOCK_TYPE_META[normalized] || {
+      label: normalized || "ไม่ระบุ",
+      tone: "adjust" as const,
+    }
+  );
+};
 
 export default function HomePage() {
   // ----- states -----
@@ -94,7 +176,7 @@ export default function HomePage() {
   const [stockTx, setStockTx] = useState<StockTimelineEntry[]>([]);
   const [products, setProducts] = useState<any[]>([]);
 
-  const [filter, setFilter] = useState<RangeKey>("daily");
+  const [filter] = useState<RangeKey>("weekly");
   const [selectedDate] = useState<Date>(new Date());
 
   // ----- effects: top-level only -----
@@ -206,20 +288,128 @@ export default function HomePage() {
           : [];
         const stockSanitized: StockTimelineEntry[] = txRaw
           .filter(Boolean)
-          .map((tx: any, index: number) => ({
-            id: String(tx?._id || tx?.id || tx?.reference || index),
-            createdAt: tx?.createdAt || tx?.timestamp || tx?.date,
-            type: (tx?.type || tx?.action || tx?.direction || "").toString(),
-            reference:
+          .map((tx: any, index: number) => {
+            const product =
+              tx?.productId ||
+              tx?.product ||
+              tx?.stockId?.productId ||
+              tx?.stockLotId?.productId ||
+              {};
+            const stock = tx?.stockId || {};
+            const lot = tx?.stockLotId || {};
+            const user = tx?.userId || tx?.user || {};
+            const typeRaw = (tx?.type || tx?.action || tx?.direction || "").toString();
+            const { label: typeLabel, tone } = resolveStockMeta(typeRaw);
+            const baseQty = sanitizeNumber(
+              tx?.quantity ?? tx?.qty ?? lot?.quantity ?? stock?.quantity
+            );
+
+            const locationName =
+              tx?.location?.name ||
+              tx?.locationName ||
+              stock?.location?.name ||
+              stock?.locationName ||
+              (typeof stock?.location === "string" ? stock.location : undefined) ||
+              lot?.location?.name ||
+              lot?.locationName ||
+              "";
+
+            const supplierName =
+              tx?.supplierName ||
+              tx?.supplier ||
+              stock?.supplier ||
+              stock?.supplierName ||
+              (typeof stock?.supplierId === "object"
+                ? stock?.supplierId?.name
+                : stock?.supplierId) ||
+              product?.supplierName ||
+              product?.supplier ||
+              "";
+
+            const poNumber =
+              tx?.purchaseOrderNumber ||
+              tx?.poNumber ||
+              tx?.poCode ||
+              lot?.purchaseOrderNumber ||
+              lot?.poNumber ||
+              "";
+
+            const reference =
               tx?.reference ||
               tx?.referenceId ||
-              tx?.poCode ||
               tx?.docNo ||
               tx?.orderCode ||
-              "-",
-            productName: tx?.productName || tx?.itemName || tx?.product?.name || "-",
-            quantity: sanitizeNumber(tx?.quantity ?? tx?.qty),
-          }));
+              tx?.orderId ||
+              poNumber ||
+              lot?.batchNumber ||
+              "-";
+
+            const costPrice = sanitizeNumber(
+              tx?.costPrice ??
+                lot?.costPrice ??
+                stock?.costPrice ??
+                product?.costPrice ??
+                product?.purchasePrice
+            );
+
+            const salePrice = sanitizeNumber(
+              tx?.salePrice ??
+                lot?.salePrice ??
+                stock?.salePrice ??
+                product?.salePrice ??
+                product?.price
+            );
+
+            const userName = [user?.firstName, user?.lastName]
+              .filter(Boolean)
+              .join(" ")
+              .trim();
+
+            return {
+              id: String(tx?._id || tx?.id || tx?.reference || index),
+              createdAt:
+                tx?.createdAt ||
+                tx?.timestamp ||
+                tx?.date ||
+                lot?.createdAt ||
+                stock?.createdAt,
+              type: typeRaw,
+              reference,
+              productName:
+                product?.name ||
+                tx?.productName ||
+                tx?.itemName ||
+                stock?.productName ||
+                "-",
+              barcode:
+                product?.barcode ||
+                tx?.barcode ||
+                stock?.barcode ||
+                lot?.barcode ||
+                stock?.productId?.barcode ||
+                "-",
+              quantity: tone === "out" ? -Math.abs(baseQty) : baseQty,
+              costPrice,
+              salePrice,
+              locationName: locationName || "-",
+              supplierName: supplierName || "-",
+              notes:
+                tx?.notes ||
+                tx?.remark ||
+                tx?.description ||
+                lot?.notes ||
+                "",
+              userName:
+                userName ||
+                user?.name ||
+                user?.username ||
+                user?.email ||
+                "",
+              tone,
+              typeLabel,
+              poNumber: poNumber || "-",
+            };
+          });
         setStockTx(stockSanitized);
 
         const prodList = Array.isArray(prodRes?.data)
@@ -237,6 +427,12 @@ export default function HomePage() {
 
   // ----- ALL hooks (useMemo) MUST be before any early return -----
 
+  const currentRange = useMemo(
+    () => getRangeBounds(filter, selectedDate),
+    [filter, selectedDate]
+  );
+  const currentRangeKey = `${currentRange.start.getTime()}-${currentRange.end.getTime()}`;
+
   // 1) รูปสินค้าแมพจาก products
   const imageMap = useMemo(
     () =>
@@ -249,29 +445,185 @@ export default function HomePage() {
     [products]
   );
 
-  // 2) Payments เฉพาะ “วันนี้”
-  const todayPayments = useMemo(
+  // 2) Payments ภายในช่วงที่เลือก
+  const paymentsInRange = useMemo(
     () =>
-      (payments || []).filter(
-        (p) => {
-          const stamp = p?.createdAt || p?.updatedAt;
-          return stamp && isSameBangkokDay(new Date(stamp), selectedDate);
-        }
-      ),
-    [payments, selectedDate]
+      (payments || []).filter((p) => {
+        const stamp = p?.createdAt || p?.updatedAt;
+        if (!stamp) return false;
+        const date = toBangkokDate(new Date(stamp));
+        return isDateInRange(date, currentRange);
+      }),
+    [payments, currentRangeKey]
   );
 
   // 3) Top products (เติมรูป)
   const topProductsFromApi = useMemo(() => {
-    const base = summaryData?.topProducts?.daily || [];
-    return base.slice(0, 10).map((p: any) => ({
+    const base = summaryData?.topProducts?.[filter] || [];
+    return base.slice(0, 10).map((p: any, idx: number) => ({
       name: p.name,
       barcode: p.barcode,
       imageUrl: imageMap.get(p.barcode) || DEFAULT_IMG,
       quantity: p.quantity,
       revenue: p.revenue ?? p.netRevenue ?? 0,
+      rank: idx + 1,
     }));
-  }, [summaryData, imageMap]);
+  }, [summaryData, imageMap, filter]);
+
+  const summaryForRange = summaryData?.summary?.[filter] || {};
+  const rangeLabel =
+    filter === "daily" ? "วันนี้" : filter === "weekly" ? "สัปดาห์นี้" : "เดือนนี้";
+  const lineTitle =
+    filter === "daily"
+      ? "กราฟยอดขายวันนี้ (รายชั่วโมง)"
+      : filter === "weekly"
+      ? "กราฟยอดขายสัปดาห์นี้ (รายวัน)"
+      : "กราฟยอดขายเดือนนี้ (รายสัปดาห์)";
+
+  const rangeSeries = Array.isArray(summaryData?.[filter])
+    ? summaryData[filter]
+    : [];
+  const lineData = (rangeSeries as any[])
+    .map((entry: any) => {
+      const iso = entry?.formattedDate?.iso || entry?.date;
+      const baseDate = iso ? toBangkokDate(new Date(iso)) : null;
+      if (!baseDate) return null;
+      let label: string;
+      let sortValue: number;
+      if (filter === "daily") {
+        const hour =
+          typeof entry?.hour === "number" ? entry.hour : baseDate.getHours();
+        label = `${String(hour).padStart(2, "0")}:00`;
+        sortValue = hour;
+      } else {
+        label = baseDate.toLocaleDateString("th-TH", {
+          day: "2-digit",
+          month: "short",
+        });
+        sortValue = baseDate.getTime();
+      }
+      const value = Number(entry?.netSales ?? entry?.totalSales ?? 0);
+      return { label, value, sortValue };
+    })
+    .filter(Boolean) as Array<{ label: string; value: number; sortValue: number }>;
+  const sortedLineData = lineData
+    .sort((a, b) => a.sortValue - b.sortValue)
+    .map((item) => ({ label: item.label, value: item.value }));
+
+  const paymentStats = useMemo(() => {
+    let sumAmount = 0;
+    let sumProfit = 0;
+    const buckets = new Map<
+      string,
+      { label: string; value: number; sortValue: number }
+    >();
+
+    paymentsInRange.forEach((p) => {
+      const amount = Number(p.amount ?? 0);
+      const profit = Number(p.profit ?? 0);
+      sumAmount += amount;
+      sumProfit += profit;
+
+      const stamp = p?.createdAt || p?.updatedAt;
+      if (!stamp) return;
+      const date = toBangkokDate(new Date(stamp));
+      let bucketKey: string;
+      let label: string;
+      let sortValue: number;
+
+      if (filter === "daily") {
+        const hour = date.getHours();
+        bucketKey = String(hour);
+        label = `${String(hour).padStart(2, "0")}:00`;
+        sortValue = hour;
+      } else {
+        const day = new Date(date);
+        day.setHours(0, 0, 0, 0);
+        bucketKey = String(day.getTime());
+        label = day.toLocaleDateString("th-TH", {
+          day: "2-digit",
+          month: "short",
+        });
+        sortValue = day.getTime();
+      }
+
+      const prev = buckets.get(bucketKey);
+      if (prev) {
+        prev.value += amount;
+      } else {
+        buckets.set(bucketKey, { label, value: amount, sortValue });
+      }
+    });
+
+    const series = Array.from(buckets.values())
+      .sort((a, b) => a.sortValue - b.sortValue)
+      .map((item) => ({ hour: item.label, amount: item.value }));
+
+    return { sumAmount, sumProfit, series };
+  }, [paymentsInRange, filter]);
+
+  const sumAmount = paymentStats.sumAmount;
+  const sumProfit = paymentStats.sumProfit;
+  const paySeries = paymentStats.series;
+
+  const paymentPie = useMemo(
+    () => [
+      { name: "กำไร", value: sumProfit },
+      { name: "รายได้หลังหักกำไร", value: Math.max(sumAmount - sumProfit, 0) },
+    ],
+    [sumAmount, sumProfit]
+  );
+
+  const purchaseInRange = useMemo(
+    () =>
+      (purchaseOrders || []).filter((po) => {
+        if (!po?.createdAt) return false;
+        const date = toBangkokDate(new Date(po.createdAt));
+        return isDateInRange(date, currentRange);
+      }),
+    [purchaseOrders, currentRangeKey]
+  );
+
+  const poPie = useMemo(() => {
+    const approvedTotalsByProduct: Record<string, { name: string; value: number }> = {};
+    purchaseInRange.forEach((po: any) => {
+      const approvedBatches = new Set(
+        (po.stockLots || [])
+          .filter((s: any) => (s.qcStatus || "").trim() === "ผ่าน")
+          .map((s: any) => s.batchNumber)
+      );
+      (po.items || []).forEach((it: any) => {
+        const batch = it.batchNumber || "";
+        if (!approvedBatches.has(batch)) return;
+        const name = it.productName || it.productId?.name || "-";
+        const total = Number(
+          it.total ?? (it.costPrice || 0) * (it.quantity || 0)
+        );
+        approvedTotalsByProduct[name] = {
+          name,
+          value: (approvedTotalsByProduct[name]?.value || 0) + total,
+        };
+      });
+    });
+    return Object.values(approvedTotalsByProduct)
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8);
+  }, [purchaseInRange]);
+
+  const poExpenseInRange = useMemo(
+    () => poPie.reduce((sum, entry) => sum + entry.value, 0),
+    [poPie]
+  );
+
+  const stockRows = useMemo(
+    () =>
+      [...(stockTx || [])].sort(
+        (a, b) =>
+          new Date(b.createdAt || 0).getTime() -
+          new Date(a.createdAt || 0).getTime()
+      ),
+    [stockTx]
+  );
 
   // ----- จากนี้จะมี early return ได้ เพราะ hooks ทั้งหมดข้างบนถูกเรียกทุกครั้งแล้ว -----
   if (loading) {
@@ -283,87 +635,6 @@ export default function HomePage() {
   if (!summaryData) {
     return <div style={{ textAlign: "center", padding: 50 }}>⏳ กำลังโหลดข้อมูล...</div>;
   }
-
-  // ====== เส้นรายชั่วโมงวันนี้ ======
-  const dayBuckets = summaryData.daily || [];
-  const lineData = dayBuckets.map((b: any) => ({
-    label:
-      b?.hour !== undefined
-        ? `${String(b.hour).padStart(2, "0")}:00`
-        : new Date(b.formattedDate?.iso || Date.now()).toLocaleTimeString("th-TH", { hour: "2-digit" }),
-    value: Number(b?.netSales ?? b?.totalSales ?? 0),
-  }));
-
-  // ====== รวม amount & profit ของ “วันนี้” จาก todayPayments ======
-  const paymentAgg = todayPayments.reduce(
-    (acc, p) => {
-      const amt = Number(p.amount ?? 0);
-      const prf = Number(p.profit ?? 0);
-      acc.sumAmount += amt;
-      acc.sumProfit += prf;
-      const d = new Date(p.createdAt || p.updatedAt || Date.now());
-      const hour = d.toLocaleTimeString("th-TH", { hour: "2-digit" });
-      acc.byHour[hour] = (acc.byHour[hour] || 0) + amt;
-      return acc;
-    },
-    { sumAmount: 0, sumProfit: 0, byHour: {} as Record<string, number> }
-  );
-  const sumAmount = paymentAgg.sumAmount;
-  const sumProfit = paymentAgg.sumProfit;
-  const paySeries = Object.keys(paymentAgg.byHour)
-    .sort((a, b) => Number(a) - Number(b))
-    .map((h) => ({ hour: `${h}:00`, amount: paymentAgg.byHour[h] }));
-  const paymentPie = [
-    { name: "กำไร", value: sumProfit },
-    { name: "รายได้หล้งหักกำไร", value: Math.max(sumAmount - sumProfit, 0) },
-  ];
-
-  // ====== PO วันนี้ + QC ผ่าน ======
-  const todayPOs = (purchaseOrders || []).filter(
-    (po) => po?.createdAt && isSameBangkokDay(new Date(po.createdAt), selectedDate)
-  );
-  const approvedTotalsByProduct: Record<string, { name: string; value: number }> = {};
-  todayPOs.forEach((po: any) => {
-    const approvedBatches = new Set(
-      (po.stockLots || [])
-        .filter((s: any) => (s.qcStatus || "").trim() === "ผ่าน")
-        .map((s: any) => s.batchNumber)
-    );
-    (po.items || []).forEach((it: any) => {
-      const batch = it.batchNumber || "";
-      if (!approvedBatches.has(batch)) return;
-      const name = it.productName || it.productId?.name || "-";
-      const total = Number(it.total ?? (it.costPrice || 0) * (it.quantity || 0));
-      approvedTotalsByProduct[name] = {
-        name,
-        value: (approvedTotalsByProduct[name]?.value || 0) + total,
-      };
-    });
-  });
-  const poPie = Object.values(approvedTotalsByProduct)
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 8);
-  const poExpenseToday = poPie.reduce((s, x) => s + x.value, 0);
-
-  // ====== Timeline สต็อก ======
-  const timeline = [...(stockTx || [])]
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
-    )
-    .slice(0, 10)
-    .map((t) => ({
-      when: new Date(t.createdAt || Date.now()).toLocaleString("th-TH", {
-        day: "2-digit",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      type: (t.type || "").toString().toUpperCase(),
-      ref: t.reference || "-",
-      name: t.productName || "-",
-      qty: Number(t.quantity ?? 0),
-    }));
 
   // ====== UI ======
   return (
@@ -378,10 +649,10 @@ export default function HomePage() {
 
           {/* เส้นรายชั่วโมง */}
           <section className="panel card-like area-receipt">
-            <h2 className="section-title">กราฟยอดขายวันนี้ (รายชั่วโมง)</h2>
+            <h2 className="section-title">{lineTitle}</h2>
             <div className="chart-rect">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={lineData}>
+                <LineChart data={sortedLineData}>
                   <defs>
                     <linearGradient id={GRADIENTS.purple.id} x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor={GRADIENTS.purple.from} stopOpacity={0.9} />
@@ -391,7 +662,7 @@ export default function HomePage() {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="label" />
                   <YAxis />
-                  <Tooltip formatter={(v: number) => `฿${Number(v).toLocaleString()}`} />
+                  <Tooltip formatter={(v: number) => formatCurrency(Number(v))} />
                   <Line type="monotone" dataKey="value" stroke="#6C5CE7" strokeWidth={2} dot={false} />
                   <Area type="monotone" dataKey="value" stroke="none" fill="url(#gPurple)" />
                 </LineChart>
@@ -401,18 +672,27 @@ export default function HomePage() {
 
           {/* พาย 1: Payments */}
           <section className="panel card-like area-pie1">
-            <h2 className="section-title">Payment: รายได้ & กำไรรวม (วันนี้)</h2>
+            <h2 className="section-title">Payment: รายได้ & กำไรรวม ({rangeLabel})</h2>
             <div className="pie-rect">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Tooltip formatter={(v: number) => `฿${Number(v).toLocaleString()}`} />
-                  <Legend />
-                  <Pie data={paymentPie} dataKey="value" nameKey="name" innerRadius={55} outerRadius={85} paddingAngle={2}>
+                  <Tooltip formatter={(v: number) => formatCurrency(Number(v))} />
+                  <Legend verticalAlign="bottom" height={36} />
+                  <Pie
+                    data={paymentPie}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={55}
+                    outerRadius={90}
+                    paddingAngle={2}
+                    labelLine={false}
+                    label={renderPieValueLabel}
+                  >
                     {paymentPie.map((_, idx) => (
                       <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
                     ))}
                     <Label
-                      value={`฿${sumAmount.toLocaleString()}`}
+                      value={formatCurrency(sumAmount)}
                       position="center"
                       style={{ fontWeight: 700, fontSize: 15 }}
                     />
@@ -424,13 +704,21 @@ export default function HomePage() {
 
           {/* พาย 2: PO (QC ผ่าน) */}
           <section className="panel card-like area-pie2">
-            <h2 className="section-title">Purchase Orders (QC ผ่าน วันนี้)</h2>
+            <h2 className="section-title">Purchase Orders (QC ผ่าน {rangeLabel})</h2>
             <div className="pie-rect">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Tooltip formatter={(v: number) => `฿${Number(v).toLocaleString()}`} />
-                  <Legend />
-                  <Pie data={poPie} dataKey="value" nameKey="name" innerRadius={40} outerRadius={80}>
+                  <Tooltip formatter={(v: number) => formatCurrency(Number(v))} />
+                  <Legend verticalAlign="bottom" height={36} />
+                  <Pie
+                    data={poPie}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={45}
+                    outerRadius={85}
+                    labelLine={false}
+                    label={renderPieValueLabel}
+                  >
                     {poPie.map((_, idx) => (
                       <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
                     ))}
@@ -442,60 +730,139 @@ export default function HomePage() {
 
           {/* KPI */}
           <div className="kpi card-like area-kpi1">
-            <div className="kpi-head">ยอดขายสุทธิ (วันนี้)</div>
+            <div className="kpi-head">ยอดขายสุทธิ ({rangeLabel})</div>
             <div className="kpi-val">
-              ฿
-              {Number(
-                summaryData.summary?.daily?.netSales ??
-                  summaryData.summary?.daily?.totalSales ??
-                  0
-              ).toLocaleString()}
+              {formatCurrency(
+                Number(
+                  summaryForRange?.netSales ??
+                    summaryForRange?.totalSales ??
+                    0
+                )
+              )}
             </div>
           </div>
           <div className="kpi card-like area-kpi2">
-            <div className="kpi-head">จำนวนที่ขาย</div>
+            <div className="kpi-head">จำนวนที่ขาย ({rangeLabel})</div>
             <div className="kpi-val">
-              {Number(summaryData.summary?.daily?.totalQuantity ?? 0).toLocaleString()} ชิ้น
+              {Number(summaryForRange?.totalQuantity ?? 0).toLocaleString()} ชิ้น
             </div>
           </div>
           <div className="kpi card-like area-kpi3">
-            <div className="kpi-head">กำไรรวม</div>
-            <div className="kpi-val">
-              ฿{Number(summaryData.summary?.daily?.totalProfit ?? 0).toLocaleString()}
-            </div>
+            <div className="kpi-head">กำไรรวม ({rangeLabel})</div>
+            <div className="kpi-val">{formatCurrency(Number(summaryForRange?.totalProfit ?? 0))}</div>
           </div>
           <div className="kpi card-like area-kpi4">
-            <div className="kpi-head">ค่าใช้จ่าย PO (QC ผ่าน วันนี้)</div>
-            <div className="kpi-val">฿{poExpenseToday.toLocaleString()}</div>
+            <div className="kpi-head">ค่าใช้จ่าย PO (QC ผ่าน {rangeLabel})</div>
+            <div className="kpi-val">{formatCurrency(poExpenseInRange)}</div>
           </div>
 
-          {/* Timeline */}
+          {/* Stock transactions */}
           <section className="panel card-like area-timeline">
             <h2 className="section-title">Recent Stock Transaction</h2>
-            <div className="timeline">
-              {timeline.map((t, i) => (
-                <div key={i} className="timeline-item">
-                  <div className={`dot ${t.type.includes("OUT") ? "out" : "in"}`} />
-                  <div className="content">
-                    <div className="line1">
-                      <span className="when">{t.when}</span>
-                      <span className={`pill ${t.type.includes("OUT") ? "danger" : "success"}`}>{t.type}</span>
-                    </div>
-                    <div className="line2">
-                      <span className="name">{t.name}</span>
-                      <span className="qty">× {t.qty.toLocaleString()}</span>
-                    </div>
-                    <div className="line3 muted">อ้างอิง: {t.ref}</div>
-                  </div>
-                </div>
-              ))}
-              {timeline.length === 0 && <div className="muted">— ไม่มีข้อมูล —</div>}
+            <div className="table-scroll">
+              <table className="nice-table stock-table">
+                <thead>
+                  <tr>
+                    <th style={{ minWidth: 150 }}>วันที่</th>
+                    <th style={{ minWidth: 120 }}>ประเภท</th>
+                    <th style={{ minWidth: 180 }}>สินค้า</th>
+                    <th style={{ minWidth: 90, textAlign: "right" }}>จำนวน</th>
+                    <th style={{ minWidth: 130, textAlign: "right" }}>ต้นทุน/หน่วย</th>
+                    <th style={{ minWidth: 130, textAlign: "right" }}>ราคาขาย/หน่วย</th>
+                    <th style={{ minWidth: 160 }}>คลังสินค้า</th>
+                    <th style={{ minWidth: 160 }}>ซัพพลายเออร์</th>
+                    <th style={{ minWidth: 170 }}>อ้างอิง</th>
+                    <th style={{ minWidth: 140 }}>ผู้บันทึก</th>
+                    <th style={{ minWidth: 200 }}>หมายเหตุ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stockRows.map((row) => {
+                    const stamp = row.createdAt
+                      ? toBangkokDate(new Date(row.createdAt))
+                      : null;
+                    const formattedDate = stamp
+                      ? stamp.toLocaleString("th-TH", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : "-";
+                    const quantityDisplay = Number(row.quantity || 0).toLocaleString(
+                      "th-TH"
+                    );
+                    return (
+                      <tr key={row.id}>
+                        <td>{formattedDate}</td>
+                        <td>
+                          <span className={`type-pill ${row.tone}`}>{row.typeLabel}</span>
+                          <span className="subtext">{row.type || "-"}</span>
+                        </td>
+                        <td>
+                          <div className="primary-text">{row.productName || "-"}</div>
+                          <span className="subtext">
+                            {row.barcode && row.barcode !== "-"
+                              ? row.barcode
+                              : "ไม่มีบาร์โค้ด"}
+                          </span>
+                        </td>
+                        <td className={`qty-cell ${row.tone}`} style={{ textAlign: "right" }}>
+                          {quantityDisplay}
+                        </td>
+                        <td style={{ textAlign: "right" }}>
+                          {row.costPrice > 0 ? formatCurrency(row.costPrice) : "-"}
+                        </td>
+                        <td style={{ textAlign: "right" }}>
+                          {row.salePrice > 0 ? formatCurrency(row.salePrice) : "-"}
+                        </td>
+                        <td>
+                          <div className="primary-text">
+                            {row.locationName && row.locationName !== "-"
+                              ? row.locationName
+                              : "-"}
+                          </div>
+                        </td>
+                        <td>
+                          <div className="primary-text">
+                            {row.supplierName && row.supplierName !== "-"
+                              ? row.supplierName
+                              : "-"}
+                          </div>
+                        </td>
+                        <td>
+                          <div className="primary-text">{row.reference || "-"}</div>
+                          {row.poNumber && row.poNumber !== "-" && (
+                            <span className="subtext">PO: {row.poNumber}</span>
+                          )}
+                        </td>
+                        <td>
+                          <div className="primary-text">
+                            {row.userName?.trim() ? row.userName : "-"}
+                          </div>
+                        </td>
+                        <td>
+                          {row.notes?.trim() ? row.notes : <span className="muted">-</span>}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {stockRows.length === 0 && (
+                    <tr>
+                      <td colSpan={11} style={{ textAlign: "center", color: "#6b7280" }}>
+                        — ไม่มีข้อมูล —
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </section>
 
           {/* Payment history (วันนี้) + ตาราง */}
           <section className="panel card-like area-payment">
-            <h2 className="section-title">Payment (ประวัติการขายวันนี้)</h2>
+            <h2 className="section-title">Payment (ประวัติการขาย {rangeLabel})</h2>
             <div className="chart-rect" style={{ marginBottom: 10 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={paySeries}>
@@ -508,14 +875,14 @@ export default function HomePage() {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="hour" />
                   <YAxis />
-                  <Tooltip formatter={(v: number) => `฿${Number(v).toLocaleString()}`} />
+                  <Tooltip formatter={(v: number) => formatCurrency(Number(v))} />
                   <Area type="monotone" dataKey="amount" stroke="#00C49F" fill="url(#gTeal)" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
 
-            <div style={{ overflow: "auto", maxHeight: 240 }}>
-              <table className="nice-table" style={{ width: "100%", fontSize: 14 }}>
+            <div className="table-scroll" style={{ maxHeight: 240 }}>
+              <table className="nice-table payment-table">
                 <thead>
                   <tr>
                     <th>เวลา</th>
@@ -528,18 +895,25 @@ export default function HomePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {todayPayments.map((p, idx) => (
+                  {paymentsInRange.map((p, idx) => (
                     <tr key={idx}>
-                      <td>{new Date(p.createdAt || p.updatedAt).toLocaleString("th-TH")}</td>
+                      <td>
+                        {(() => {
+                          const stamp = p.createdAt || p.updatedAt;
+                          return stamp
+                            ? toBangkokDate(new Date(stamp)).toLocaleString("th-TH")
+                            : "-";
+                        })()}
+                      </td>
                       <td>{p.saleId}</td>
                       <td>{p.paymentMethod}</td>
                       <td>{p.employeeName}</td>
-                      <td style={{ textAlign: "right" }}>฿{Number(p.amount || 0).toLocaleString()}</td>
-                      <td style={{ textAlign: "right" }}>฿{Number(p.profit || 0).toLocaleString()}</td>
+                      <td style={{ textAlign: "right" }}>{formatCurrency(Number(p.amount || 0))}</td>
+                      <td style={{ textAlign: "right" }}>{formatCurrency(Number(p.profit || 0))}</td>
                       <td>{p.status}</td>
                     </tr>
                   ))}
-                  {todayPayments.length === 0 && (
+                  {paymentsInRange.length === 0 && (
                     <tr>
                       <td colSpan={7} style={{ textAlign: "center", color: "#6b7280" }}>— ไม่มีรายการ —</td>
                     </tr>
