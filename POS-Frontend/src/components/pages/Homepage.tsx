@@ -36,6 +36,40 @@ const GRADIENTS = {
 type RangeKey = "daily" | "weekly" | "monthly";
 const DEFAULT_IMG = "https://cdn-icons-png.flaticon.com/512/2331/2331970.png";
 
+type PaymentEntry = {
+  id: string;
+  saleId: string;
+  paymentMethod: string;
+  amount: number;
+  profit: number;
+  employeeName: string;
+  status: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+type PurchaseOrderEntry = {
+  id: string;
+  supplierName: string;
+  createdAt?: string;
+  items: any[];
+  stockLots: any[];
+};
+
+type StockTimelineEntry = {
+  id: string;
+  createdAt?: string;
+  type: string;
+  reference: string;
+  productName: string;
+  quantity: number;
+};
+
+const sanitizeNumber = (value: any) => {
+  const numeric = Number(value ?? 0);
+  return Number.isFinite(numeric) ? numeric : 0;
+};
+
 // helper: เทียบวันตามโซนเวลาไทย
 function isSameBangkokDay(d: Date, target: Date) {
   const toBKK = (x: Date) =>
@@ -55,9 +89,9 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
 
   const [summaryData, setSummaryData] = useState<any>(null);
-  const [payments, setPayments] = useState<any[]>([]);
-  const [purchaseOrders, setPurchaseOrders] = useState<any[]>([]);
-  const [stockTx, setStockTx] = useState<any[]>([]);
+  const [payments, setPayments] = useState<PaymentEntry[]>([]);
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrderEntry[]>([]);
+  const [stockTx, setStockTx] = useState<StockTimelineEntry[]>([]);
   const [products, setProducts] = useState<any[]>([]);
 
   const [filter, setFilter] = useState<RangeKey>("daily");
@@ -88,26 +122,105 @@ export default function HomePage() {
 
         if (salesRes?.success) setSummaryData(salesRes.data || null);
 
-        const payList = Array.isArray(payRes?.data)
+        const payRaw = Array.isArray(payRes?.data)
           ? payRes.data
           : Array.isArray(payRes)
           ? payRes
           : [];
-        setPayments(payList);
+        const paymentSanitized: PaymentEntry[] = payRaw
+          .filter(Boolean)
+          .map((item: any, index: number) => ({
+            id: String(item?._id || item?.id || item?.saleId || index),
+            saleId: String(
+              item?.saleId ||
+                item?.saleCode ||
+                item?.reference ||
+                item?.orderId ||
+                "-"
+            ),
+            paymentMethod:
+              item?.paymentMethod ||
+              item?.method ||
+              item?.channel ||
+              "ไม่ระบุ",
+            amount: sanitizeNumber(
+              item?.amount ??
+                item?.total ??
+                item?.totalAmount ??
+                item?.netAmount ??
+                item?.grandTotal
+            ),
+            profit: sanitizeNumber(
+              item?.profit ?? item?.netProfit ?? item?.totalProfit ?? item?.margin
+            ),
+            employeeName:
+              item?.employeeName ||
+              item?.cashier?.name ||
+              item?.employee?.name ||
+              item?.user?.name ||
+              item?.staffName ||
+              "-",
+            status: item?.status || item?.state || item?.paymentStatus || "ไม่ระบุ",
+            createdAt:
+              item?.createdAt ||
+              item?.paidAt ||
+              item?.paymentDate ||
+              item?.timestamp,
+            updatedAt:
+              item?.updatedAt ||
+              item?.modifiedAt ||
+              item?.paymentDate ||
+              item?.timestamp,
+          }));
+        setPayments(paymentSanitized);
 
-        const poList = Array.isArray(poRes?.data)
+        const poRaw = Array.isArray(poRes?.data)
           ? poRes.data
           : Array.isArray(poRes)
           ? poRes
           : [];
-        setPurchaseOrders(poList);
+        const purchaseSanitized: PurchaseOrderEntry[] = poRaw
+          .filter(Boolean)
+          .map((po: any, index: number) => ({
+            id: String(po?._id || po?.id || po?.purchaseOrderNumber || index),
+            supplierName:
+              po?.supplierCompany ||
+              po?.supplier?.companyName ||
+              po?.supplier?.name ||
+              "ไม่ระบุ",
+            createdAt:
+              po?.createdAt ||
+              po?.orderedAt ||
+              po?.date ||
+              po?.invoiceDate ||
+              po?.updatedAt,
+            items: Array.isArray(po?.items) ? po.items : [],
+            stockLots: Array.isArray(po?.stockLots) ? po.stockLots : [],
+          }));
+        setPurchaseOrders(purchaseSanitized);
 
-        const txList = Array.isArray(txRes?.data)
+        const txRaw = Array.isArray(txRes?.data)
           ? txRes.data
           : Array.isArray(txRes)
           ? txRes
           : [];
-        setStockTx(txList);
+        const stockSanitized: StockTimelineEntry[] = txRaw
+          .filter(Boolean)
+          .map((tx: any, index: number) => ({
+            id: String(tx?._id || tx?.id || tx?.reference || index),
+            createdAt: tx?.createdAt || tx?.timestamp || tx?.date,
+            type: (tx?.type || tx?.action || tx?.direction || "").toString(),
+            reference:
+              tx?.reference ||
+              tx?.referenceId ||
+              tx?.poCode ||
+              tx?.docNo ||
+              tx?.orderCode ||
+              "-",
+            productName: tx?.productName || tx?.itemName || tx?.product?.name || "-",
+            quantity: sanitizeNumber(tx?.quantity ?? tx?.qty),
+          }));
+        setStockTx(stockSanitized);
 
         const prodList = Array.isArray(prodRes?.data)
           ? prodRes.data
@@ -140,7 +253,10 @@ export default function HomePage() {
   const todayPayments = useMemo(
     () =>
       (payments || []).filter(
-        (p) => p?.createdAt && isSameBangkokDay(new Date(p.createdAt), selectedDate)
+        (p) => {
+          const stamp = p?.createdAt || p?.updatedAt;
+          return stamp && isSameBangkokDay(new Date(stamp), selectedDate);
+        }
       ),
     [payments, selectedDate]
   );
@@ -233,26 +349,25 @@ export default function HomePage() {
   const timeline = [...(stockTx || [])]
     .sort(
       (a, b) =>
-        new Date(b.createdAt || b.timestamp || 0).getTime() -
-        new Date(a.createdAt || a.timestamp || 0).getTime()
+        new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
     )
     .slice(0, 10)
     .map((t) => ({
-      when: new Date(t.createdAt || t.timestamp || Date.now()).toLocaleString("th-TH", {
+      when: new Date(t.createdAt || Date.now()).toLocaleString("th-TH", {
         day: "2-digit",
         month: "short",
         hour: "2-digit",
         minute: "2-digit",
       }),
-      type: (t.type || t.action || t.direction || "").toString().toUpperCase(),
-      ref: t.reference || t.refNo || t.poCode || t.docNo || "-",
-      name: t.productName || t.itemName || t.product?.name || "-",
-      qty: Number(t.quantity ?? t.qty ?? 0),
+      type: (t.type || "").toString().toUpperCase(),
+      ref: t.reference || "-",
+      name: t.productName || "-",
+      qty: Number(t.quantity ?? 0),
     }));
 
   // ====== UI ======
   return (
-    <div className="display">
+    <div className="display home-gradient">
       <div className="dashboard-overview">
         <div className="dash-grid">
           {/* Top 5 */}

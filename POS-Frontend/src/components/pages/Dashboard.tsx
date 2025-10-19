@@ -42,16 +42,6 @@ type StockTimelineEntry = {
   quantity: number;
 };
 
-type TimelineDisplayItem = {
-  id: string;
-  name: string;
-  reference: string;
-  type: string;
-  quantity: number;
-  timeText: string;
-  direction: "in" | "out";
-};
-
 const COLORS = ["#6C5CE7", "#00C49F", "#FFA62B", "#FF6B6B", "#845EC2", "#2D9CDB", "#F97316"]; // used in charts
 
 const toBangkokDate = (value: Date) =>
@@ -126,20 +116,9 @@ export default function Dashboard() {
   const [filter, setFilter] = useState<RangeKey>("daily");
 
   const [summaryData, setSummaryData] = useState<any | null>(null);
-  const [paymentHistorySeries, setPaymentHistorySeries] = useState<
-    Array<{ label: string; value: number }>
-  >([]);
-  const [paymentPieData, setPaymentPieData] = useState<
-    Array<{ name: string; value: number }>
-  >([]);
-  const [purchasePieData, setPurchasePieData] = useState<
-    Array<{ name: string; value: number }>
-  >([]);
-  const [timelineItems, setTimelineItems] = useState<TimelineDisplayItem[]>([]);
-  const [purchaseExpense, setPurchaseExpense] = useState<number>(0);
-  const [purchaseExpenseChange, setPurchaseExpenseChange] = useState<number | null>(
-    null
-  );
+  const [payments, setPayments] = useState<PaymentEntry[]>([]);
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrderEntry[]>([]);
+  const [stockTransactions, setStockTransactions] = useState<StockTimelineEntry[]>([]);
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -166,9 +145,6 @@ export default function Dashboard() {
           setSummaryData(null);
         }
 
-        const currentRange = getRangeBounds(filter, selectedDate);
-        const previousRange = getPreviousRangeBounds(filter, selectedDate);
-
         const paymentListRaw = Array.isArray(paymentRes?.data)
           ? paymentRes.data
           : Array.isArray(paymentRes)
@@ -189,71 +165,7 @@ export default function Dashboard() {
               item?.paymentDate ||
               item?.timestamp,
           }));
-        const paymentsInRange = paymentSanitized.filter((payment) => {
-          if (!payment.timestamp) return false;
-          const date = toBangkokDate(new Date(payment.timestamp));
-          return isDateInRange(date, currentRange);
-        });
-
-        const paymentBuckets = new Map<
-          string,
-          { label: string; value: number; sortValue: number }
-        >();
-        paymentsInRange.forEach((payment) => {
-          if (!payment.timestamp) return;
-          const date = toBangkokDate(new Date(payment.timestamp));
-          if (filter === "daily") {
-            const hour = date.getHours();
-            const bucketKey = String(hour);
-            const label = `${String(hour).padStart(2, "0")}:00`;
-            const prev = paymentBuckets.get(bucketKey);
-            if (prev) {
-              prev.value += payment.amount;
-            } else {
-              paymentBuckets.set(bucketKey, {
-                label,
-                value: payment.amount,
-                sortValue: hour,
-              });
-            }
-          } else {
-            const day = new Date(date);
-            day.setHours(0, 0, 0, 0);
-            const bucketKey = String(day.getTime());
-            const label = date.toLocaleDateString("th-TH", {
-              day: "2-digit",
-              month: "short",
-            });
-            const prev = paymentBuckets.get(bucketKey);
-            if (prev) {
-              prev.value += payment.amount;
-            } else {
-              paymentBuckets.set(bucketKey, {
-                label,
-                value: payment.amount,
-                sortValue: day.getTime(),
-              });
-            }
-          }
-        });
-        setPaymentHistorySeries(
-          Array.from(paymentBuckets.values())
-            .sort((a, b) => a.sortValue - b.sortValue)
-            .map((item) => ({ label: item.label, value: item.value }))
-        );
-
-        const methodMap = new Map<string, number>();
-        paymentsInRange.forEach((payment) => {
-          const method = payment.paymentMethod || "ไม่ระบุ";
-          methodMap.set(method, (methodMap.get(method) || 0) + payment.amount);
-        });
-        setPaymentPieData(
-          Array.from(methodMap.entries())
-            .map(([name, value]) => ({ name, value }))
-            .filter((entry) => entry.value > 0)
-            .sort((a, b) => b.value - a.value)
-            .slice(0, 8)
-        );
+        setPayments(paymentSanitized);
 
         const purchaseRaw = Array.isArray(purchaseRes?.data)
           ? purchaseRes.data
@@ -279,47 +191,7 @@ export default function Dashboard() {
               total: sanitizeNumber(totalCandidate),
             };
           });
-        const purchasesInRange = purchaseSanitized.filter((po) => {
-          if (!po.createdAt) return false;
-          const date = toBangkokDate(new Date(po.createdAt));
-          return isDateInRange(date, currentRange);
-        });
-        const purchasesPreviousRange = purchaseSanitized.filter((po) => {
-          if (!po.createdAt) return false;
-          const date = toBangkokDate(new Date(po.createdAt));
-          return isDateInRange(date, previousRange);
-        });
-
-        const currentExpense = purchasesInRange.reduce(
-          (sum, po) => sum + resolvePurchaseTotal(po),
-          0
-        );
-        const previousExpense = purchasesPreviousRange.reduce(
-          (sum, po) => sum + resolvePurchaseTotal(po),
-          0
-        );
-        setPurchaseExpense(currentExpense);
-        setPurchaseExpenseChange(
-          previousExpense === 0
-            ? null
-            : ((currentExpense - previousExpense) / previousExpense) * 100
-        );
-
-        const supplierMap = new Map<string, number>();
-        purchasesInRange.forEach((po) => {
-          const value = resolvePurchaseTotal(po);
-          if (value <= 0) return;
-          supplierMap.set(
-            po.supplierName,
-            (supplierMap.get(po.supplierName) || 0) + value
-          );
-        });
-        setPurchasePieData(
-          Array.from(supplierMap.entries())
-            .map(([name, value]) => ({ name, value }))
-            .sort((a, b) => b.value - a.value)
-            .slice(0, 8)
-        );
+        setPurchaseOrders(purchaseSanitized);
 
         const stockRaw = Array.isArray(stockRes?.data)
           ? stockRes.data
@@ -342,55 +214,10 @@ export default function Dashboard() {
             productName: tx?.productName || tx?.itemName || tx?.product?.name || "-",
             quantity: sanitizeNumber(tx?.quantity ?? tx?.qty),
           }));
-        const timelineRange = stockSanitized
-          .filter((item) => {
-            if (!item.timestamp) return false;
-            const date = toBangkokDate(new Date(item.timestamp));
-            return isDateInRange(date, currentRange);
-          })
-          .sort((a, b) => {
-            const aTime = a.timestamp ? new Date(a.timestamp).getTime() : 0;
-            const bTime = b.timestamp ? new Date(b.timestamp).getTime() : 0;
-            return aTime - bTime;
-          });
-        const limitedTimeline = timelineRange
-          .slice(Math.max(timelineRange.length - 8, 0))
-          .map((item, index) => {
-            const date = item.timestamp
-              ? toBangkokDate(new Date(item.timestamp))
-              : null;
-            const timeText = date
-              ? date.toLocaleString("th-TH", {
-                  day: "2-digit",
-                  month: "short",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              : "ไม่ระบุเวลา";
-            const direction = (item.type || "").toUpperCase();
-            const isOutgoing = /(SALE|OUT|REMOVE|ADJUSTMENT-NEG|REDUCE)/.test(
-              direction
-            );
-            return {
-              id: `${item.id}-${index}`,
-              name: item.productName || "-",
-              reference: item.reference || "-",
-              type: direction || "-",
-              quantity: item.quantity,
-              timeText,
-              direction: isOutgoing ? "out" : "in",
-            };
-          });
-        setTimelineItems(limitedTimeline);
+        setStockTransactions(stockSanitized);
       } catch (err) {
         console.error("โหลดแดชบอร์ดไม่สำเร็จ", err);
         if (!ignore) {
-          setPaymentHistorySeries([]);
-          setPaymentPieData([]);
-          setPurchasePieData([]);
-          setTimelineItems([]);
-          setPurchaseExpense(0);
-          setPurchaseExpenseChange(null);
           setError("ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง");
         }
       } finally {
@@ -405,6 +232,14 @@ export default function Dashboard() {
       ignore = true;
     };
   }, [filter, selectedDate]);
+
+  const currentRange = useMemo(() => getRangeBounds(filter, selectedDate), [filter, selectedDate]);
+  const previousRange = useMemo(
+    () => getPreviousRangeBounds(filter, selectedDate),
+    [filter, selectedDate]
+  );
+  const currentRangeKey = `${currentRange.start.getTime()}-${currentRange.end.getTime()}`;
+  const previousRangeKey = `${previousRange.start.getTime()}-${previousRange.end.getTime()}`;
 
   const summary = summaryData?.summary?.[filter] || {};
   const changes = summaryData?.changes?.[filter] || {};
@@ -439,6 +274,159 @@ export default function Dashboard() {
       .sort((a, b) => a.sortValue - b.sortValue)
       .map((point) => ({ label: point.label, value: point.value }));
   }, [summaryData, filter]);
+
+  const filteredPayments = useMemo(() => {
+    return payments.filter((payment) => {
+      if (!payment.timestamp) return false;
+      const date = toBangkokDate(new Date(payment.timestamp));
+      return isDateInRange(date, currentRange);
+    });
+  }, [payments, currentRangeKey]);
+
+  const paymentHistorySeries = useMemo(() => {
+    const buckets = new Map<
+      string,
+      { label: string; value: number; sortValue: number }
+    >();
+
+    filteredPayments.forEach((payment) => {
+      if (!payment.timestamp) return;
+      const date = toBangkokDate(new Date(payment.timestamp));
+      let bucketKey: string;
+      let label: string;
+      let sortValue: number;
+      if (filter === "daily") {
+        const hour = date.getHours();
+        bucketKey = String(hour);
+        label = `${String(hour).padStart(2, "0")}:00`;
+        sortValue = hour;
+      } else {
+        const day = new Date(date);
+        day.setHours(0, 0, 0, 0);
+        bucketKey = String(day.getTime());
+        label = date.toLocaleDateString("th-TH", {
+          day: "2-digit",
+          month: "short",
+        });
+        sortValue = day.getTime();
+      }
+      const prev = buckets.get(bucketKey);
+      if (prev) {
+        prev.value += payment.amount;
+      } else {
+        buckets.set(bucketKey, {
+          label,
+          value: payment.amount,
+          sortValue,
+        });
+      }
+    });
+
+    return Array.from(buckets.values())
+      .sort((a, b) => a.sortValue - b.sortValue)
+      .map((item) => ({ label: item.label, value: item.value }));
+  }, [filteredPayments, filter]);
+
+  const paymentPieData = useMemo(() => {
+    const methodMap = new Map<string, number>();
+    filteredPayments.forEach((payment) => {
+      const method = payment.paymentMethod || "ไม่ระบุ";
+      methodMap.set(method, (methodMap.get(method) || 0) + payment.amount);
+    });
+    return Array.from(methodMap.entries())
+      .map(([name, value]) => ({ name, value }))
+      .filter((entry) => entry.value > 0)
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8);
+  }, [filteredPayments]);
+
+  const filteredPurchaseOrders = useMemo(() => {
+    return purchaseOrders.filter((po) => {
+      if (!po.createdAt) return false;
+      const date = toBangkokDate(new Date(po.createdAt));
+      return isDateInRange(date, currentRange);
+    });
+  }, [purchaseOrders, currentRangeKey]);
+
+  const previousPurchaseOrders = useMemo(() => {
+    return purchaseOrders.filter((po) => {
+      if (!po.createdAt) return false;
+      const date = toBangkokDate(new Date(po.createdAt));
+      return isDateInRange(date, previousRange);
+    });
+  }, [purchaseOrders, previousRangeKey]);
+
+  const purchaseExpense = useMemo(
+    () =>
+      filteredPurchaseOrders.reduce(
+        (sum, po) => sum + resolvePurchaseTotal(po),
+        0
+      ),
+    [filteredPurchaseOrders]
+  );
+
+  const previousPurchaseExpense = useMemo(
+    () =>
+      previousPurchaseOrders.reduce(
+        (sum, po) => sum + resolvePurchaseTotal(po),
+        0
+      ),
+    [previousPurchaseOrders]
+  );
+
+  const purchaseExpenseChange = useMemo(() => {
+    if (previousPurchaseExpense === 0) return null;
+    return (
+      ((purchaseExpense - previousPurchaseExpense) / previousPurchaseExpense) * 100
+    );
+  }, [purchaseExpense, previousPurchaseExpense]);
+
+  const purchasePieData = useMemo(() => {
+    const supplierMap = new Map<string, number>();
+    filteredPurchaseOrders.forEach((po) => {
+      const value = resolvePurchaseTotal(po);
+      if (value <= 0) return;
+      supplierMap.set(po.supplierName, (supplierMap.get(po.supplierName) || 0) + value);
+    });
+    return Array.from(supplierMap.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8);
+  }, [filteredPurchaseOrders]);
+
+  const timelineItems = useMemo(() => {
+    return [...stockTransactions]
+      .sort((a, b) => {
+        const aTime = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+        const bTime = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+        return bTime - aTime;
+      })
+      .slice(0, 8)
+      .map((item, index) => {
+        const date = item.timestamp
+          ? toBangkokDate(new Date(item.timestamp))
+          : null;
+        const timeText = date
+          ? date.toLocaleString("th-TH", {
+              day: "2-digit",
+              month: "short",
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "ไม่ระบุเวลา";
+        const direction = (item.type || "").toUpperCase();
+        const isOutgoing = /(SALE|OUT|REMOVE|ADJUSTMENT-NEG|REDUCE)/.test(direction);
+        return {
+          id: `${item.id}-${index}`,
+          name: item.productName || "-",
+          reference: item.reference || "-",
+          type: direction || "-",
+          quantity: item.quantity,
+          timeText,
+          direction: isOutgoing ? "out" : "in",
+        };
+      });
+  }, [stockTransactions]);
 
   const totalNetSales = sanitizeNumber(
     typeof summary?.netSales === "number" ? summary.netSales : summary?.totalSales
