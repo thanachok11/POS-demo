@@ -328,18 +328,7 @@ export default function HomePage() {
     }));
   }, [summaryData, imageMap, filter]);
 
-  // ----- จากนี้จะมี early return ได้ เพราะ hooks ทั้งหมดข้างบนถูกเรียกทุกครั้งแล้ว -----
-  if (loading) {
-    return <div style={{ textAlign: "center", padding: 50 }}>⏳ กำลังตรวจสอบผู้ใช้...</div>;
-  }
-  if (!user) {
-    return <div style={{ textAlign: "center", padding: 50 }}>กรุณาเข้าสู่ระบบ</div>;
-  }
-  if (!summaryData) {
-    return <div style={{ textAlign: "center", padding: 50 }}>⏳ กำลังโหลดข้อมูล...</div>;
-  }
-
-  const summaryForRange = summaryData.summary?.[filter] || {};
+  const summaryForRange = summaryData?.summary?.[filter] || {};
   const rangeLabel =
     filter === "daily" ? "วันนี้" : filter === "weekly" ? "สัปดาห์นี้" : "เดือนนี้";
   const lineTitle =
@@ -509,6 +498,17 @@ export default function HomePage() {
         }),
     [stockTx]
   );
+
+  // ----- จากนี้จะมี early return ได้ เพราะ hooks ทั้งหมดข้างบนถูกเรียกทุกครั้งแล้ว -----
+  if (loading) {
+    return <div style={{ textAlign: "center", padding: 50 }}>⏳ กำลังตรวจสอบผู้ใช้...</div>;
+  }
+  if (!user) {
+    return <div style={{ textAlign: "center", padding: 50 }}>กรุณาเข้าสู่ระบบ</div>;
+  }
+  if (!summaryData) {
+    return <div style={{ textAlign: "center", padding: 50 }}>⏳ กำลังโหลดข้อมูล...</div>;
+  }
 
   // ====== UI ======
   return (
