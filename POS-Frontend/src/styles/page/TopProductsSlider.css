@@ -1,0 +1,94 @@
+.top5-slider {
+  width: 100%;
+  height: calc(var(--imgH) + var(--cap));
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, #000 10% 90%, transparent);
+  position: relative;
+}
+
+/* แถวสไลด์ */
+.top5-slider .list {
+  display: flex;
+  width: 100%;
+  position: relative;
+}
+
+/* ไอเท็ม = รูปเต็ม + แคปชันด้านล่าง */
+.top5-slider .item {
+  width: var(--width);
+  height: calc(var(--imgH) + var(--cap));
+  position: absolute;
+  left: 100%;
+  animation: top5AutoRun 10s linear infinite;
+  animation-delay: calc((10s / var(--quantity)) * (var(--position) - 1)) !important;
+  transition: transform 0.35s ease, filter 0.35s ease;
+}
+
+.top5-slider .img-wrap {
+  width: 100%;
+  height: var(--imgH);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.top5-slider .img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;      /* รูปเต็มกระเบื้อง */
+  display: block;
+  background: transparent;
+}
+
+/* แคปชันใต้รูป (ไม่ทับรูป, ไม่มี glass) */
+.top5-slider .caption {
+  height: var(--cap);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 4px;
+  color: #111;
+  font-size: 12px;
+}
+
+.top5-slider .caption .title {
+  font-weight: 700;
+  line-height: 1.2;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.top5-slider .caption .sub {
+  display: flex;
+  gap: 10px;
+  opacity: .85;
+}
+
+/* หยุดตอน hover + zoom เบา ๆ */
+.top5-slider:hover .item { animation-play-state: paused !important; }
+.top5-slider .item:hover { transform: scale(1.06); }
+
+/* วิ่งย้อน */
+.top5-slider[reverse="true"] .item { animation: top5Reverse 10s linear infinite; }
+
+/* keyframes */
+@keyframes top5AutoRun {
+  0%   { left: 100%; }
+  100% { left: calc(var(--width) * -1); }
+}
+@keyframes top5Reverse {
+  0%   { left: calc(var(--width) * -1); }
+  100% { left: 100%; }
+}
+
+/* จอเล็ก */
+@media (max-width: 640px) {
+  .top5-slider {
+    margin-left: 0;
+    --width: 160px;
+    --imgH: 120px;
+    --cap: 46px;
+  }
+}

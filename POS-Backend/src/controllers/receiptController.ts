@@ -74,6 +74,7 @@ export const getReceiptByPaymentId = async (req: Request, res: Response): Promis
     }
 };
 
+
 // 📊 สรุปยอด (คงเดิม)
 export const getReceiptSummary = async (req: Request, res: Response): Promise<void> => {
     try {

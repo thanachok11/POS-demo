@@ -1,436 +1,438 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { jwtDecode } from "jwt-decode";
-import { Line } from "react-chartjs-2";
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
   Tooltip,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
   Legend,
-} from "chart.js";
+  AreaChart,
+  Area,
+  Label,
+} from "recharts";
 
 import "../../styles/page/HomePage.css";
 
+// === APIs ===
 import { fetchSalesSummary } from "../../api/receipt/receiptApi";
+import { getAllPayments } from "../../api/payment/paymentApi";
+import { getPurchaseOrders } from "../../api/purchaseOrder/purchaseOrderApi";
+import { getStockTransactions } from "../../api/stock/transactionApi";
 import { getProducts } from "../../api/product/productApi";
-import { getStockData } from "../../api/stock/stock";
-import { getWarehouses } from "../../api/product/warehousesApi";
-import { getCategories } from "../../api/product/categoryApi";
-import { getSupplierData } from "../../api/suppliers/supplierApi";
 
-import StockTable from "../stock/component/StockTable";
-import FilterControl from "../stock/component/FilterControl";
+import TopProductsSlider from "./TopProductsSlider";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+const COLORS = ["#6C5CE7", "#00C49F", "#FF6B6B", "#FFA62B", "#5AD8A6", "#845EC2"];
+const GRADIENTS = {
+  purple: { id: "gPurple", from: "#6C5CE7", to: "rgba(108,92,231,0.12)" },
+  teal: { id: "gTeal", from: "#00C49F", to: "rgba(0,196,159,0.12)" },
+};
+type RangeKey = "daily" | "weekly" | "monthly";
+const DEFAULT_IMG = "https://cdn-icons-png.flaticon.com/512/2331/2331970.png";
+
+// helper: เทียบวันตามโซนเวลาไทย
+function isSameBangkokDay(d: Date, target: Date) {
+  const toBKK = (x: Date) =>
+    new Date(x.toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
+  const a = toBKK(d);
+  const b = toBKK(target);
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
 
 export default function HomePage() {
+  // ----- states -----
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const [data, setData] = useState<any>(null);
+  const [summaryData, setSummaryData] = useState<any>(null);
+  const [payments, setPayments] = useState<any[]>([]);
+  const [purchaseOrders, setPurchaseOrders] = useState<any[]>([]);
+  const [stockTx, setStockTx] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
-  const [stockData, setStockData] = useState<any[]>([]);
-  const [lowStockItems, setLowStockItems] = useState<any[]>([]);
 
-  // filter + search (เฉพาะตาราง stock)
-  const [warehouses, setWarehouses] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [suppliers, setSuppliers] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
-  const [selectedWarehouses, setSelectedWarehouses] = useState<string[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedSuppliers, setSelectedSuppliers] = useState<string[]>([]);
-  const [selectedExpiry, setSelectedExpiry] = useState<string[]>([]);
-  const [activeFilter, setActiveFilter] = useState<("active" | "inactive")[]>([]);
+  const [filter, setFilter] = useState<RangeKey>("weekly");
+  const [selectedDate] = useState<Date>(new Date());
 
-  // pagination (5 แถว/หน้า)
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
-
-  // init user
+  // ----- effects: top-level only -----
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      try {
-        const decoded: any = jwtDecode(token);
-        setUser(decoded);
-      } catch (err) {
-        console.error("❌ Invalid token:", err);
-      }
+      try { setUser(jwtDecode(token)); } catch {}
     }
     setLoading(false);
   }, []);
 
-  // load dashboard data
   useEffect(() => {
-    const loadData = async () => {
-      if (!user) return;
-      try {
-        const [salesRes, productsRes, stockRes] = await Promise.all([
-          fetchSalesSummary(new Date(), "daily"),
-          getProducts(),
-          getStockData(localStorage.getItem("token") || ""),
-        ]);
-
-        if (salesRes?.success) setData(salesRes.data);
-        if (productsRes?.success && Array.isArray(productsRes.data))
-          setProducts(productsRes.data);
-
-        if (stockRes) {
-          setStockData(stockRes);
-          const lowStock = stockRes
-            .filter((item: any) => item.quantity <= (item.threshold ?? 5))
-            .map((item: any) => ({
-              name: item.productId?.name || "ไม่พบชื่อสินค้า",
-              quantity: item.quantity,
-              imageUrl:
-                item.productId?.imageUrl ||
-                "https://cdn-icons-png.flaticon.com/512/2331/2331970.png",
-            }));
-          setLowStockItems(lowStock);
-        }
-      } catch (error) {
-        console.error("❌ Load dashboard data failed:", error);
-      }
-    };
-    loadData();
-  }, [user]);
-
-  // load filter choices
-  useEffect(() => {
-    const fetchFilters = async () => {
+    if (!user) return;
+    const load = async () => {
       const token = localStorage.getItem("token");
-      if (!token) {
-        console.warn("⚠️ Token not found, skip fetching filters");
-        return;
-      }
+      if (!token) return;
       try {
-        const [wh, cat, sup] = await Promise.all([
-          getWarehouses(),
-          getCategories(token),
-          getSupplierData(token),
+        const [salesRes, payRes, poRes, txRes, prodRes] = await Promise.all([
+          fetchSalesSummary(selectedDate, filter),
+          getAllPayments(),
+          getPurchaseOrders(token),
+          getStockTransactions(token),
+          getProducts(),
         ]);
-        setWarehouses(wh);
-        setCategories(cat.data);
-        setSuppliers(sup);
-      } catch (err) {
-        console.error("❌ Failed to fetch filters:", err);
+
+        if (salesRes?.success) setSummaryData(salesRes.data || null);
+
+        const payList = Array.isArray(payRes?.data)
+          ? payRes.data
+          : Array.isArray(payRes)
+          ? payRes
+          : [];
+        setPayments(payList);
+
+        const poList = Array.isArray(poRes?.data)
+          ? poRes.data
+          : Array.isArray(poRes)
+          ? poRes
+          : [];
+        setPurchaseOrders(poList);
+
+        const txList = Array.isArray(txRes?.data)
+          ? txRes.data
+          : Array.isArray(txRes)
+          ? txRes
+          : [];
+        setStockTx(txList);
+
+        const prodList = Array.isArray(prodRes?.data)
+          ? prodRes.data
+          : Array.isArray(prodRes)
+          ? prodRes
+          : [];
+        setProducts(prodList);
+      } catch (e) {
+        console.error("Load dashboard blocks failed:", e);
       }
     };
-    fetchFilters();
-  }, []);
+    load();
+  }, [user, filter, selectedDate]);
 
-  // filter + pagination (เฉพาะตาราง stock)
-  const filteredStock = stockData.filter((item) => {
-    const searchText = searchQuery.toLowerCase();
-    const productName = item.productId?.name?.toLowerCase() || "";
-    const barcode = item.barcode?.toLowerCase() || "";
-    const supplierName = item.supplierId?.companyName?.toLowerCase() || "";
-    const categoryName = item.productId?.category?.name?.toLowerCase() || "";
+  // ----- ALL hooks (useMemo) MUST be before any early return -----
 
-    const matchesSearch =
-      productName.includes(searchText) ||
-      barcode.includes(searchText) ||
-      supplierName.includes(searchText) ||
-      categoryName.includes(searchText);
+  // 1) รูปสินค้าแมพจาก products
+  const imageMap = useMemo(
+    () =>
+      new Map(
+        (products || []).map((p: any) => [
+          p.productId?.barcode || p.barcode,
+          p.productId?.imageUrl || p.imageUrl,
+        ])
+      ),
+    [products]
+  );
 
-    let matchesStatus = true;
-    if (selectedStatuses.length > 0) {
-      if (selectedStatuses.includes("low10") && item.quantity < 10)
-        matchesStatus = true;
-      else matchesStatus = selectedStatuses.includes(item.status);
-    }
+  // 2) Payments เฉพาะ “วันนี้”
+  const todayPayments = useMemo(
+    () =>
+      (payments || []).filter(
+        (p) => p?.createdAt && isSameBangkokDay(new Date(p.createdAt), selectedDate)
+      ),
+    [payments, selectedDate]
+  );
 
-    const matchesWarehouse =
-      selectedWarehouses.length === 0 ||
-      selectedWarehouses.includes(item.location?._id || "");
+  // 3) Top products (เติมรูป)
+  const topProductsFromApi = useMemo(() => {
+    const base = summaryData?.topProducts?.weekly || [];
+    return base.slice(0, 10).map((p: any) => ({
+      name: p.name,
+      barcode: p.barcode,
+      imageUrl: imageMap.get(p.barcode) || DEFAULT_IMG,
+      quantity: p.quantity,
+      revenue: p.revenue ?? p.netRevenue ?? 0,
+    }));
+  }, [summaryData, imageMap]);
 
-    const matchesCategory =
-      selectedCategories.length === 0 ||
-      selectedCategories.includes(item.productId?.category?._id || "");
+  // ----- จากนี้จะมี early return ได้ เพราะ hooks ทั้งหมดข้างบนถูกเรียกทุกครั้งแล้ว -----
+  if (loading) {
+    return <div style={{ textAlign: "center", padding: 50 }}>⏳ กำลังตรวจสอบผู้ใช้...</div>;
+  }
+  if (!user) {
+    return <div style={{ textAlign: "center", padding: 50 }}>กรุณาเข้าสู่ระบบ</div>;
+  }
+  if (!summaryData) {
+    return <div style={{ textAlign: "center", padding: 50 }}>⏳ กำลังโหลดข้อมูล...</div>;
+  }
 
-    const matchesSupplier =
-      selectedSuppliers.length === 0 ||
-      selectedSuppliers.includes(item.supplierId?._id || "");
+  // ====== เส้นรายชั่วโมงวันนี้ ======
+  const weekBuckets = summaryData.weekly || [];
+  const lineData = weekBuckets.map((b: any) => ({
+    label:
+      b?.hour !== undefined
+        ? `${String(b.hour).padStart(2, "0")}:00`
+        : new Date(b.formattedDate?.iso || Date.now()).toLocaleTimeString("th-TH", { hour: "2-digit" }),
+    value: Number(b?.netSales ?? b?.totalSales ?? 0),
+  }));
 
-    return (
-      matchesSearch &&
-      matchesStatus &&
-      matchesWarehouse &&
-      matchesCategory &&
-      matchesSupplier
-    );
-  });
-
-  const totalPages = Math.ceil(filteredStock.length / itemsPerPage);
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredStock.slice(indexOfFirstItem, indexOfLastItem);
-
-  // loading states
-  if (loading)
-    return (
-      <div style={{ textAlign: "center", padding: 50 }}>
-        ⏳ กำลังตรวจสอบข้อมูลผู้ใช้...
-      </div>
-    );
-  if (!user)
-    return (
-      <div className="display">
-        <div className="home-container">
-          <div className="text-section">
-            <h1 className="welcome-title">ยินดีต้อนรับสู่ระบบ POS</h1>
-            <p className="description">
-              ระบบที่ช่วยให้การขายของคุณเป็นเรื่องง่ายและสะดวกยิ่งขึ้น
-              รองรับการจัดการสินค้า รายงานยอดขาย และสต็อกสินค้าในที่เดียว!
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  if (!data)
-    return (
-      <div style={{ textAlign: "center", padding: 50 }}>
-        ⏳ กำลังโหลดข้อมูลยอดขาย...
-      </div>
-    );
-
-  // chart config
-  const chartLabels = data.daily.map((d: any) => {
-    const date = new Date(d.formattedDate.iso);
-    return date.toLocaleTimeString("th-TH", { hour: "2-digit" });
-  });
-  const chartData = {
-    labels: chartLabels,
-    datasets: [
-      {
-        label: "ยอดขาย (บาท)",
-        data: data.daily.map((d: any) => d.totalSales),
-        borderColor: "#6c5ce7",
-        backgroundColor: "rgba(108,92,231,0.1)",
-        fill: true,
-        tension: 0.35,
-        pointRadius: 3,
-      },
-    ],
-  };
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { position: "top" as const },
-      tooltip: { callbacks: { label: (ctx: any) => `฿${ctx.raw.toLocaleString()}` } },
+  // ====== รวม amount & profit ของ “วันนี้” จาก todayPayments ======
+  const paymentAgg = todayPayments.reduce(
+    (acc, p) => {
+      const amt = Number(p.amount ?? 0);
+      const prf = Number(p.profit ?? 0);
+      acc.sumAmount += amt;
+      acc.sumProfit += prf;
+      const d = new Date(p.createdAt || p.updatedAt || Date.now());
+      const hour = d.toLocaleTimeString("th-TH", { hour: "2-digit" });
+      acc.byHour[hour] = (acc.byHour[hour] || 0) + amt;
+      return acc;
     },
-    scales: { y: { beginAtZero: true }, x: { ticks: { font: { size: 12 } } } },
-  };
+    { sumAmount: 0, sumProfit: 0, byHour: {} as Record<string, number> }
+  );
+  const sumAmount = paymentAgg.sumAmount;
+  const sumProfit = paymentAgg.sumProfit;
+  const paySeries = Object.keys(paymentAgg.byHour)
+    .sort((a, b) => Number(a) - Number(b))
+    .map((h) => ({ hour: `${h}:00`, amount: paymentAgg.byHour[h] }));
+  const paymentPie = [
+    { name: "กำไร", value: sumProfit },
+    { name: "รายได้หล้งหักกำไร", value: Math.max(sumAmount - sumProfit, 0) },
+  ];
 
-  // top products
-  const topProducts =
-    data.topProducts.daily?.slice(0, 6).map((p: any) => {
-      const match = products.find(
-        (prod) => prod.productId?.barcode === p.barcode
-      );
-      return {
-        ...p,
-        imageUrl:
-          match?.productId?.imageUrl ||
-          "https://cdn-icons-png.flaticon.com/512/2331/2331970.png",
+  // ====== PO วันนี้ + QC ผ่าน ======
+  const todayPOs = (purchaseOrders || []).filter(
+    (po) => po?.createdAt && isSameBangkokDay(new Date(po.createdAt), selectedDate)
+  );
+  const approvedTotalsByProduct: Record<string, { name: string; value: number }> = {};
+  todayPOs.forEach((po: any) => {
+    const approvedBatches = new Set(
+      (po.stockLots || [])
+        .filter((s: any) => (s.qcStatus || "").trim() === "ผ่าน")
+        .map((s: any) => s.batchNumber)
+    );
+    (po.items || []).forEach((it: any) => {
+      const batch = it.batchNumber || "";
+      if (!approvedBatches.has(batch)) return;
+      const name = it.productName || it.productId?.name || "-";
+      const total = Number(it.total ?? (it.costPrice || 0) * (it.quantity || 0));
+      approvedTotalsByProduct[name] = {
+        name,
+        value: (approvedTotalsByProduct[name]?.value || 0) + total,
       };
-    }) || [];
+    });
+  });
+  const poPie = Object.values(approvedTotalsByProduct)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 8);
+  const poExpenseToday = poPie.reduce((s, x) => s + x.value, 0);
 
+  // ====== Timeline สต็อก ======
+  const timeline = [...(stockTx || [])]
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt || b.timestamp || 0).getTime() -
+        new Date(a.createdAt || a.timestamp || 0).getTime()
+    )
+    .slice(0, 10)
+    .map((t) => ({
+      when: new Date(t.createdAt || t.timestamp || Date.now()).toLocaleString("th-TH", {
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      type: (t.type || t.action || t.direction || "").toString().toUpperCase(),
+      ref: t.reference || t.refNo || t.poCode || t.docNo || "-",
+      name: t.productName || t.itemName || t.product?.name || "-",
+      qty: Number(t.quantity ?? t.qty ?? 0),
+    }));
+
+  // ====== UI ======
   return (
     <div className="display">
       <div className="dashboard-overview">
-        <h1>ภาพรวมร้าน {user?.nameStore || "My Store"}</h1>
-
-        {/* HERO GRID */}
-        <div className="hero-grid">
+        <div className="dash-grid">
           {/* Top 5 */}
-          <section className="panel panel-top5 card-like">
+          <section className="panel card-like area-top5">
             <h2 className="section-title">สินค้าขายดี (Top 5)</h2>
-            <div className="carousel-container">
-              <button
-                className="carousel-btn left"
-                onClick={() =>
-                  (document.querySelector(".carousel-list") as HTMLElement)?.scrollBy({ left: -300, behavior: "smooth" })
-                }
-              >
-                ‹
-              </button>
-              <div className="carousel-list">
-                {topProducts.map((p: any, i: number) => (
-                  <div key={i} className="carousel-item">
-                    <div className="rank">#{i + 1}</div>
-                    <img src={p.imageUrl} alt={p.name} className="carousel-img" />
-                    <div className="carousel-info">
-                      <strong>{p.name}</strong>
-                      <p>จำนวนขาย: {p.quantity} ชิ้น</p>
-                      <p>กำไร: ฿{p.revenue.toLocaleString()}</p>
+            <TopProductsSlider items={topProductsFromApi.slice(0, 5)} width={200} height={150} />
+          </section>
+
+          {/* เส้นรายชั่วโมง */}
+          <section className="panel card-like area-receipt">
+            <h2 className="section-title">กราฟยอดขายรายสัปดาห์</h2>
+            <div className="chart-rect">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={lineData}>
+                  <defs>
+                    <linearGradient id={GRADIENTS.purple.id} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={GRADIENTS.purple.from} stopOpacity={0.9} />
+                      <stop offset="100%" stopColor={GRADIENTS.purple.to} stopOpacity={0.4} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="label" />
+                  <YAxis />
+                  <Tooltip formatter={(v: number) => `฿${Number(v).toLocaleString()}`} />
+                  <Line type="monotone" dataKey="value" stroke="#6C5CE7" strokeWidth={2} dot={false} />
+                  <Area type="monotone" dataKey="value" stroke="none" fill="url(#gPurple)" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </section>
+
+          {/* พาย 1: Payments */}
+          <section className="panel card-like area-pie1">
+            <h2 className="section-title">Payment: รายได้ & กำไรรวม (วันนี้)</h2>
+            <div className="pie-rect">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Tooltip formatter={(v: number) => `฿${Number(v).toLocaleString()}`} />
+                  <Legend />
+                  <Pie data={paymentPie} dataKey="value" nameKey="name" innerRadius={55} outerRadius={85} paddingAngle={2}>
+                    {paymentPie.map((_, idx) => (
+                      <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
+                    ))}
+                    <Label
+                      value={`฿${sumAmount.toLocaleString()}`}
+                      position="center"
+                      style={{ fontWeight: 700, fontSize: 15 }}
+                    />
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </section>
+
+          {/* พาย 2: PO (QC ผ่าน) */}
+          <section className="panel card-like area-pie2">
+            <h2 className="section-title">Purchase Orders (QC ผ่าน วันนี้)</h2>
+            <div className="pie-rect">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Tooltip formatter={(v: number) => `฿${Number(v).toLocaleString()}`} />
+                  <Legend />
+                  <Pie data={poPie} dataKey="value" nameKey="name" innerRadius={40} outerRadius={80}>
+                    {poPie.map((_, idx) => (
+                      <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </section>
+
+          {/* KPI */}
+          <div className="kpi card-like area-kpi1">
+            <div className="kpi-head">ยอดขายสุทธิ (วันนี้)</div>
+            <div className="kpi-val">
+              ฿
+              {Number(
+                summaryData.summary?.weekly?.netSales ??
+                  summaryData.summary?.weekly?.totalSales ??
+                  0
+              ).toLocaleString()}
+            </div>
+          </div>
+          <div className="kpi card-like area-kpi2">
+            <div className="kpi-head">จำนวนที่ขาย</div>
+            <div className="kpi-val">
+              {Number(summaryData.summary?.weekly?.totalQuantity ?? 0).toLocaleString()} ชิ้น
+            </div>
+          </div>
+          <div className="kpi card-like area-kpi3">
+            <div className="kpi-head">กำไรรวม</div>
+            <div className="kpi-val">
+              ฿{Number(summaryData.summary?.weekly?.totalProfit ?? 0).toLocaleString()}
+            </div>
+          </div>
+          <div className="kpi card-like area-kpi4">
+            <div className="kpi-head">ค่าใช้จ่าย PO (QC ผ่าน วันนี้)</div>
+            <div className="kpi-val">฿{poExpenseToday.toLocaleString()}</div>
+          </div>
+
+          {/* Timeline */}
+          <section className="panel card-like area-timeline">
+            <h2 className="section-title">Recent Stock Transaction</h2>
+            <div className="timeline">
+              {timeline.map((t, i) => (
+                <div key={i} className="timeline-item">
+                  <div className={`dot ${t.type.includes("OUT") ? "out" : "in"}`} />
+                  <div className="content">
+                    <div className="line1">
+                      <span className="when">{t.when}</span>
+                      <span className={`pill ${t.type.includes("OUT") ? "danger" : "success"}`}>{t.type}</span>
                     </div>
-                  </div>
-                ))}
-              </div>
-              <button
-                className="carousel-btn right"
-                onClick={() =>
-                  (document.querySelector(".carousel-list") as HTMLElement)?.scrollBy({ left: 300, behavior: "smooth" })
-                }
-              >
-                ›
-              </button>
-            </div>
-          </section>
-
-          {/* Chart */}
-          <section className="panel panel-chart card-like">
-            <h2 className="section-title">กราฟแนวโน้มยอดขายรายวัน</h2>
-            <div className="chart-wrap" style={{ height: 430 }}>
-              <Line data={chartData} options={chartOptions} />
-            </div>
-          </section>
-
-          {/* Low stock */}
-          <section className="panel panel-lowstock card-like">
-            <h2 className="section-title">สินค้าเหลือน้อย 📦</h2>
-            <div className="carousel-container">
-              <button
-                className="carousel-btn left"
-                onClick={() =>
-                  (document.querySelector(".lowstock-carousel-list") as HTMLElement)?.scrollBy({ left: -300, behavior: "smooth" })
-                }
-              >
-                ‹
-              </button>
-              <div className="lowstock-carousel-list">
-                {lowStockItems.map((item, index) => (
-                  <div key={index} className="lowstock-item">
-                    <div className="rank">#{index + 1}</div>
-                    <img src={item.imageUrl} alt={item.name} className="carousel-img" />
-                    <div className="carousel-info">
-                      <strong>{item.name}</strong>
-                      <p>เหลือ {item.quantity} ชิ้น</p>
+                    <div className="line2">
+                      <span className="name">{t.name}</span>
+                      <span className="qty">× {t.qty.toLocaleString()}</span>
                     </div>
+                    <div className="line3 muted">อ้างอิง: {t.ref}</div>
                   </div>
-                ))}
-              </div>
-              <button
-                className="carousel-btn right"
-                onClick={() =>
-                  (document.querySelector(".lowstock-carousel-list") as HTMLElement)?.scrollBy({ left: 300, behavior: "smooth" })
-                }
-              >
-                ›
-              </button>
+                </div>
+              ))}
+              {timeline.length === 0 && <div className="muted">— ไม่มีข้อมูล —</div>}
             </div>
           </section>
-        </div>
 
-        {/* KPI */}
-        <section className="kpi-equal">
-          <div className="card-like kpi-card kpi-sales">
-            <h3>ยอดขายวันนี้</h3>
-            <p>฿{data.summary.daily.totalSales.toLocaleString()}</p>
-          </div>
-          <div className="card-like kpi-card kpi-orders">
-            <h3>จำนวนรายการขาย</h3>
-            <p>{data.summary.daily.totalQuantity} ชิ้น</p>
-          </div>
-          <div className="card-like kpi-card kpi-profit">
-            <h3>กำไรรวม</h3>
-            <p>฿{data.summary.daily.totalProfit.toLocaleString()}</p>
-          </div>
-          <div className="card-like kpi-card kpi-staff">
-            <h3>พนักงานวันนี้</h3>
-            <p>0 คน</p>
-          </div>
-        </section>
-
-        {/* Stock (เต็มความกว้าง + ฟิลเตอร์อยู่ในกล่องเดียวกัน) */}
-        <div className="stock-layout">
-          <div className="stock-table-area card-like">
-            <h2 className="section-title">📦 สินค้าคงเหลือในคลัง</h2>
-
-            {/* แถบเครื่องมือค้นหา/ฟิลเตอร์ */}
-            <div className="stock-toolbar">
-              <input
-                type="text"
-                placeholder="🔍 ค้นหาสินค้า..."
-                className="search-input"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-              />
-              <FilterControl
-                selectedStatuses={selectedStatuses}
-                setSelectedStatuses={(v) => { setSelectedStatuses(v); setCurrentPage(1); }}
-                selectedWarehouses={selectedWarehouses}
-                setSelectedWarehouses={(v) => { setSelectedWarehouses(v); setCurrentPage(1); }}
-                selectedCategories={selectedCategories}
-                setSelectedCategories={(v) => { setSelectedCategories(v); setCurrentPage(1); }}
-                selectedSuppliers={selectedSuppliers}
-                setSelectedSuppliers={(v) => { setSelectedSuppliers(v); setCurrentPage(1); }}
-                selectedExpiry={selectedExpiry}
-                setSelectedExpiry={(v) => { setSelectedExpiry(v); setCurrentPage(1); }}
-                activeFilter={activeFilter}
-                setActiveFilter={(v) => { setActiveFilter(v); setCurrentPage(1); }}
-                warehouses={warehouses}
-                categories={categories}
-                suppliers={suppliers}
-              />
+          {/* Payment history (วันนี้) + ตาราง */}
+          <section className="panel card-like area-payment">
+            <h2 className="section-title">Payment (ประวัติการขายวันนี้)</h2>
+            <div className="chart-rect" style={{ marginBottom: 10 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={paySeries}>
+                  <defs>
+                    <linearGradient id={GRADIENTS.teal.id} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={GRADIENTS.teal.from} stopOpacity={0.9} />
+                      <stop offset="100%" stopColor={GRADIENTS.teal.to} stopOpacity={0.4} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="hour" />
+                  <YAxis />
+                  <Tooltip formatter={(v: number) => `฿${Number(v).toLocaleString()}`} />
+                  <Area type="monotone" dataKey="amount" stroke="#00C49F" fill="url(#gTeal)" strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
 
-            {/* กล่องเลื่อนคงที่ ป้องกันยืดหด */}
-            <div className="stock-table-shell">
-              <StockTable
-                stock={currentItems}
-                getLocationName={(loc) => loc?.name || "ไม่ทราบ"}
-                getCategoryNameById={() => ""}
-                formatThaiDateTime={(d) =>
-                  new Date(d).toLocaleString("th-TH", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
-                }
-                getStatusIcon={() => ""}
-                handleRowClick={() => {}}
-              />
+            <div style={{ overflow: "auto", maxHeight: 240 }}>
+              <table className="nice-table" style={{ width: "100%", fontSize: 14 }}>
+                <thead>
+                  <tr>
+                    <th>เวลา</th>
+                    <th>รหัสขาย</th>
+                    <th>วิธีชำระ</th>
+                    <th>พนักงาน</th>
+                    <th style={{ textAlign: "right" }}>ยอดชำระ (amount)</th>
+                    <th style={{ textAlign: "right" }}>กำไร (profit)</th>
+                    <th>สถานะ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {todayPayments.map((p, idx) => (
+                    <tr key={idx}>
+                      <td>{new Date(p.createdAt || p.updatedAt).toLocaleString("th-TH")}</td>
+                      <td>{p.saleId}</td>
+                      <td>{p.paymentMethod}</td>
+                      <td>{p.employeeName}</td>
+                      <td style={{ textAlign: "right" }}>฿{Number(p.amount || 0).toLocaleString()}</td>
+                      <td style={{ textAlign: "right" }}>฿{Number(p.profit || 0).toLocaleString()}</td>
+                      <td>{p.status}</td>
+                    </tr>
+                  ))}
+                  {todayPayments.length === 0 && (
+                    <tr>
+                      <td colSpan={7} style={{ textAlign: "center", color: "#6b7280" }}>— ไม่มีรายการ —</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
-
-            <div className="pagination-controls">
-              <button
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((p) => p - 1)}
-              >
-                ◀ ก่อนหน้า
-              </button>
-              <span>
-                หน้า {currentPage} จาก {totalPages}
-              </span>
-              <button
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((p) => p + 1)}
-              >
-                ถัดไป ▶
-              </button>
-            </div>
-          </div>
+          </section>
         </div>
       </div>
     </div>

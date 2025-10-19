@@ -26,33 +26,19 @@ ChartJS.register(
   Legend
 );
 
+type RangeKey = "daily" | "weekly" | "monthly";
+
 export default function SalesSummary() {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [filter, setFilter] = useState<"daily" | "weekly" | "monthly">("daily");
+  const [filter, setFilter] = useState<RangeKey>("daily");
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
-  const changes = data?.changes?.[filter] || {};
-  const formatChange = (value: number) => {
-    if (!value || isNaN(value)) return "0.00%";
-    const sign = value > 0 ? "+" : "";
-    return `${sign}${value.toFixed(2)}%`;
-  };
-
-  const iconChange = (value: number) => {
-    if (value > 0) return "▲";
-    if (value < 0) return "▼";
-    return "–";
-  };
-
-  const getChangeColor = (value: number) =>
-    value > 0 ? "positive" : value < 0 ? "negative" : "";
 
   useEffect(() => {
     const getSummary = async () => {
       setLoading(true);
       const res = await fetchSalesSummary(selectedDate, filter);
-      if (res.success) setData(res.data);
+      if (res?.success) setData(res.data);
       setLoading(false);
     };
     getSummary();
@@ -61,32 +47,55 @@ export default function SalesSummary() {
   if (loading) return <p>⏳ กำลังโหลดข้อมูล...</p>;
   if (!data || !data.summary || !data.changes) return <p>ไม่พบข้อมูล</p>;
 
-  const summary = data.summary[filter];
-  const bestSeller = data.topProducts[filter]?.[0] || {
-    name: "-",
-    quantity: 0,
-    revenue: 0,
-  };
-  const chartSet = data[filter];
+  // ---------- ใช้ "ยอดสุทธิ (หลังส่วนลด/คืนสินค้า)" เป็นหลัก ----------
+  const summary = data.summary[filter] || {};
+  const changes = data.changes[filter] || {};
 
-  // ✅ Label ของกราฟ (แสดงวันที่หรือชั่วโมงจริง)
+  // เปอร์เซ็นต์เปลี่ยนแปลง: ใช้ netSalesChange ถ้ามี
+  const salesChange =
+    typeof changes.netSalesChange === "number"
+      ? changes.netSalesChange
+      : changes.totalSalesChange;
+
+  const bestSellerRaw = (data.topProducts?.[filter] || [])[0] || {};
+  const bestSeller = {
+    name: bestSellerRaw.name ?? "-",
+    quantity: bestSellerRaw.quantity ?? 0,
+    revenue:
+      typeof bestSellerRaw.netRevenue === "number"
+        ? bestSellerRaw.netRevenue
+        : bestSellerRaw.revenue ?? 0,
+  };
+
+  const formatChange = (value: number) => {
+    if (typeof value !== "number" || isNaN(value)) return "0.00%";
+    const sign = value > 0 ? "+" : "";
+    return `${sign}${value.toFixed(2)}%`;
+  };
+  const iconChange = (value: number) =>
+    value > 0 ? "▲" : value < 0 ? "▼" : "–";
+  const getChangeColor = (value: number) =>
+    value > 0 ? "positive" : value < 0 ? "negative" : "";
+
+  // ---------- กราฟ: ใช้ netSales เป็นหลัก ----------
+  const chartSet = data[filter] || [];
   const chartLabels = chartSet.map((d: any) => {
     const date = new Date(d.formattedDate.iso);
-    if (filter === "daily")
-      return date.toLocaleTimeString("th-TH", { hour: "2-digit" });
-    else
-      return date.toLocaleDateString("th-TH", {
-        day: "numeric",
-        month: "short",
-      });
+    return filter === "daily"
+      ? date.toLocaleTimeString("th-TH", { hour: "2-digit" })
+      : date.toLocaleDateString("th-TH", { day: "numeric", month: "short" });
   });
 
   const chartData = {
     labels: chartLabels,
     datasets: [
       {
-        label: "ยอดขาย (บาท)",
-        data: chartSet.map((d: any) => d.totalSales),
+        label: "ยอดขายสุทธิ (บาท)",
+        // ใช้ netSales ถ้ามี, ถ้าไม่มีกลับไป totalSales
+        data: chartSet.map(
+          (d: any) =>
+            (typeof d.netSales === "number" ? d.netSales : d.totalSales) || 0
+        ),
         borderColor: "#6c5ce7",
         backgroundColor: "rgba(108, 92, 231, 0.1)",
         fill: true,
@@ -99,12 +108,15 @@ export default function SalesSummary() {
 
   const chartTitle =
     filter === "daily"
-      ? "ยอดขายวันนี้"
+      ? "ยอดขายวันนี้ (สุทธิ)"
       : filter === "weekly"
-        ? "ยอดขายรายสัปดาห์นี้"
-        : "ยอดขายรายเดือนนี้";
+      ? "ยอดขายรายสัปดาห์นี้ (สุทธิ)"
+      : "ยอดขายรายเดือนนี้ (สุทธิ)";
 
-  const totalSalesToday = summary.totalSales.toLocaleString();
+  // ยอดรวมแสดงใต้กราฟ: ใช้ netSales ถ้ามี
+  const totalNetSales =
+    typeof summary.netSales === "number" ? summary.netSales : summary.totalSales;
+  const totalNetSalesText = (totalNetSales || 0).toLocaleString();
 
   const options = {
     responsive: true,
@@ -113,7 +125,7 @@ export default function SalesSummary() {
       title: { display: true, text: chartTitle },
       tooltip: {
         callbacks: {
-          label: (ctx: any) => `฿${ctx.raw.toLocaleString()}`,
+          label: (ctx: any) => `฿${Number(ctx.raw || 0).toLocaleString()}`,
         },
       },
     },
@@ -127,23 +139,23 @@ export default function SalesSummary() {
     <div className="dashboard-wrapper">
       <h1 className="dashboard-title">📊 รายงานยอดขาย</h1>
 
-      {/* 🔹 Filter Buttons */}
+      {/* 🔹 Filter */}
       <div className="dashboard-filters">
-        {["daily", "weekly", "monthly"].map((type) => (
+        {(["daily", "weekly", "monthly"] as RangeKey[]).map((type) => (
           <button
             key={type}
             className={filter === type ? "active" : ""}
-            onClick={() => setFilter(type as any)}
+            type="button"
+            onClick={() => setFilter(type)}
           >
             {type === "daily"
               ? "รายวัน"
               : type === "weekly"
-                ? "รายสัปดาห์"
-                : "รายเดือน"}
+              ? "รายสัปดาห์"
+              : "รายเดือน"}
           </button>
         ))}
 
-        {/* 🔹 Date Picker */}
         <DatePicker
           selected={selectedDate}
           onChange={(date) => date && setSelectedDate(date)}
@@ -154,11 +166,11 @@ export default function SalesSummary() {
         />
       </div>
 
-      {/* 🔹 Summary Section */}
+      {/* 🔹 Summary Section (อิงยอดสุทธิ) */}
       <div className="summary-grid">
         <div className="summary-card">
-          <h3>ยอดขายรวม</h3>
-          <p>{summary.totalQuantity} ชิ้น</p>
+          <h3>จำนวนชิ้นที่ขาย</h3>
+          <p>{(summary.totalQuantity || 0).toLocaleString()} ชิ้น</p>
           <small className={getChangeColor(changes.totalQuantityChange)}>
             {iconChange(changes.totalQuantityChange)}{" "}
             {formatChange(changes.totalQuantityChange)}
@@ -167,16 +179,15 @@ export default function SalesSummary() {
 
         <div className="summary-card">
           <h3>ยอดขายสุทธิ</h3>
-          <p>฿{summary.netSales.toLocaleString()}</p>
-          <small className={getChangeColor(changes.totalSalesChange)}>
-            {iconChange(changes.totalSalesChange)}{" "}
-            {formatChange(changes.totalSalesChange)}
+          <p>฿{(totalNetSales || 0).toLocaleString()}</p>
+          <small className={getChangeColor(salesChange)}>
+            {iconChange(salesChange)} {formatChange(salesChange)}
           </small>
         </div>
 
         <div className="summary-card">
           <h3>กำไรรวม</h3>
-          <p>฿{summary.totalProfit.toLocaleString()}</p>
+          <p>฿{(summary.totalProfit || 0).toLocaleString()}</p>
           <small className={getChangeColor(changes.totalProfitChange)}>
             {iconChange(changes.totalProfitChange)}{" "}
             {formatChange(changes.totalProfitChange)}
@@ -186,19 +197,19 @@ export default function SalesSummary() {
         <div className="summary-card">
           <h3>สินค้าขายดี</h3>
           <p>{bestSeller.name}</p>
-          <small>{bestSeller.quantity} ชิ้น</small>
+          <small>{(bestSeller.quantity || 0).toLocaleString()} ชิ้น</small>
           <small className="revenue">
-            ฿{bestSeller.revenue.toLocaleString()}
+            ฿{(bestSeller.revenue || 0).toLocaleString()}
           </small>
         </div>
       </div>
 
-      {/* 🔹 Chart Section */}
+      {/* 🔹 Chart (Net Sales) */}
       <div className="chart-container">
         <h2>{chartTitle}</h2>
         <Line data={chartData} options={options} />
         <p className="total-sales-text">
-          💰 ยอดขายรวมทั้งหมด: ฿{totalSalesToday}
+          💰 ยอดขายสุทธิทั้งหมด: ฿{totalNetSalesText}
         </p>
       </div>
     </div>
