@@ -9,6 +9,7 @@ import { fetchSalesSummary } from "../../api/receipt/receiptApi";
 import { getAllPayments } from "../../api/payment/paymentApi";
 import { getPurchaseOrders } from "../../api/purchaseOrder/purchaseOrderApi";
 import { getStockTransactions } from "../../api/stock/transactionApi";
+import { getProducts } from "../../api/product/productApi";
 
 import DashboardTopList from "./dashboard/DashboardTopList";
 import DashboardKpiRow, { KpiCardItem } from "./dashboard/DashboardKpiRow";
@@ -119,6 +120,7 @@ export default function Dashboard() {
   const [payments, setPayments] = useState<PaymentEntry[]>([]);
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrderEntry[]>([]);
   const [stockTransactions, setStockTransactions] = useState<StockTimelineEntry[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -130,11 +132,12 @@ export default function Dashboard() {
       setError(null);
       try {
         const token = localStorage.getItem("token") || "";
-        const [salesRes, paymentRes, purchaseRes, stockRes] = await Promise.all([
+        const [salesRes, paymentRes, purchaseRes, stockRes, productRes] = await Promise.all([
           fetchSalesSummary(selectedDate, filter),
           getAllPayments(),
           token ? getPurchaseOrders(token) : Promise.resolve(null),
           token ? getStockTransactions(token) : Promise.resolve(null),
+          token ? getProducts() : Promise.resolve(null),
         ]);
 
         if (ignore) return;
@@ -215,6 +218,13 @@ export default function Dashboard() {
             quantity: sanitizeNumber(tx?.quantity ?? tx?.qty),
           }));
         setStockTransactions(stockSanitized);
+
+        const productListRaw = Array.isArray(productRes?.data)
+          ? productRes.data
+          : Array.isArray(productRes)
+          ? productRes
+          : [];
+        setProducts(productListRaw);
       } catch (err) {
         console.error("โหลดแดชบอร์ดไม่สำเร็จ", err);
         if (!ignore) {
@@ -244,6 +254,17 @@ export default function Dashboard() {
   const summary = summaryData?.summary?.[filter] || {};
   const changes = summaryData?.changes?.[filter] || {};
 
+  const imageMap = useMemo(
+    () =>
+      new Map(
+        (products || []).map((product: any) => [
+          product?.productId?.barcode || product?.barcode,
+          product?.productId?.imageUrl || product?.imageUrl,
+        ])
+      ),
+    [products]
+  );
+
   const topProducts = useMemo(() => {
     const base = summaryData?.topProducts?.[filter] || [];
     return base.slice(0, 5).map((item: any, idx: number) => ({
@@ -251,8 +272,13 @@ export default function Dashboard() {
       name: item?.name || item?.productName || "-",
       quantity: sanitizeNumber(item?.quantity),
       revenue: sanitizeNumber(item?.netRevenue ?? item?.revenue),
+      imageUrl:
+        item?.imageUrl ||
+        item?.product?.imageUrl ||
+        item?.productId?.imageUrl ||
+        imageMap.get(item?.barcode || item?.productId?.barcode || item?.product?.barcode),
     }));
-  }, [summaryData, filter]);
+  }, [summaryData, filter, imageMap]);
 
   const salesSeries = useMemo(() => {
     const dataset = summaryData?.[filter] || [];

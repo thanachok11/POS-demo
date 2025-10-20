@@ -6,6 +6,7 @@ export interface TopProductItem {
   name: string;
   quantity: number;
   revenue: number;
+  imageUrl?: string;
 }
 
 interface DashboardTopListProps {
@@ -30,6 +31,7 @@ const DashboardTopList: React.FC<DashboardTopListProps> = ({
         quantity: item.quantity,
         revenue: item.revenue,
         rank: item.rank,
+        imageUrl: item.imageUrl,
       }))}
       emptyMessage={emptyMessage}
     />
