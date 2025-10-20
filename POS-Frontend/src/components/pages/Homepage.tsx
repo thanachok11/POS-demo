@@ -816,8 +816,6 @@ export default function HomePage() {
             <h2 className="section-title">สินค้าขายดี (Top 5)</h2>
             <TopProductsSlider
               items={topProductsFromApi.slice(0, 5)}
-              width={200}
-              height={150}
             />
           </section>
 
