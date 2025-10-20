@@ -1,10 +1,12 @@
 import React from "react";
+import TopProductsSlider from "../TopProductsSlider";
 
 export interface TopProductItem {
   rank: number;
   name: string;
   quantity: number;
   revenue: number;
+  imageUrl?: string;
 }
 
 interface DashboardTopListProps {
@@ -22,23 +24,17 @@ const DashboardTopList: React.FC<DashboardTopListProps> = ({
     return <p className="empty-state">กำลังโหลดรายการสินค้า...</p>;
   }
 
-  if (!items.length) {
-    return <p className="empty-state">{emptyMessage}</p>;
-  }
-
   return (
-    <div className="top5-list">
-      {items.map((item) => (
-        <div key={`${item.rank}-${item.name}`} className="top5-item">
-          <span className="top5-rank">#{item.rank}</span>
-          <span className="top5-name">{item.name}</span>
-          <div className="top5-meta">
-            <span>{item.quantity.toLocaleString("th-TH")} ชิ้น</span>
-            <span>฿{item.revenue.toLocaleString("th-TH")}</span>
-          </div>
-        </div>
-      ))}
-    </div>
+    <TopProductsSlider
+      items={items.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        revenue: item.revenue,
+        rank: item.rank,
+        imageUrl: item.imageUrl,
+      }))}
+      emptyMessage={emptyMessage}
+    />
   );
 };
 

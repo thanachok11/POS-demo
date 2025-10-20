@@ -15,6 +15,7 @@
   color: #0f172a;
 }
 
+
 .dashboard-heading {
   display: flex;
   flex-direction: column;
@@ -26,7 +27,7 @@
   font-size: 1.9rem;
   font-weight: 700;
   color: var(--accent-purple);
-  margin: 0;
+  margin-top: 2rem;
 }
 
 .dashboard-controls {
@@ -113,44 +114,6 @@
 .area-pay-pie { grid-area: payPie; }
 .area-pay-history { grid-area: payHistory; }
 .area-timeline { grid-area: timeline; }
-
-.top5-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 14px;
-}
-
-.top5-item {
-  background: #f8fafc;
-  border-radius: 14px;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  position: relative;
-}
-
-.top5-rank {
-  position: absolute;
-  top: 12px;
-  right: 14px;
-  font-weight: 700;
-  color: var(--accent-purple);
-  font-size: 0.85rem;
-}
-
-.top5-name {
-  font-weight: 700;
-  font-size: 1rem;
-  color: #1e293b;
-}
-
-.top5-meta {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
 
 .kpi-row {
   display: grid;

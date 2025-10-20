@@ -187,7 +187,7 @@ const renderPieValueLabel = (props: any) => {
   const radius = innerRadius + (outerRadius - innerRadius) * 1.05;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
-  const displayValue = `${name}: ${formatCurrency(Number(value || 0))}`;
+  const displayValue = `${name}`;
   return (
     <text
       x={x}
@@ -816,8 +816,6 @@ export default function HomePage() {
             <h2 className="section-title">สินค้าขายดี (Top 5)</h2>
             <TopProductsSlider
               items={topProductsFromApi.slice(0, 5)}
-              width={200}
-              height={150}
             />
           </section>
 
@@ -896,7 +894,6 @@ export default function HomePage() {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Tooltip formatter={(v: number) => formatCurrency(Number(v))} />
-                  <Legend verticalAlign="bottom" height={20} />
                   <Pie
                     data={poPie}
                     dataKey="value"
@@ -904,6 +901,7 @@ export default function HomePage() {
                     innerRadius={45}
                     outerRadius={85}
                     labelLine={false}
+                    label={renderPieValueLabel}
                   >
                     {poPie.map((_, idx) => (
                       <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
@@ -954,11 +952,10 @@ export default function HomePage() {
                           <span className="qty">× {Number(item.quantity).toLocaleString()}</span>
                         </div>
                         <div className="line3 muted">
-                          อ้างอิง: {item.reference}
-                          {item.barcode ? ` · บาร์โค้ด: ${item.barcode}` : ""}
+                          {item.barcode ? `บาร์โค้ด: ${item.barcode}` : ""}
                         </div>
                         {item.userName && (
-                          <div className="line4 muted">ผู้บันทึก: {item.userName}</div>
+                          <div className="line4 muted">พนักงาน: {item.userName}</div>
                         )}
                       </div>
                     </div>
@@ -972,7 +969,7 @@ export default function HomePage() {
           {/* Payment history */}
           <section className="panel card-like area-payment">
             <h2 className="section-title">ประวัติการขาย {rangeLabel}</h2>
-            <div className="table-scroll" style={{ maxHeight: 260 }}>
+            <div className="table-scroll tall">
               <table className="nice-table payment-table home-payment-table">
                 <thead>
                   <tr>
