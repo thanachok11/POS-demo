@@ -12,7 +12,6 @@ import {
   Pie,
   Cell,
   Legend,
-  AreaChart,
   Area,
   Label,
 } from "recharts";
@@ -31,7 +30,6 @@ import TopProductsSlider from "./TopProductsSlider";
 const COLORS = ["#6C5CE7", "#00C49F", "#FF6B6B", "#FFA62B", "#5AD8A6", "#845EC2"];
 const GRADIENTS = {
   purple: { id: "gPurple", from: "#6C5CE7", to: "rgba(108,92,231,0.12)" },
-  teal: { id: "gTeal", from: "#00C49F", to: "rgba(0,196,159,0.12)" },
 };
 type RangeKey = "daily" | "weekly" | "monthly";
 const DEFAULT_IMG = "https://cdn-icons-png.flaticon.com/512/2331/2331970.png";
@@ -44,6 +42,7 @@ type PaymentEntry = {
   profit: number;
   employeeName: string;
   status: string;
+  type: string;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -117,6 +116,62 @@ const formatCurrency = (value: number) =>
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   })}`;
+
+const formatPaymentDateTime = (stamp?: string) => {
+  if (!stamp) return "-";
+  const date = new Date(stamp);
+  if (Number.isNaN(date.getTime())) return "-";
+  const bangkokDate = toBangkokDate(date);
+  return (
+    bangkokDate
+      .toLocaleString("th-TH", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      })
+      .replace("น.", "")
+      .trim() + " น."
+  );
+};
+
+const describePaymentMethod = (method: string) => {
+  const value = (method || "").toString().toLowerCase();
+  if (value.includes("card") || value.includes("บัตร")) return "💳 บัตรเครดิต";
+  if (value.includes("qr")) return "📱 QR Code";
+  if (value.includes("cash") || value.includes("เงินสด")) return "💵 เงินสด";
+  if (value.includes("bank") || value.includes("transfer") || value.includes("โอน")) {
+    return "🏦 โอนธนาคาร";
+  }
+  if (value.includes("prompt") || value.includes("พร้อมเพย์")) return "📲 พร้อมเพย์";
+  if (!value) return "💠 ไม่ระบุ";
+  return `💠 ${method}`;
+};
+
+const describePaymentStatus = (status: string) => {
+  const value = (status || "").toString().toLowerCase();
+  if (value.includes("สำเร็จ") || value.includes("success")) return "✅ สำเร็จ";
+  if (value.includes("ล้มเหลว") || value.includes("fail")) return "❌ ล้มเหลว";
+  if (value.includes("รอดำเนินการ") || value.includes("pending")) return "⏳ รอดำเนินการ";
+  if (!value) return "⏳ รอดำเนินการ";
+  return status;
+};
+
+const describePaymentType = (type: string, amount: number) => {
+  const normalized = (type || "").toString().trim().toUpperCase();
+  if (normalized.includes("REFUND")) return "🔴 คืนเงิน";
+  if (normalized.includes("SALE")) return "🟢 ขาย";
+  if (normalized.includes("CANCEL")) return "⚪ ยกเลิก";
+  if (normalized.includes("HOLD") || normalized.includes("PENDING")) return "⏸️ รอชำระ";
+  if (!normalized) {
+    if (Number(amount) < 0) return "🔴 คืนเงิน";
+    if (Number(amount) === 0) return "⚪ อื่นๆ";
+    return "🟢 ขาย";
+  }
+  return `⚪ ${type}`;
+};
 
 const RADIAN = Math.PI / 180;
 const renderPieValueLabel = (props: any) => {
@@ -211,49 +266,70 @@ export default function HomePage() {
           : [];
         const paymentSanitized: PaymentEntry[] = payRaw
           .filter(Boolean)
-          .map((item: any, index: number) => ({
-            id: String(item?._id || item?.id || item?.saleId || index),
-            saleId: String(
-              item?.saleId ||
-                item?.saleCode ||
-                item?.reference ||
-                item?.orderId ||
-                "-"
-            ),
-            paymentMethod:
-              item?.paymentMethod ||
-              item?.method ||
-              item?.channel ||
-              "ไม่ระบุ",
-            amount: sanitizeNumber(
+          .map((item: any, index: number) => {
+            const amount = sanitizeNumber(
               item?.amount ??
                 item?.total ??
                 item?.totalAmount ??
                 item?.netAmount ??
                 item?.grandTotal
-            ),
-            profit: sanitizeNumber(
-              item?.profit ?? item?.netProfit ?? item?.totalProfit ?? item?.margin
-            ),
-            employeeName:
-              item?.employeeName ||
-              item?.cashier?.name ||
-              item?.employee?.name ||
-              item?.user?.name ||
-              item?.staffName ||
-              "-",
-            status: item?.status || item?.state || item?.paymentStatus || "ไม่ระบุ",
-            createdAt:
-              item?.createdAt ||
-              item?.paidAt ||
-              item?.paymentDate ||
-              item?.timestamp,
-            updatedAt:
-              item?.updatedAt ||
-              item?.modifiedAt ||
-              item?.paymentDate ||
-              item?.timestamp,
-          }));
+            );
+            const rawType = (
+              item?.type ||
+              item?.transactionType ||
+              item?.paymentType ||
+              item?.category ||
+              ""
+            )
+              .toString()
+              .trim();
+            const normalizedType = rawType
+              ? rawType.toUpperCase()
+              : amount < 0
+              ? "REFUND"
+              : amount === 0
+              ? "OTHER"
+              : "SALE";
+
+            return {
+              id: String(item?._id || item?.id || item?.saleId || index),
+              saleId: String(
+                item?.saleId ||
+                  item?.saleCode ||
+                  item?.reference ||
+                  item?.orderId ||
+                  "-"
+              ),
+              paymentMethod:
+                item?.paymentMethod ||
+                item?.method ||
+                item?.channel ||
+                "ไม่ระบุ",
+              amount,
+              profit: sanitizeNumber(
+                item?.profit ?? item?.netProfit ?? item?.totalProfit ?? item?.margin
+              ),
+              employeeName:
+                item?.employeeName ||
+                item?.cashier?.name ||
+                item?.employee?.name ||
+                item?.user?.name ||
+                item?.staffName ||
+                "-",
+              status: item?.status || item?.state || item?.paymentStatus || "ไม่ระบุ",
+              type: normalizedType,
+              createdAt:
+                item?.createdAt ||
+                item?.paidAt ||
+                item?.paymentDate ||
+                item?.timestamp,
+              updatedAt:
+                item?.updatedAt ||
+                item?.modifiedAt ||
+                item?.paymentDate ||
+                item?.timestamp,
+            };
+          });
         setPayments(paymentSanitized);
 
         const poRaw = Array.isArray(poRes?.data)
@@ -576,60 +652,6 @@ export default function HomePage() {
     ? aggregatedTotals.profit
     : Number(summaryForRange?.totalProfit ?? summaryForRange?.profit ?? 0);
 
-  const paymentStats = useMemo(() => {
-    let sumAmount = 0;
-    let sumProfit = 0;
-    const buckets = new Map<
-      string,
-      { label: string; value: number; sortValue: number }
-    >();
-
-    paymentsInRange.forEach((p) => {
-      const amount = Number(p.amount ?? 0);
-      const profit = Number(p.profit ?? 0);
-      sumAmount += amount;
-      sumProfit += profit;
-
-      const stamp = p?.createdAt || p?.updatedAt;
-      if (!stamp) return;
-      const date = toBangkokDate(new Date(stamp));
-      let bucketKey: string;
-      let label: string;
-      let sortValue: number;
-
-      if (filter === "daily") {
-        const hour = date.getHours();
-        bucketKey = String(hour);
-        label = `${String(hour).padStart(2, "0")}:00`;
-        sortValue = hour;
-      } else {
-        const day = new Date(date);
-        day.setHours(0, 0, 0, 0);
-        bucketKey = String(day.getTime());
-        label = day.toLocaleDateString("th-TH", {
-          day: "2-digit",
-          month: "short",
-        });
-        sortValue = day.getTime();
-      }
-
-      const prev = buckets.get(bucketKey);
-      if (prev) {
-        prev.value += amount;
-      } else {
-        buckets.set(bucketKey, { label, value: amount, sortValue });
-      }
-    });
-
-    const series = Array.from(buckets.values())
-      .sort((a, b) => a.sortValue - b.sortValue)
-      .map((item) => ({ hour: item.label, amount: item.value }));
-
-    return { sumAmount, sumProfit, series };
-  }, [paymentsInRange, filter]);
-
-  const paySeries = paymentStats.series;
-
   const paymentPieRevenue = netSalesTotal;
   const paymentPieProfit = profitTotal;
 
@@ -876,62 +898,52 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* Payment history (วันนี้) + ตาราง */}
+          {/* Payment history */}
           <section className="panel card-like area-payment">
             <h2 className="section-title">Payment (ประวัติการขาย {rangeLabel})</h2>
-            <div className="chart-rect" style={{ marginBottom: 10 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={paySeries}>
-                  <defs>
-                    <linearGradient id={GRADIENTS.teal.id} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={GRADIENTS.teal.from} stopOpacity={0.9} />
-                      <stop offset="100%" stopColor={GRADIENTS.teal.to} stopOpacity={0.4} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="hour" />
-                  <YAxis />
-                  <Tooltip formatter={(v: number) => formatCurrency(Number(v))} />
-                  <Area type="monotone" dataKey="amount" stroke="#00C49F" fill="url(#gTeal)" strokeWidth={2} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="table-scroll" style={{ maxHeight: 240 }}>
-              <table className="nice-table payment-table">
+            <div className="table-scroll" style={{ maxHeight: 260 }}>
+              <table className="nice-table payment-table home-payment-table">
                 <thead>
                   <tr>
-                    <th>เวลา</th>
+                    <th style={{ width: 60 }}>ลำดับ</th>
                     <th>รหัสขาย</th>
-                    <th>วิธีชำระ</th>
                     <th>พนักงาน</th>
-                    <th style={{ textAlign: "right" }}>ยอดชำระ (amount)</th>
-                    <th style={{ textAlign: "right" }}>กำไร (profit)</th>
+                    <th>ประเภท</th>
+                    <th>วิธีชำระ</th>
+                    <th style={{ textAlign: "right" }}>ยอดชำระ</th>
                     <th>สถานะ</th>
+                    <th>วันที่</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {paymentsInRange.map((p, idx) => (
-                    <tr key={idx}>
-                      <td>
-                        {(() => {
-                          const stamp = p.createdAt || p.updatedAt;
-                          return stamp
-                            ? toBangkokDate(new Date(stamp)).toLocaleString("th-TH")
-                            : "-";
-                        })()}
-                      </td>
-                      <td>{p.saleId}</td>
-                      <td>{p.paymentMethod}</td>
-                      <td>{p.employeeName}</td>
-                      <td style={{ textAlign: "right" }}>{formatCurrency(Number(p.amount || 0))}</td>
-                      <td style={{ textAlign: "right" }}>{formatCurrency(Number(p.profit || 0))}</td>
-                      <td>{p.status}</td>
-                    </tr>
-                  ))}
+                  {paymentsInRange.map((p, idx) => {
+                    const stamp = p.createdAt || p.updatedAt;
+                    const amountValue = Number(p.amount ?? 0);
+                    const amountColor = amountValue < 0 ? "#dc2626" : amountValue === 0 ? "#1f2937" : "#047857";
+                    return (
+                      <tr key={`${p.id}-${idx}`}>
+                        <td>{idx + 1}</td>
+                        <td>{p.saleId}</td>
+                        <td>{p.employeeName}</td>
+                        <td className="type-cell">{describePaymentType(p.type, amountValue)}</td>
+                        <td>{describePaymentMethod(p.paymentMethod)}</td>
+                        <td
+                          style={{
+                            textAlign: "right",
+                            fontWeight: 600,
+                            color: amountColor,
+                          }}
+                        >
+                          {formatCurrency(amountValue)}
+                        </td>
+                        <td className="status-cell">{describePaymentStatus(p.status)}</td>
+                        <td>{formatPaymentDateTime(stamp)}</td>
+                      </tr>
+                    );
+                  })}
                   {paymentsInRange.length === 0 && (
                     <tr>
-                      <td colSpan={7} style={{ textAlign: "center", color: "#6b7280" }}>— ไม่มีรายการ —</td>
+                      <td colSpan={8} style={{ textAlign: "center", color: "#6b7280" }}>— ไม่มีรายการ —</td>
                     </tr>
                   )}
                 </tbody>
