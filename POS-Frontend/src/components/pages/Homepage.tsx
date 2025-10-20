@@ -187,7 +187,7 @@ const renderPieValueLabel = (props: any) => {
   const radius = innerRadius + (outerRadius - innerRadius) * 1.05;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
-  const displayValue = `${name}: ${formatCurrency(Number(value || 0))}`;
+  const displayValue = `${name}`;
   return (
     <text
       x={x}
@@ -901,6 +901,7 @@ export default function HomePage() {
                     innerRadius={45}
                     outerRadius={85}
                     labelLine={false}
+                    label={renderPieValueLabel}
                   >
                     {poPie.map((_, idx) => (
                       <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
@@ -908,26 +909,6 @@ export default function HomePage() {
                   </Pie>
                 </PieChart>
               </ResponsiveContainer>
-            </div>
-            <div className="pie-legend-scroll">
-              {poPie.length > 0 ? (
-                <ul className="pie-legend-list">
-                  {poPie.map((entry, idx) => (
-                    <li key={`${entry.name}-${idx}`}>
-                      <span
-                        className="dot"
-                        style={{ background: COLORS[idx % COLORS.length] }}
-                      />
-                      <span className="name" title={entry.name}>
-                        {entry.name || "ไม่ระบุ"}
-                      </span>
-                      <span className="value">{formatCurrency(entry.value)}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="muted empty">— ไม่มีข้อมูล —</div>
-              )}
             </div>
           </section>
 
@@ -971,11 +952,10 @@ export default function HomePage() {
                           <span className="qty">× {Number(item.quantity).toLocaleString()}</span>
                         </div>
                         <div className="line3 muted">
-                          อ้างอิง: {item.reference}
-                          {item.barcode ? ` · บาร์โค้ด: ${item.barcode}` : ""}
+                          {item.barcode ? `บาร์โค้ด: ${item.barcode}` : ""}
                         </div>
                         {item.userName && (
-                          <div className="line4 muted">ผู้บันทึก: {item.userName}</div>
+                          <div className="line4 muted">พนักงาน: {item.userName}</div>
                         )}
                       </div>
                     </div>

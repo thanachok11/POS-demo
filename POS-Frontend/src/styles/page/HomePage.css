@@ -164,26 +164,6 @@
 .area-kpi3{ background: linear-gradient(160deg, rgba(251,191,36,0.18), rgba(244,114,182,0.08)); }
 .area-kpi4{ background: linear-gradient(160deg, rgba(124,58,237,0.18), rgba(30,64,175,0.08)); }
 
-/* Charts blocks */
-.chart-rect, .pie-rect{ height: 220px; }
-@media (min-width: 1280px){ .chart-rect, .pie-rect{ height: 240px; } }
-
-.pie-legend-scroll{
-  margin-top:.75rem;
-  padding:.55rem .75rem;
-  border-radius:16px;
-  background:linear-gradient(145deg, rgba(255,255,255,0.92), rgba(224,242,254,0.7));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,0.7);
-  border:1px solid rgba(191, 219, 254, 0.6);
-  max-height:170px;
-  overflow-y:auto;
-}
-
-.pie-legend-scroll .empty{
-  text-align:center;
-  padding:.6rem 0;
-}
-
 .pie-legend-list{
   list-style:none;
   margin:0;

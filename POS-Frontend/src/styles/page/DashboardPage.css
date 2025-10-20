@@ -15,6 +15,7 @@
   color: #0f172a;
 }
 
+
 .dashboard-heading {
   display: flex;
   flex-direction: column;
@@ -26,7 +27,7 @@
   font-size: 1.9rem;
   font-weight: 700;
   color: var(--accent-purple);
-  margin: 0;
+  margin-top: 2rem;
 }
 
 .dashboard-controls {
