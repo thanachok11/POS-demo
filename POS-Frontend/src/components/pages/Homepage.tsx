@@ -894,7 +894,6 @@ export default function HomePage() {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Tooltip formatter={(v: number) => formatCurrency(Number(v))} />
-                  <Legend verticalAlign="bottom" height={20} />
                   <Pie
                     data={poPie}
                     dataKey="value"
@@ -909,6 +908,26 @@ export default function HomePage() {
                   </Pie>
                 </PieChart>
               </ResponsiveContainer>
+            </div>
+            <div className="pie-legend-scroll">
+              {poPie.length > 0 ? (
+                <ul className="pie-legend-list">
+                  {poPie.map((entry, idx) => (
+                    <li key={`${entry.name}-${idx}`}>
+                      <span
+                        className="dot"
+                        style={{ background: COLORS[idx % COLORS.length] }}
+                      />
+                      <span className="name" title={entry.name}>
+                        {entry.name || "ไม่ระบุ"}
+                      </span>
+                      <span className="value">{formatCurrency(entry.value)}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="muted empty">— ไม่มีข้อมูล —</div>
+              )}
             </div>
           </section>
 
@@ -970,7 +989,7 @@ export default function HomePage() {
           {/* Payment history */}
           <section className="panel card-like area-payment">
             <h2 className="section-title">ประวัติการขาย {rangeLabel}</h2>
-            <div className="table-scroll" style={{ maxHeight: 260 }}>
+            <div className="table-scroll tall">
               <table className="nice-table payment-table home-payment-table">
                 <thead>
                   <tr>

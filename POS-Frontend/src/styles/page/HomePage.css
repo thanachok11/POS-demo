@@ -168,6 +168,76 @@
 .chart-rect, .pie-rect{ height: 220px; }
 @media (min-width: 1280px){ .chart-rect, .pie-rect{ height: 240px; } }
 
+.pie-legend-scroll{
+  margin-top:.75rem;
+  padding:.55rem .75rem;
+  border-radius:16px;
+  background:linear-gradient(145deg, rgba(255,255,255,0.92), rgba(224,242,254,0.7));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.7);
+  border:1px solid rgba(191, 219, 254, 0.6);
+  max-height:170px;
+  overflow-y:auto;
+}
+
+.pie-legend-scroll .empty{
+  text-align:center;
+  padding:.6rem 0;
+}
+
+.pie-legend-list{
+  list-style:none;
+  margin:0;
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  gap:.45rem;
+}
+
+.pie-legend-list li{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:.55rem;
+  padding:.55rem .65rem;
+  border-radius:12px;
+  background:rgba(255,255,255,0.88);
+  box-shadow:0 8px 18px rgba(148,163,184,0.18);
+}
+
+.pie-legend-list .dot{
+  width:12px;
+  height:12px;
+  border-radius:999px;
+  box-shadow:0 0 0 4px rgba(148,163,184,0.15);
+}
+
+.pie-legend-list .name{
+  font-weight:600;
+  color:#1f2937;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.pie-legend-list .value{
+  font-weight:700;
+  color:#0f172a;
+}
+
+.pie-legend-scroll::-webkit-scrollbar{
+  width:6px;
+}
+
+.pie-legend-scroll::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg, rgba(99,102,241,0.6), rgba(59,130,246,0.6));
+  border-radius:999px;
+}
+
+.pie-legend-scroll::-webkit-scrollbar-track{
+  background:rgba(226,232,240,0.45);
+  border-radius:999px;
+}
+
 /* Timeline */
 .timeline{ position:relative; padding-left:16px; max-height:260px; overflow-y:auto; padding-right:8px; }
 .timeline::before{
@@ -215,6 +285,7 @@
 
 .primary-text{ font-weight:600; color:#1f2937; }
 .subtext{ display:block; font-size:.76rem; color:#64748b; margin-top:.18rem; }
+.muted{ color:#64748b; font-size:.82rem; }
 
 .qty-cell{ font-weight:700; }
 .qty-cell.in{ color:#047857; }
@@ -290,6 +361,11 @@
   border-radius:18px;
   box-shadow:inset 0 1px 0 rgba(255,255,255,0.6);
   overflow: auto;
+}
+
+.table-scroll.tall{
+  max-height:280px;
+  overflow-y:auto;
 }
 
 .timeline::-webkit-scrollbar{ width:6px; }
