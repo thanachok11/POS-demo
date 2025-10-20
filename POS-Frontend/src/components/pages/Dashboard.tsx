@@ -301,6 +301,38 @@ export default function Dashboard() {
       .map((point) => ({ label: point.label, value: point.value }));
   }, [summaryData, filter]);
 
+  const profitTrendSeries = useMemo(() => {
+    const dataset = summaryData?.[filter] || [];
+    const points = dataset
+      .map((entry: any) => {
+        const iso = entry?.formattedDate?.iso || entry?.date;
+        if (!iso) return null;
+        const date = toBangkokDate(new Date(iso));
+        let label: string;
+        let sortValue: number;
+        if (filter === "daily") {
+          const hour = date.getHours();
+          label = `${String(hour).padStart(2, "0")}:00`;
+          sortValue = hour;
+        } else {
+          label = date.toLocaleDateString("th-TH", {
+            day: "2-digit",
+            month: "short",
+          });
+          sortValue = date.getTime();
+        }
+        const value = sanitizeNumber(
+          entry?.totalProfit ?? entry?.profit ?? entry?.netProfit ?? entry?.margin
+        );
+        return { label, value, sortValue };
+      })
+      .filter(Boolean) as Array<{ label: string; value: number; sortValue: number }>;
+
+    return points
+      .sort((a, b) => a.sortValue - b.sortValue)
+      .map((point) => ({ label: point.label, value: point.value }));
+  }, [summaryData, filter]);
+
   const filteredPayments = useMemo(() => {
     return payments.filter((payment) => {
       if (!payment.timestamp) return false;
@@ -308,50 +340,6 @@ export default function Dashboard() {
       return isDateInRange(date, currentRange);
     });
   }, [payments, currentRangeKey]);
-
-  const paymentHistorySeries = useMemo(() => {
-    const buckets = new Map<
-      string,
-      { label: string; value: number; sortValue: number }
-    >();
-
-    filteredPayments.forEach((payment) => {
-      if (!payment.timestamp) return;
-      const date = toBangkokDate(new Date(payment.timestamp));
-      let bucketKey: string;
-      let label: string;
-      let sortValue: number;
-      if (filter === "daily") {
-        const hour = date.getHours();
-        bucketKey = String(hour);
-        label = `${String(hour).padStart(2, "0")}:00`;
-        sortValue = hour;
-      } else {
-        const day = new Date(date);
-        day.setHours(0, 0, 0, 0);
-        bucketKey = String(day.getTime());
-        label = date.toLocaleDateString("th-TH", {
-          day: "2-digit",
-          month: "short",
-        });
-        sortValue = day.getTime();
-      }
-      const prev = buckets.get(bucketKey);
-      if (prev) {
-        prev.value += payment.amount;
-      } else {
-        buckets.set(bucketKey, {
-          label,
-          value: payment.amount,
-          sortValue,
-        });
-      }
-    });
-
-    return Array.from(buckets.values())
-      .sort((a, b) => a.sortValue - b.sortValue)
-      .map((item) => ({ label: item.label, value: item.value }));
-  }, [filteredPayments, filter]);
 
   const paymentPieData = useMemo(() => {
     const methodMap = new Map<string, number>();
@@ -589,15 +577,15 @@ export default function Dashboard() {
         </section>
 
         <section className="dashboard-card area-pay-history">
-          <h2>ประวัติการชำระเงิน</h2>
-          <span className="card-subtitle">ยอดรับเงินตามเวลา</span>
+          <h2>แนวโน้มการเติบโตของกำไร</h2>
+          <span className="card-subtitle">กำไรสุทธิตามช่วงเวลา</span>
           <DashboardLineChartCard
-            data={paymentHistorySeries}
+            data={profitTrendSeries}
             loading={loading}
-            emptyMessage="ยังไม่มีประวัติการชำระเงินในช่วงนี้"
+            emptyMessage="ยังไม่มีกำไรในช่วงนี้"
             color={COLORS[1]}
             type="area"
-            valueFormatter={formatPaymentValue}
+            valueFormatter={formatCurrency}
           />
         </section>
 
