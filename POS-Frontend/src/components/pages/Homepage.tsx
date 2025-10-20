@@ -787,12 +787,12 @@ export default function HomePage() {
 
           {/* พาย 1: Payments */}
           <section className="panel card-like area-pie1">
-            <h2 className="section-title">Payment: รายได้ & กำไรรวม ({rangeLabel})</h2>
+            <h2 className="section-title">รายได้ & กำไรรวม ({rangeLabel})</h2>
             <div className="pie-rect">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Tooltip formatter={(v: number) => formatCurrency(Number(v))} />
-                  <Legend verticalAlign="bottom" height={36} />
+                  <Legend verticalAlign="bottom" height={48} />
                   <Pie
                     data={paymentPie}
                     dataKey="value"
@@ -801,7 +801,6 @@ export default function HomePage() {
                     outerRadius={90}
                     paddingAngle={2}
                     labelLine={false}
-                    label={renderPieValueLabel}
                   >
                     {paymentPie.map((_, idx) => (
                       <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
@@ -819,12 +818,12 @@ export default function HomePage() {
 
           {/* พาย 2: PO (QC ผ่าน) */}
           <section className="panel card-like area-pie2">
-            <h2 className="section-title">Purchase Orders (QC ผ่าน {rangeLabel})</h2>
+            <h2 className="section-title">QC ผ่าน {rangeLabel}</h2>
             <div className="pie-rect">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Tooltip formatter={(v: number) => formatCurrency(Number(v))} />
-                  <Legend verticalAlign="bottom" height={36} />
+                  <Legend verticalAlign="bottom" height={20} />
                   <Pie
                     data={poPie}
                     dataKey="value"
@@ -832,7 +831,6 @@ export default function HomePage() {
                     innerRadius={45}
                     outerRadius={85}
                     labelLine={false}
-                    label={renderPieValueLabel}
                   >
                     {poPie.map((_, idx) => (
                       <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
@@ -865,7 +863,7 @@ export default function HomePage() {
 
           {/* Stock transactions */}
           <section className="panel card-like area-timeline">
-            <h2 className="section-title">Recent Stock Transaction</h2>
+            <h2 className="section-title">ความเคลื่อนไหวสต็อกล่าสุด</h2>
             <div className="timeline-scroll">
               <div className="timeline">
                 {stockTimeline.map((item) => {
@@ -900,7 +898,7 @@ export default function HomePage() {
 
           {/* Payment history */}
           <section className="panel card-like area-payment">
-            <h2 className="section-title">Payment (ประวัติการขาย {rangeLabel})</h2>
+            <h2 className="section-title">ประวัติการขาย {rangeLabel}</h2>
             <div className="table-scroll" style={{ maxHeight: 260 }}>
               <table className="nice-table payment-table home-payment-table">
                 <thead>

@@ -586,16 +586,6 @@ export default function Dashboard() {
             valueFormatter={formatPaymentValue}
           />
         </section>
-
-        <section className="dashboard-card area-timeline">
-          <h2>ความเคลื่อนไหวสต็อกล่าสุด</h2>
-          <span className="card-subtitle">รายการอัปเดตสต็อก 8 รายการล่าสุด</span>
-          <DashboardTimeline
-            items={timelineItems}
-            loading={loading}
-            emptyMessage="ยังไม่มีการเคลื่อนไหวของสต็อก"
-          />
-        </section>
       </div>
     </div>
   );
