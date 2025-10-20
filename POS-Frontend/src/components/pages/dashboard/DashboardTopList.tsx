@@ -23,10 +23,6 @@ const DashboardTopList: React.FC<DashboardTopListProps> = ({
     return <p className="empty-state">กำลังโหลดรายการสินค้า...</p>;
   }
 
-  if (!items.length) {
-    return <p className="empty-state">{emptyMessage}</p>;
-  }
-
   return (
     <TopProductsSlider
       items={items.map((item) => ({
@@ -35,6 +31,7 @@ const DashboardTopList: React.FC<DashboardTopListProps> = ({
         revenue: item.revenue,
         rank: item.rank,
       }))}
+      emptyMessage={emptyMessage}
     />
   );
 };
