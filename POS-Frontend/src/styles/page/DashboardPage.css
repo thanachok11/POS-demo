@@ -116,40 +116,81 @@
 
 .top5-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .top5-item {
-  background: #f8fafc;
-  border-radius: 14px;
-  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  justify-content: center;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(224, 242, 254, 0.88));
+  border-radius: 18px;
+  padding: 0.75rem 0.85rem 0.85rem 0.85rem;
   position: relative;
+  border: 1px solid rgba(96, 165, 250, 0.28);
+  box-shadow: 0 20px 36px rgba(59, 130, 246, 0.14);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  overflow: hidden;
+}
+
+.top5-item::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(244, 114, 182, 0.18), rgba(56, 189, 248, 0.14));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+}
+
+.top5-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 28px 44px rgba(59, 130, 246, 0.2);
+}
+
+.top5-item:hover::before {
+  opacity: 0.85;
+}
+
+.top5-item > * {
+  position: relative;
+  z-index: 1;
 }
 
 .top5-rank {
   position: absolute;
-  top: 12px;
-  right: 14px;
+  top: 8px;
+  left: 10px;
   font-weight: 700;
   color: var(--accent-purple);
-  font-size: 0.85rem;
+  font-size: 0.78rem;
 }
 
 .top5-name {
   font-weight: 700;
-  font-size: 1rem;
-  color: #1e293b;
+  font-size: 1.02rem;
+  color: #1f2937;
+  margin-top: 0.2rem;
 }
 
 .top5-meta {
   display: flex;
   justify-content: space-between;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   color: var(--text-muted);
+  margin-top: 0.55rem;
+}
+
+.top5-meta span:last-child {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+@media (max-width: 1200px) {
+  .top5-list {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
 }
 
 .kpi-row {
