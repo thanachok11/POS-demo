@@ -628,16 +628,20 @@ export default function HomePage() {
     return { sumAmount, sumProfit, series };
   }, [paymentsInRange, filter]);
 
-  const sumAmount = paymentStats.sumAmount;
-  const sumProfit = paymentStats.sumProfit;
   const paySeries = paymentStats.series;
+
+  const paymentPieRevenue = netSalesTotal;
+  const paymentPieProfit = profitTotal;
 
   const paymentPie = useMemo(
     () => [
-      { name: "กำไร", value: sumProfit },
-      { name: "รายได้หลังหักกำไร", value: Math.max(sumAmount - sumProfit, 0) },
+      { name: "กำไร", value: paymentPieProfit },
+      {
+        name: "รายได้หลังหักกำไร",
+        value: Math.max(paymentPieRevenue - paymentPieProfit, 0),
+      },
     ],
-    [sumAmount, sumProfit]
+    [paymentPieRevenue, paymentPieProfit]
   );
 
   const purchaseInRange = useMemo(
@@ -781,7 +785,7 @@ export default function HomePage() {
                       <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
                     ))}
                     <Label
-                      value={formatCurrency(sumAmount)}
+                      value={formatCurrency(paymentPieRevenue)}
                       position="center"
                       style={{ fontWeight: 700, fontSize: 15 }}
                     />
