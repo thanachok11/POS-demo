@@ -27,45 +27,33 @@ const getOwnerId = async (userId: string): Promise<string> => {
 };
 export const getStockByProductId = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { productId } = req.params;
-
-    if (!productId) {
-      res.status(400).json({ success: false, message: "กรุณาระบุ productId" });
-      return;
+    const token = req.header("Authorization")?.split(" ")[1];
+    if (!token) { res.status(401).json({ success:false, message:"Unauthorized" }); return; }
+    const decoded = verifyToken(token);
+    if (typeof decoded === "string" || !("userId" in decoded)) { 
+      res.status(401).json({ success:false, message:"Invalid token" }); return; 
     }
+    const ownerId = await getOwnerId(decoded.userId);
 
-    // ✅ ค้นหา stock ที่ผูกกับ productId นี้
-    const stock = await Stock.findOne({ productId })
-      .populate({
-        path: "productId",
-        select: "name barcode description",
-      })
-      .populate({
-        path: "location",
-        model: Warehouse,
-        select: "name code",
-      })
-      .populate({
-        path: "supplierId",
-        select: "companyName",
-      })
+    const { productId } = req.params;
+    if (!productId) { res.status(400).json({ success:false, message:"กรุณาระบุ productId" }); return; }
+
+    // ✅ กรอง user
+    const stock = await Stock.findOne({ productId, userId: ownerId })
+      .populate({ path: "productId", select: "name barcode description" })
+      .populate({ path: "location", model: Warehouse, select: "name code" })
+      .populate({ path: "supplierId", select: "companyName" })
       .lean();
 
-    if (!stock) {
-      res.status(404).json({ success: false, message: "ไม่พบข้อมูลคลังของสินค้านี้" });
-      return;
-    }
+    if (!stock) { res.status(404).json({ success:false, message:"ไม่พบข้อมูลคลังของสินค้านี้" }); return; }
 
-    res.status(200).json({
-      success: true,
-      message: "ดึงข้อมูลคลังสินค้าสำเร็จ ✅",
-      data: stock,
-    });
+    res.status(200).json({ success:true, message:"ดึงข้อมูลคลังสินค้าสำเร็จ ✅", data: stock });
   } catch (error) {
     console.error("❌ Error in getStockByProductId:", error);
-    res.status(500).json({ success: false, message: "Server error while fetching stock data" });
+    res.status(500).json({ success:false, message:"Server error while fetching stock data" });
   }
 };
+
 // ดึง stock ทั้งหมด
 export const getStocks = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -102,16 +90,21 @@ export const getStocks = async (req: Request, res: Response): Promise<void> => {
 //ดึง stock ตาม barcode
 export const getStockByBarcode = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { barcode } = req.params;
-    const stock = await Stock.findOne({ barcode }).populate("productId");
-
-    if (!stock) {
-      res.status(404).json({ success: false, message: "Stock not found" });
-      return;
+    const token = req.header("Authorization")?.split(" ")[1];
+    if (!token) { res.status(401).json({ success:false, message:"Unauthorized" }); return; }
+    const decoded = verifyToken(token);
+    if (typeof decoded === "string" || !("userId" in decoded)) { 
+      res.status(401).json({ success:false, message:"Invalid token" }); return; 
     }
+    const ownerId = await getOwnerId(decoded.userId);
+
+    const { barcode } = req.params;
+    const stock = await Stock.findOne({ barcode, userId: ownerId }).populate("productId");
+
+    if (!stock) { res.status(404).json({ success:false, message:"Stock not found" }); return; }
 
     res.status(200).json({
-      success: true,
+      success:true,
       data: {
         barcode: stock.barcode,
         stockQuantity: stock.quantity,
@@ -120,7 +113,7 @@ export const getStockByBarcode = async (req: Request, res: Response): Promise<vo
     });
   } catch (error) {
     console.error("Get Stock By Barcode Error:", error);
-    res.status(500).json({ success: false, message: "Server error while fetching stock" });
+    res.status(500).json({ success:false, message:"Server error while fetching stock" });
   }
 };
 

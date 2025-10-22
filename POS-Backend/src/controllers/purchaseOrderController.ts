@@ -12,6 +12,9 @@ import Warehouse from "../models/Warehouse";
 import Product from "../models/Product";
 import StockTransaction from "../models/StockTransaction";
 
+import User from "../models/User";
+import Employee from "../models/Employee";
+
 /* ========================================================
    🔧 Helper: หา document จาก id หรือชื่อ
 ======================================================== */
@@ -23,23 +26,73 @@ async function ensureObjectIdOrByName(model: any, value: any, nameField: string)
     return await model.findOne({ [nameField]: value }).lean();
 }
 
+/* ========================================================
+   🔑 Helper: resolve ownerId (string เสมอ)
+======================================================== */
+async function getOwnerId(userId: string): Promise<string> {
+    let user: any = await User.findById(userId).lean();
+    if (!user) user = await Employee.findById(userId).lean();
+    if (!user) throw new Error("User not found");
+
+    if (user.role === "admin") return user._id.toString();
+    if (user.role === "employee") {
+        if (!user.adminId) throw new Error("Employee does not have admin assigned");
+        return user.adminId.toString();
+    }
+    throw new Error("Invalid user role");
+}
+
+/* ========================================================
+   🧰 Scope ที่ “แมตช์ให้เจอให้ได้”
+   - รองรับ userId แบบ ObjectId และ string
+   - ครอบคลุมกรณีสร้างโดย employee (createdBy = actor)
+======================================================== */
+function buildPoScope(ownerId: string, actorId?: string) {
+    const or: any[] = [
+        { userId: new mongoose.Types.ObjectId(ownerId) },
+        { userId: ownerId },
+    ];
+    if (actorId) {
+        // PO เก่าๆ ที่ไม่ได้เซ็ต userId แต่มี createdBy เป็นคนกดสร้าง
+        or.push({ createdBy: actorId });
+        // บางระบบเคยใช้ userId = actorId
+        or.push({ userId: actorId });
+        // และเผื่อกรณีเป็น ObjectId
+        if (mongoose.Types.ObjectId.isValid(actorId)) {
+            or.push({ createdBy: new mongoose.Types.ObjectId(actorId) });
+            or.push({ userId: new mongoose.Types.ObjectId(actorId) });
+        }
+    }
+    return { $or: or };
+}
+
 /* ==========================
-   ดึงรายการ Purchase Orders ทั้งหมด
+   ดึงรายการ Purchase Orders ทั้งหมด (ของ owner)
 ========================== */
-export const getPurchaseOrders = async (_: Request, res: Response): Promise<void> => {
+export const getPurchaseOrders = async (req: Request, res: Response): Promise<void> => {
     try {
-        const orders = await PurchaseOrder.find()
+        const raw = req.headers["authorization"];
+        const token = typeof raw === "string" ? raw.split(" ")[1] : undefined;
+        if (!token) { res.status(401).json({ success: false, message: "Unauthorized" }); return; }
+        const decoded = verifyToken(token);
+        if (typeof decoded === "string" || !("userId" in decoded)) {
+            res.status(401).json({ success: false, message: "Invalid token" }); return;
+        }
+        const actorId = decoded.userId;
+        const ownerId = await getOwnerId(actorId);
+
+        const orders = await PurchaseOrder.find(buildPoScope(ownerId, actorId))
             .populate("supplierId")
-            .populate("location") // คลัง
+            .populate("location")
             .populate("createdBy")
             .populate("updatedBy")
             .populate("items.productId", "name barcode")
             .populate("items.stockId")
             .populate("stockLots", "_id batchNumber status qcStatus")
+            .sort({ createdAt: -1 })
+            .lean();
 
-            .sort({ createdAt: -1 });
-
-        res.status(200).json({ success: true, message: "ดึงรายการ PO สำเร็จ", data: orders });
+        res.status(200).json({ success: true, message: "ดึงรายการ PO สำเร็จ", data: orders || [] });
     } catch (error) {
         console.error("Get PO Error:", error);
         res.status(500).json({ success: false, message: "Server error while fetching POs" });
@@ -47,273 +100,242 @@ export const getPurchaseOrders = async (_: Request, res: Response): Promise<void
 };
 
 /* ==========================
-   📄 ดึงรายละเอียด PO ตาม ID
+   📄 ดึงรายละเอียด PO ตาม ID (ของ owner)
 ========================== */
 export const getPurchaseOrderById = async (req: Request, res: Response): Promise<void> => {
     try {
+        const raw = req.headers["authorization"];
+        const token = typeof raw === "string" ? raw.split(" ")[1] : undefined;
+        if (!token) { res.status(401).json({ success: false, message: "Unauthorized" }); return; }
+        const decoded = verifyToken(token);
+        if (typeof decoded === "string" || !("userId" in decoded)) {
+            res.status(401).json({ success: false, message: "Invalid token" }); return;
+        }
+        const actorId = decoded.userId;
+        const ownerId = await getOwnerId(actorId);
+
         const { id } = req.params;
 
-        const po = await PurchaseOrder.findById(id)
-            .populate("supplierId", "companyName phoneNumber email") // ดึงข้อมูล supplier เพิ่มเติม
-            .populate("location", "name code") // คลังสินค้า
+        const po = await PurchaseOrder.findOne({ _id: id, ...buildPoScope(ownerId, actorId) })
+            .populate("supplierId", "companyName phoneNumber email")
+            .populate("location", "name code")
             .populate("createdBy", "username email role")
             .populate("updatedBy", "username email role")
             .populate("items.productId", "name barcode")
             .populate("items.stockId", "totalQuantity status")
             .populate({
-                path: "stockLots", // ✅ เพิ่มส่วนนี้
+                path: "stockLots",
                 populate: [
                     { path: "productId", select: "name barcode" },
                     { path: "stockId", select: "totalQuantity status" },
                     { path: "supplierId", select: "companyName" },
                     { path: "location", select: "name" },
                 ],
-            });
+            })
+            .lean();
 
-        if (!po) {
-            res.status(404).json({ success: false, message: "ไม่พบ PurchaseOrder" });
-            return;
-        }
+        if (!po) { res.status(404).json({ success: false, message: "ไม่พบ PurchaseOrder" }); return; }
 
-        res.status(200).json({
-            success: true,
-            message: "ดึงข้อมูล PO สำเร็จ ✅",
-            data: po,
-        });
+        res.status(200).json({ success: true, message: "ดึงข้อมูล PO สำเร็จ ✅", data: po });
     } catch (error) {
         console.error("❌ Get PO By ID Error:", error);
-        res.status(500).json({
-            success: false,
-            message: "Server error while fetching PO",
-        });
+        res.status(500).json({ success: false, message: "Server error while fetching PO" });
     }
 };
+
 /* ==========================
-   📋 ดึงรายการ PO ทั้งหมด
+   📋 ดึงรายการ PO ทั้งหมด (สรุป) ของ owner
 ========================== */
 export const getAllPurchaseOrders = async (req: Request, res: Response): Promise<void> => {
     try {
-        const purchaseOrders = await PurchaseOrder.find()
+        const raw = req.headers["authorization"];
+        const token = typeof raw === "string" ? raw.split(" ")[1] : undefined;
+        if (!token) { res.status(401).json({ success: false, message: "Unauthorized" }); return; }
+        const decoded = verifyToken(token);
+        if (typeof decoded === "string" || !("userId" in decoded)) {
+            res.status(401).json({ success: false, message: "Invalid token" }); return;
+        }
+        const actorId = decoded.userId;
+        const ownerId = await getOwnerId(actorId);
+
+        const purchaseOrders = await PurchaseOrder.find(buildPoScope(ownerId, actorId))
             .populate("supplierId", "companyName")
-            .populate("location", "name code") // คลังสินค้า
-            .populate("stockLots", "_id status qcStatus") // ✅ ดึงเฉพาะ field ที่จำเป็น
+            .populate("location", "name code")
+            .populate("stockLots", "_id status qcStatus")
             .sort({ createdAt: -1 })
             .lean();
 
         res.status(200).json({
             success: true,
             message: "ดึงรายการใบสั่งซื้อสำเร็จ ✅",
-            data: purchaseOrders.map((po) => ({
+            data: (purchaseOrders || []).map((po: any) => ({
                 _id: po._id,
                 purchaseOrderNumber: po.purchaseOrderNumber,
-                supplierCompany: po.supplierId?.companyName || "ไม่ระบุ",
-                totalLots: po.stockLots?.length || 0, // ✅ เพิ่มนับจำนวนล็อตใน PO
-                qcStatus: po.qcStatus || "รอตรวจสอบ",
+                supplierCompany: po?.supplierId?.companyName || "ไม่ระบุ",
+                totalLots: (po?.stockLots || []).length || 0,
+                qcStatus: po?.qcStatus || "รอตรวจสอบ",
                 status: po.status,
                 createdAt: po.createdAt,
             })),
         });
     } catch (error) {
         console.error("❌ Get All PO Error:", error);
-        res.status(500).json({
-            success: false,
-            message: "ไม่สามารถดึงข้อมูลใบสั่งซื้อได้",
-            error,
-        });
+        res.status(500).json({ success: false, message: "ไม่สามารถดึงข้อมูลใบสั่งซื้อได้", error });
     }
 };
+
 /* ========================================================
-   🧾 CREATE PURCHASE ORDER
-   → ยังไม่สร้าง StockLot (รอ confirm ก่อน)
+   🧾 CREATE PURCHASE ORDER → บันทึก userId เป็น "string" (มาตรฐาน)
 ======================================================== */
 export const createPurchaseOrder = async (req: Request, res: Response): Promise<void> => {
     try {
-        const token = req.header("Authorization")?.split(" ")[1];
-        if (!token) {
-            res.status(401).json({ success: false, message: "Unauthorized, no token" });
-            return;
-        }
+        const raw = req.headers["authorization"];
+        const token = typeof raw === "string" ? raw.split(" ")[1] : undefined;
+        if (!token) { res.status(401).json({ success: false, message: "Unauthorized, no token" }); return; }
 
         const decoded = verifyToken(token);
         if (typeof decoded === "string" || !("userId" in decoded)) {
-            res.status(401).json({ success: false, message: "Invalid token" });
-            return;
+            res.status(401).json({ success: false, message: "Invalid token" }); return;
         }
+        const actorId = decoded.userId;
+        const ownerId = await getOwnerId(actorId); // ← string
 
         const { purchaseOrderNumber, supplierId, supplierCompany, location, items, invoiceNumber } = req.body;
         if (!Array.isArray(items) || items.length === 0) {
-            res.status(400).json({ success: false, message: "Items are required" });
-            return;
+            res.status(400).json({ success: false, message: "Items are required" }); return;
         }
 
-        // 🔍 หา Supplier / Warehouse
         const supplierDoc = await ensureObjectIdOrByName(Supplier, supplierId, "companyName");
-        if (!supplierDoc) {
-            res.status(400).json({ success: false, message: "ไม่พบ Supplier" });
-            return;
-        }
+        if (!supplierDoc) { res.status(400).json({ success: false, message: "ไม่พบ Supplier" }); return; }
 
         const warehouseDoc =
             (await ensureObjectIdOrByName(Warehouse, location, "name")) ||
             (await Warehouse.findOne({ name: location }).lean());
-        if (!warehouseDoc) {
-            res.status(400).json({ success: false, message: "ไม่พบคลังสินค้า" });
-            return;
-        }
+        if (!warehouseDoc) { res.status(400).json({ success: false, message: "ไม่พบคลังสินค้า" }); return; }
 
-        // ✅ สร้าง items พร้อมยอดรวม (แต่ยังไม่สร้าง lot)
         const itemsWithTotal = items.map((it: any) => ({
             ...it,
             total: Number(it.quantity || 0) * Number(it.costPrice || 0),
         }));
-
         const totalAmount = itemsWithTotal.reduce((sum: number, it: any) => sum + Number(it.total || 0), 0);
 
-        // ✅ สร้าง PO จริง
         const po = await PurchaseOrder.create({
+            userId: ownerId, // ⬅ เซ็ตเป็น string ให้สม่ำเสมอ
             purchaseOrderNumber,
-            supplierId: supplierDoc._id,
-            supplierCompany: supplierCompany ?? supplierDoc.companyName,
-            location: warehouseDoc._id,
+            supplierId: (supplierDoc as any)._id,
+            supplierCompany: supplierCompany ?? (supplierDoc as any).companyName,
+            location: (warehouseDoc as any)._id,
             items: itemsWithTotal,
             totalAmount,
             invoiceNumber: invoiceNumber || generateInvoiceNumber(),
-            createdBy: decoded.userId,
+            createdBy: actorId, // คนกดสร้าง (employee/admin)
             status: "รอดำเนินการ",
-            stockLots: [], // ✅ ยังไม่มีล็อตตอนนี้
+            stockLots: [],
         });
 
-        res.status(201).json({
-            success: true,
-            message: "สร้างใบสั่งซื้อสำเร็จ (ยังไม่สร้างล็อตสินค้า)",
-            data: po,
-        });
+        res.status(201).json({ success: true, message: "สร้างใบสั่งซื้อสำเร็จ", data: po });
     } catch (error) {
         console.error("❌ Create PO Error:", error);
-        res.status(500).json({
-            success: false,
-            message: "Server error while creating PO",
-        });
+        res.status(500).json({ success: false, message: "Server error while creating PO" });
     }
 };
 
+/* ========================================================
+   ✅ CONFIRM PO → ผูก owner บน stock/lot
+======================================================== */
 export const confirmPurchaseOrder = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const token = req.header("Authorization")?.split(" ")[1];
-        if (!token) {
-            res.status(401).json({ success: false, message: "Unauthorized" });
-            return;
-        }
-
+        const raw = req.headers["authorization"];
+        const token = typeof raw === "string" ? raw.split(" ")[1] : undefined;
+        if (!token) { res.status(401).json({ success: false, message: "Unauthorized" }); return; }
         const decoded = verifyToken(token);
         if (typeof decoded === "string" || !("userId" in decoded)) {
-            res.status(401).json({ success: false, message: "Invalid token" });
-            return;
+            res.status(401).json({ success: false, message: "Invalid token" }); return;
         }
+        const actorId = decoded.userId;
+        const ownerId = await getOwnerId(actorId);
+        const ownerObjId = new mongoose.Types.ObjectId(ownerId);
 
-        const po = await PurchaseOrder.findById(id);
-        if (!po) {
-            res.status(404).json({ success: false, message: "ไม่พบใบสั่งซื้อ" });
-            return;
-        }
-
+        const po = await PurchaseOrder.findOne({ _id: id, ...buildPoScope(ownerId, actorId) });
+        if (!po) { res.status(404).json({ success: false, message: "ไม่พบใบสั่งซื้อ" }); return; }
         if (po.status !== "รอดำเนินการ") {
-            res.status(400).json({ success: false, message: "PO นี้ถูกยืนยันแล้ว" });
-            return;
+            res.status(400).json({ success: false, message: "PO นี้ถูกยืนยันแล้ว" }); return;
         }
 
-        const supplierDoc = await Supplier.findById(po.supplierId).lean<{
-            _id: mongoose.Types.ObjectId;
-            companyName: string;
-            code?: string;
-        } | null>();
-        const warehouseDoc = await Warehouse.findById(po.location).lean<{
-            _id: mongoose.Types.ObjectId;
-            name: string;
-            code?: string;
-        } | null>();
-
+        const supplierDoc = await Supplier.findById(po.supplierId).lean<{ _id: mongoose.Types.ObjectId; companyName: string; code?: string } | null>();
+        const warehouseDoc = await Warehouse.findById(po.location).lean<{ _id: mongoose.Types.ObjectId; name: string; code?: string } | null>();
         if (!supplierDoc || !warehouseDoc) {
-            res.status(400).json({ success: false, message: "ไม่พบข้อมูล Supplier หรือ Warehouse" });
-            return;
+            res.status(400).json({ success: false, message: "ไม่พบข้อมูล Supplier หรือ Warehouse" }); return;
         }
 
         const supplierCode = supplierDoc.code ?? "SP00";
         const warehouseCode = warehouseDoc.code ?? "WH00";
-
         const stockLotIds: mongoose.Types.ObjectId[] = [];
 
-        // ✅ วนสร้าง StockLot ทีละชิ้น
-        for (const raw of po.items) {
+        for (const rawItem of (po.items as any[])) {
             const batchNumber =
-                raw.batchNumber && String(raw.batchNumber).trim() !== ""
-                    ? String(raw.batchNumber).trim()
-                    : await generateBatchNumber(warehouseCode, supplierCode, raw.productId.toString());
+                rawItem.batchNumber && String(rawItem.batchNumber).trim() !== ""
+                    ? String(rawItem.batchNumber).trim()
+                    : await generateBatchNumber(warehouseCode, supplierCode, rawItem.productId.toString());
 
-            const productDoc = await Product.findById(raw.productId)
+            const productDoc = await Product.findById(rawItem.productId)
                 .select("barcode name")
                 .lean<{ _id: mongoose.Types.ObjectId; barcode: string; name: string } | null>();
-
-            if (!productDoc) {
-                console.warn(`⚠️ ไม่พบสินค้า ID: ${raw.productId}`);
-                continue;
-            }
+            if (!productDoc) continue;
 
             let stock = await Stock.findOne({
-                productId: raw.productId,
+                userId: ownerObjId,
+                productId: rawItem.productId,
                 location: warehouseDoc._id,
             });
 
             if (!stock) {
                 stock = await Stock.create({
-                    productId: raw.productId,
-                    userId: decoded.userId,
+                    userId: ownerObjId,
+                    productId: rawItem.productId,
                     supplierId: supplierDoc._id,
                     supplierName: supplierDoc.companyName,
                     location: warehouseDoc._id,
                     barcode: productDoc.barcode,
                     totalQuantity: 0,
-                    threshold: raw.threshold ?? 5,
+                    threshold: rawItem.threshold ?? 5,
                     status: "สินค้าพร้อมขาย",
                     isActive: true,
                 });
             }
 
-            // ✅ สร้าง StockLot (รอตรวจสอบ QC)
             const stockLot = await StockLot.create({
                 stockId: stock._id,
-                productId: raw.productId,
+                productId: rawItem.productId,
                 supplierId: supplierDoc._id,
                 supplierName: supplierDoc.companyName,
-                userId: decoded.userId,
+                userId: ownerObjId, // ผูก owner
                 location: warehouseDoc._id,
                 purchaseOrderNumber: po.purchaseOrderNumber,
                 barcode: productDoc.barcode,
                 batchNumber,
-                expiryDate: raw.expiryDate,
-                quantity: raw.quantity,
-                costPrice: raw.costPrice,
-                salePrice: raw.salePrice ?? raw.costPrice,
+                expiryDate: rawItem.expiryDate,
+                quantity: rawItem.quantity,
+                costPrice: rawItem.costPrice,
+                salePrice: rawItem.salePrice ?? rawItem.costPrice,
                 status: "รอตรวจสอบ QC",
                 isActive: false,
                 isTemporary: true,
                 purchaseOrderId: po._id,
             });
 
-            // ✅ update item ใน PO ให้มี batchNumber ด้วย
-            raw.batchNumber = batchNumber;
+            rawItem.batchNumber = batchNumber;
+            rawItem.stockLotId = stockLot._id;
             stockLotIds.push(stockLot._id);
         }
 
-        // ✅ update PO
         po.status = "ได้รับสินค้าแล้ว";
         po.qcStatus = "รอตรวจสอบ";
         po.stockLots = stockLotIds;
         po.receivedAt = new Date();
-        po.updatedBy = (decoded as any).userId;
-        po.markModified("items"); // ✅ แจ้ง mongoose ว่า items เปลี่ยนแล้ว
-
+        po.updatedBy = actorId;
+        po.markModified("items");
         await po.save();
 
         res.status(200).json({
@@ -327,39 +349,31 @@ export const confirmPurchaseOrder = async (req: Request, res: Response): Promise
     }
 };
 
-
 /* ========================================================
    🔁 RETURN PURCHASE ORDER
-   → สำหรับกรณี QC ไม่ผ่าน
 ======================================================== */
 export const returnPurchaseOrder = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const token = req.header("Authorization")?.split(" ")[1];
-        if (!token) {
-            res.status(401).json({ success: false, message: "Unauthorized" });
-            return;
-        }
-
+        const raw = req.headers["authorization"];
+        const token = typeof raw === "string" ? raw.split(" ")[1] : undefined;
+        if (!token) { res.status(401).json({ success: false, message: "Unauthorized" }); return; }
         const decoded = verifyToken(token);
         if (typeof decoded === "string" || !("userId" in decoded)) {
-            res.status(401).json({ success: false, message: "Invalid token" });
-            return;
+            res.status(401).json({ success: false, message: "Invalid token" }); return;
         }
+        const actorId = decoded.userId;
+        const ownerId = await getOwnerId(actorId);
+        const ownerObjId = new mongoose.Types.ObjectId(ownerId);
 
-        const po = await PurchaseOrder.findById(id);
-        if (!po) {
-            res.status(404).json({ success: false, message: "ไม่พบ PurchaseOrder" });
-            return;
-        }
-
+        const po = await PurchaseOrder.findOne({ _id: id, ...buildPoScope(ownerId, actorId) });
+        if (!po) { res.status(404).json({ success: false, message: "ไม่พบ PurchaseOrder" }); return; }
         if (po.status !== "ไม่ผ่าน QC - รอส่งคืนสินค้า") {
-            res.status(400).json({ success: false, message: "PO นี้ไม่สามารถคืนสินค้าได้" });
-            return;
+            res.status(400).json({ success: false, message: "PO นี้ไม่สามารถคืนสินค้าได้" }); return;
         }
 
-        for (const item of po.items as any[]) {
-            const lot = await StockLot.findById(item.stockLotId);
+        for (const item of (po.items as any[])) {
+            const lot = await StockLot.findOne({ _id: item.stockLotId, userId: ownerObjId });
             if (!lot) continue;
 
             lot.status = "รอคัดออก";
@@ -368,20 +382,20 @@ export const returnPurchaseOrder = async (req: Request, res: Response): Promise<
             await lot.save();
 
             await StockTransaction.create({
-                stockId: lot.stockId,
-                productId: lot.productId,
+                userId: ownerObjId,
+                stockId: (lot as any).stockId,
+                productId: (lot as any).productId,
                 stockLotId: lot._id,
                 type: "RETURN",
                 quantity: item.quantity,
                 costPrice: item.costPrice,
-                userId: decoded.userId,
                 notes: `คืนสินค้า | PO ${po.purchaseOrderNumber} | Batch ${lot.batchNumber}`,
             });
         }
 
         po.status = "ไม่ผ่าน QC - คืนสินค้าแล้ว";
         po.returnedAt = new Date();
-        po.updatedBy = (decoded as any).userId;
+        po.updatedBy = actorId;
         await po.save();
 
         res.status(200).json({ success: true, message: "คืนสินค้าเรียบร้อย ✅", data: po });
@@ -396,24 +410,19 @@ export const returnPurchaseOrder = async (req: Request, res: Response): Promise<
 ======================================================== */
 export const cancelPurchaseOrder = async (req: Request, res: Response): Promise<void> => {
     try {
-        const token = req.header("Authorization")?.split(" ")[1];
-        if (!token) {
-            res.status(401).json({ success: false, message: "Unauthorized, no token" });
-            return;
-        }
-
+        const raw = req.headers["authorization"];
+        const token = typeof raw === "string" ? raw.split(" ")[1] : undefined;
+        if (!token) { res.status(401).json({ success: false, message: "Unauthorized, no token" }); return; }
         const decoded = verifyToken(token);
         if (typeof decoded === "string" || !("userId" in decoded)) {
-            res.status(401).json({ success: false, message: "Invalid token" });
-            return;
+            res.status(401).json({ success: false, message: "Invalid token" }); return;
         }
+        const actorId = decoded.userId;
+        const ownerId = await getOwnerId(actorId);
 
         const { id } = req.params;
-        const po = await PurchaseOrder.findById(id);
-        if (!po) {
-            res.status(404).json({ success: false, message: "ไม่พบ PurchaseOrder" });
-            return;
-        }
+        const po = await PurchaseOrder.findOne({ _id: id, ...buildPoScope(ownerId, actorId) });
+        if (!po) { res.status(404).json({ success: false, message: "ไม่พบ PurchaseOrder" }); return; }
 
         if (po.status !== "รอดำเนินการ") {
             res.status(400).json({
@@ -424,11 +433,16 @@ export const cancelPurchaseOrder = async (req: Request, res: Response): Promise<
         }
 
         po.status = "ยกเลิก";
-        po.updatedBy = (decoded as any).userId;
+        po.updatedBy = actorId;
         await po.save();
 
-        // ลบ StockLot ทั้งหมดที่สร้างจาก PO นี้
-        await StockLot.deleteMany({ _id: { $in: po.items.map((x: any) => x.stockLotId) } });
+        const lotIds = (po.items as any[]).map(x => x.stockLotId).filter(Boolean);
+        if (lotIds.length > 0) {
+            await StockLot.deleteMany({
+                _id: { $in: lotIds },
+                userId: new mongoose.Types.ObjectId(ownerId),
+            });
+        }
 
         res.status(200).json({ success: true, message: "ยกเลิก PO สำเร็จ ✅", data: po });
     } catch (error) {

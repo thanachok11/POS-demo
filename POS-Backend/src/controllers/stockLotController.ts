@@ -165,32 +165,22 @@ export const getStockLotsByBarcode = async (req: Request, res: Response): Promis
 export const updateExpiryDate = async (req: Request, res: Response): Promise<void> => {
     try {
         const token = req.header("Authorization")?.split(" ")[1];
-        if (!token) {
-            res.status(401).json({ success: false, message: "Unauthorized" });
-            return;
-        }
-
+        if (!token) { res.status(401).json({ success: false, message: "Unauthorized" }); return; }
         const decoded = verifyToken(token);
-        if (typeof decoded === "string" || !("userId" in decoded)) {
-            res.status(401).json({ success: false, message: "Invalid token" });
-            return;
-        }
+        if (typeof decoded === "string" || !("userId" in decoded)) { res.status(401).json({ success: false, message: "Invalid token" }); return; }
+        const ownerId = await getOwnerId(decoded.userId);
 
         const { lotId } = req.params;
         const { expiryDate } = req.body;
 
-        const updated = await StockLot.findByIdAndUpdate(
-            lotId,
-            { expiryDate },
-            { new: true }
-        );
+        // ✅ เช็คสิทธิ์ก่อน
+        const lot = await StockLot.findOne({ _id: lotId, userId: ownerId });
+        if (!lot) { res.status(404).json({ success: false, message: "ไม่พบล็อตสินค้าที่ต้องการอัปเดต" }); return; }
 
-        if (!updated) {
-            res.status(404).json({ success: false, message: "ไม่พบล็อตสินค้าที่ต้องการอัปเดต" });
-            return;
-        }
+        lot.expiryDate = expiryDate;
+        await lot.save();
 
-        res.status(200).json({ success: true, message: "อัปเดตวันหมดอายุสำเร็จ", data: updated });
+        res.status(200).json({ success: true, message: "อัปเดตวันหมดอายุสำเร็จ", data: lot });
     } catch (error) {
         console.error("Update Expiry Date Error:", error);
         res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการอัปเดตวันหมดอายุ" });
@@ -203,75 +193,54 @@ export const updateExpiryDate = async (req: Request, res: Response): Promise<voi
 export const updateQCStatus = async (req: Request, res: Response): Promise<void> => {
     try {
         const token = req.header("Authorization")?.split(" ")[1];
-        if (!token) {
-            res.status(401).json({ success: false, message: "Unauthorized" });
-            return;
-        }
-
+        if (!token) { res.status(401).json({ success: false, message: "Unauthorized" }); return; }
         const decoded = verifyToken(token);
-        if (typeof decoded === "string" || !("userId" in decoded)) {
-            res.status(401).json({ success: false, message: "Invalid token" });
-            return;
-        }
+        if (typeof decoded === "string" || !("userId" in decoded)) { res.status(401).json({ success: false, message: "Invalid token" }); return; }
+        const ownerId = await getOwnerId(decoded.userId);
 
         const { lotId } = req.params;
         const { qcStatus, notes } = req.body;
 
-        const updated = await StockLot.findByIdAndUpdate(
-            lotId,
-            { qcStatus, notes },
-            { new: true }
-        );
+        // ✅ เช็คสิทธิ์ก่อน
+        const lot = await StockLot.findOne({ _id: lotId, userId: ownerId });
+        if (!lot) { res.status(404).json({ success: false, message: "ไม่พบล็อตสินค้า" }); return; }
 
-        if (!updated) {
-            res.status(404).json({ success: false, message: "ไม่พบล็อตสินค้า" });
-            return;
-        }
+        lot.qcStatus = qcStatus;
+        lot.notes = notes;
+        await lot.save();
 
-        res.status(200).json({
-            success: true,
-            message: `อัปเดตสถานะ QC เป็น "${qcStatus}" สำเร็จ`,
-            data: updated,
-        });
+        res.status(200).json({ success: true, message: `อัปเดตสถานะ QC เป็น "${qcStatus}" สำเร็จ`, data: lot });
     } catch (error) {
         console.error("Update QC Error:", error);
         res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการอัปเดตสถานะ QC" });
     }
 };
 
+
 /* ===================================================
    🚫 ปิดล็อต (Inactive / หมดอายุ)
 =================================================== */
 export const deactivateStockLot = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const token = req.header("Authorization")?.split(" ")[1];
-        if (!token) {
-            res.status(401).json({ success: false, message: "Unauthorized" });
-            return;
-        }
+  try {
+    const token = req.header("Authorization")?.split(" ")[1];
+    if (!token) { res.status(401).json({ success:false, message:"Unauthorized" }); return; }
+    const decoded = verifyToken(token);
+    if (typeof decoded === "string" || !("userId" in decoded)) { res.status(401).json({ success:false, message:"Invalid token" }); return; }
+    const ownerId = await getOwnerId(decoded.userId);
 
-        const decoded = verifyToken(token);
-        if (typeof decoded === "string" || !("userId" in decoded)) {
-            res.status(401).json({ success: false, message: "Invalid token" });
-            return;
-        }
+    const { lotId } = req.params;
 
-        const { lotId } = req.params;
+    // ✅ เช็คสิทธิ์ก่อน
+    const lot = await StockLot.findOne({ _id: lotId, userId: ownerId });
+    if (!lot) { res.status(404).json({ success:false, message:"ไม่พบล็อตสินค้าที่ต้องการปิด" }); return; }
 
-        const lot = await StockLot.findById(lotId);
-        if (!lot) {
-            res.status(404).json({ success: false, message: "ไม่พบล็อตสินค้าที่ต้องการปิด" });
-            return;
-        }
+    lot.isActive = false;
+    lot.status = "รอคัดออก";
+    await lot.save();
 
-        lot.isActive = false;
-        lot.status = "รอคัดออก";
-        await lot.save();
-
-        res.status(200).json({ success: true, message: "ปิดล็อตสำเร็จ", data: lot });
-    } catch (error) {
-        console.error("Deactivate StockLot Error:", error);
-        res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดในการปิดล็อต" });
-    }
+    res.status(200).json({ success:true, message:"ปิดล็อตสำเร็จ", data: lot });
+  } catch (error) {
+    console.error("Deactivate StockLot Error:", error);
+    res.status(500).json({ success:false, message:"เกิดข้อผิดพลาดในการปิดล็อต" });
+  }
 };
-
