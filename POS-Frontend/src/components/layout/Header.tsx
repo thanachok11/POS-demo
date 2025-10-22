@@ -32,7 +32,7 @@ interface StockItem {
     barcode: string;
     name: string;
     imageUrl: string;
-    totalQuantity: number;
+    quantity: number;
     updatedAt: string;
     location: string;
     status: string;
@@ -141,7 +141,7 @@ const Header: React.FC<NavbarProps> = ({
                     setProducts(productData.data);
 
                     const lowStock = stock
-                        .filter((item: { totalQuantity: number }) => item.totalQuantity < 5)
+                        .filter((item: { quantity: number }) => item.quantity < 5)
                         .map((item: any) => {
                             return {
                                 ...item,
@@ -186,17 +186,26 @@ const Header: React.FC<NavbarProps> = ({
 
             {/* Navbar */}
             <nav className="navbar">
-                <img
-                    src="https://res.cloudinary.com/dboau6axv/image/upload/v1738923984/pos_icon_zpyzmj.png"
-                    alt="Logo"
-                    className="logo-image"
-                />
-                {isSidebarOpen && <span className="logo-text">EAZYPOS</span>}
+                <div
+                    className="logo-section"
+                    onClick={() => navigate("/")}
+                    style={{
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                    }}
+                >
+                    <img
+                        src="https://res.cloudinary.com/dboau6axv/image/upload/v1738923984/pos_icon_zpyzmj.png"
+                        alt="Logo"
+                        className="logo-image"
+                    />
+                    {isSidebarOpen && <span className="logo-text">EAZYPOS</span>}
+                </div>
 
                 <div className="navbar-content">
-                    <div
-                        className={`iconName ${isSidebarOpen ? "shifted" : "closed"}`}
-                    >
+                    <div className={`iconName ${isSidebarOpen ? "shifted" : "closed"}`}>
                         {activeMenu}
                     </div>
 
@@ -206,7 +215,7 @@ const Header: React.FC<NavbarProps> = ({
                                 {/* 🔔 Notification Dropdown */}
                                 <NotificationDropdown
                                     notificationOpen={notificationOpen}
-                                    setNotificationOpen={setNotificationOpen}                                   
+                                    setNotificationOpen={setNotificationOpen}
                                     hasSeenLowStock={hasSeenLowStock}
                                     showLowStockList={showLowStockList}
                                     setShowLowStockList={setShowLowStockList}

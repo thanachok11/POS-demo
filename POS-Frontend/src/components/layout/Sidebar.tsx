@@ -68,7 +68,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       ref={sidebarRef}
       className={`sidebar ${isSidebarOpen ? "open" : "closed"}`}
     >
-      <div className="sidebar-header">
+      <div className="sidebar-header" >
         <span className="sidebar-logo-text">{user?.nameStore || "EAZYPOS"}</span>
       </div>
 
@@ -141,7 +141,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               <span className="dropdown-text-stockslot">ล็อตสินค้า</span>
             </li>
 
-            <li onClick={() => handleMenuClick("/createOrder", "นำเข้าสินค้าใหม่")}>
+            <li onClick={() => handleMenuClick("/create-purchase-order", "นำเข้าสินค้าใหม่")}>
               <FontAwesomeIcon icon={faCartPlus} className="icon" />{" "}
               <span className="dropdown-text-buyproduct">นำเข้าสินค้าใหม่</span>
             </li>

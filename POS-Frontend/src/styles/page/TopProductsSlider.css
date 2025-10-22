@@ -1,0 +1,202 @@
+.top5-slider {
+  width: 100%;
+  height: calc(var(--imgH) + var(--cap));
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, #000 10% 90%, transparent);
+  position: relative;
+}
+
+/* แถวสไลด์ */
+.top5-slider .list {
+  display: flex;
+  width: 100%;
+  position: relative;
+}
+
+/* ไอเท็ม = รูปเต็ม + แคปชันด้านล่าง */
+.top5-slider .item {
+  width: var(--width);
+  height: calc(var(--imgH) + var(--cap));
+  position: absolute;
+  left: 100%;
+  animation: top5AutoRun 10s linear infinite;
+  animation-delay: calc((10s / var(--quantity)) * (var(--position) - 1)) !important;
+  transition: transform 0.35s ease, filter 0.35s ease, box-shadow 0.35s ease;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.top5-slider .item::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.45), rgba(148, 163, 184, 0.2));
+  opacity: 0.4;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.top5-slider .item:hover::before {
+  opacity: 0.7;
+}
+
+.top5-slider .img-wrap {
+  width: 100%;
+  height: var(--imgH);
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+}
+
+.top5-slider .img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: transparent;
+}
+
+/* แคปชันใต้รูป (ไม่ทับรูป, ไม่มี glass) */
+.top5-slider .caption {
+  height: var(--cap);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 4px;
+  color: #111;
+  font-size: 12px;
+}
+
+.top5-slider .caption .title {
+  font-weight: 700;
+  line-height: 1.2;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.top5-slider .caption .sub {
+  display: flex;
+  gap: 10px;
+  opacity: 0.85;
+}
+
+/* หยุดตอน hover + zoom เบา ๆ */
+.top5-slider:hover .item {
+  animation-play-state: paused !important;
+}
+
+.top5-slider .item:hover {
+  transform: scale(1.06);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25);
+}
+
+.top5-slider .rank-badge {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.04em;
+  z-index: 2;
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.25);
+}
+
+.top5-slider .rank-badge.rank-1 {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #1f2937;
+  box-shadow: 0 12px 24px rgba(245, 158, 11, 0.35);
+}
+
+.top5-slider .rank-badge.rank-2 {
+  background: linear-gradient(135deg, #94a3b8, #cbd5f5);
+  color: #1e293b;
+}
+
+.top5-slider .rank-badge.rank-3 {
+  background: linear-gradient(135deg, #f97316, #fb923c);
+}
+
+.top5-slider .rank-badge.rank-4 {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+}
+
+.top5-slider .rank-badge.rank-5 {
+  background: linear-gradient(135deg, #0ea5e9, #22d3ee);
+}
+
+.top5-slider .item[data-rank="1"] .img-wrap::after,
+.top5-slider .item[data-rank="2"] .img-wrap::after,
+.top5-slider .item[data-rank="3"] .img-wrap::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+}
+
+.top5-slider .item[data-rank="1"] .img-wrap {
+  box-shadow: 0 16px 36px rgba(245, 158, 11, 0.35);
+}
+
+.top5-slider .item[data-rank="2"] .img-wrap {
+  box-shadow: 0 16px 32px rgba(148, 163, 184, 0.35);
+}
+
+.top5-slider .item[data-rank="3"] .img-wrap {
+  box-shadow: 0 16px 32px rgba(249, 115, 22, 0.35);
+}
+
+/* วิ่งย้อน */
+.top5-slider[data-reverse="true"] .item {
+  animation: top5Reverse 10s linear infinite;
+}
+
+/* keyframes */
+@keyframes top5AutoRun {
+  0% {
+    left: 100%;
+  }
+
+  100% {
+    left: calc(var(--width) * -1);
+  }
+}
+
+@keyframes top5Reverse {
+  0% {
+    left: calc(var(--width) * -1);
+  }
+
+  100% {
+    left: 100%;
+  }
+}
+
+/* จอเล็ก */
+@media (max-width: 640px) {
+  .top5-slider {
+    margin-left: 0;
+    --width: 160px;
+    --imgH: 120px;
+    --cap: 46px;
+  }
+}
+
+.top5-empty {
+  width: 100%;
+  padding: 1.2rem;
+  border-radius: 18px;
+  text-align: center;
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px dashed rgba(148, 163, 184, 0.4);
+}
