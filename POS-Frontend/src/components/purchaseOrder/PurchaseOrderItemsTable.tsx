@@ -84,7 +84,7 @@ const PurchaseOrderItemsTable: React.FC<Props> = ({
                         <th>จำนวน</th>
                         <th>ราคาต่อหน่วย</th>
                         <th>ราคารวม</th>
-                        <th>ล็อตสินค้า</th>
+                        <th>เลขล็อตสินค้า</th>
                         <th>สถานะ QC</th>
                         <th>คืนสินค้า</th>
                         <th>วันหมดอายุ</th>
@@ -163,8 +163,6 @@ const PurchaseOrderItemsTable: React.FC<Props> = ({
                                         <th>จำนวนทั้งหมด</th>
                                         <th>จำนวนไม่ผ่าน</th>
                                         <th>หมายเหตุ</th>
-                                        <th>อุณหภูมิ</th>
-                                        <th>ความชื้น</th>
                                         <th>วันที่ตรวจ</th>
                                     </tr>
                                 </thead>
@@ -176,8 +174,6 @@ const PurchaseOrderItemsTable: React.FC<Props> = ({
                                             <td>{qc.totalQuantity ?? "-"}</td>
                                             <td>{qc.failedQuantity ?? 0}</td>
                                             <td>{qc.remarks || "-"}</td>
-                                            <td>{qc.temperature ?? "-"}</td>
-                                            <td>{qc.humidity ?? "-"}</td>
                                             <td>
                                                 {qc.inspectionDate
                                                     ? new Date(qc.inspectionDate).toLocaleDateString("th-TH")

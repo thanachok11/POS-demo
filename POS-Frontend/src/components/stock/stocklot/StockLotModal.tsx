@@ -7,7 +7,7 @@ interface Props {
     po?: any;
     lots: any[];
     onClose: () => void;
-    refreshData: () => void; // ✅ ใช้ callback จาก parent แทน reload
+    refreshData: () => void;
 }
 
 const StockLotModal: React.FC<Props> = ({ product, po, lots, onClose, refreshData }) => {
@@ -17,7 +17,6 @@ const StockLotModal: React.FC<Props> = ({ product, po, lots, onClose, refreshDat
     const [status, setStatus] = useState("สินค้าเสียหาย");
     const [loading, setLoading] = useState(false);
 
-    // ✅ รายการสถานะที่เป็นไปได้หลังปิดล็อต
     const statusOptions = [
         "สินค้าเสียหาย",
         "หมดอายุ",
@@ -26,13 +25,11 @@ const StockLotModal: React.FC<Props> = ({ product, po, lots, onClose, refreshDat
         "อื่นๆ",
     ];
 
-    // เปิด popup ระบุเหตุผล
     const handleOpenPopup = (lot: any) => {
         setSelectedLot(lot);
         setShowPopup(true);
     };
 
-    // ✅ ยืนยันการปิดล็อต
     const handleDeactivate = async () => {
         if (!selectedLot) return;
         const token = localStorage.getItem("token") || "";
@@ -46,10 +43,7 @@ const StockLotModal: React.FC<Props> = ({ product, po, lots, onClose, refreshDat
         try {
             await deactivateStockLot(selectedLot._id, token, { reason, status });
             alert("✅ ปิดล็อตสำเร็จ");
-
-            // ✅ อัปเดตข้อมูลจาก parent โดยไม่ต้อง reload ทั้งหน้า
             refreshData();
-
             setShowPopup(false);
             setReason("");
         } catch (err) {
@@ -78,10 +72,7 @@ const StockLotModal: React.FC<Props> = ({ product, po, lots, onClose, refreshDat
 
     return (
         <div className="stocklots-modal-overlay" onClick={onClose}>
-            <div
-                className="stocklots-modal-content"
-                onClick={(e) => e.stopPropagation()}
-            >
+            <div className="stocklots-modal-content" onClick={(e) => e.stopPropagation()}>
                 <h3 className="stocklots-modal-title">
                     {product
                         ? `ล็อตของสินค้า: ${product.name}`
@@ -93,7 +84,8 @@ const StockLotModal: React.FC<Props> = ({ product, po, lots, onClose, refreshDat
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Batch</th>
+                                <th>เลขล็อตสินค้า</th>
+                                <th>จำนวนเริ่มต้น</th> {/* ✅ เพิ่ม */}
                                 <th>จำนวนคงเหลือ</th>
                                 <th>วันหมดอายุ</th>
                                 <th>สถานะ QC</th>
@@ -107,7 +99,8 @@ const StockLotModal: React.FC<Props> = ({ product, po, lots, onClose, refreshDat
                                     <tr key={lot._id}>
                                         <td>{i + 1}</td>
                                         <td>{lot.batchNumber || "-"}</td>
-                                        <td>{lot.remainingQty ?? lot.quantity ?? 0}</td>
+                                        <td>{lot.quantity ?? 0}</td> {/* ✅ จำนวนก่อนขาย */}
+                                        <td>{lot.remainingQty ?? 0}</td> {/* ✅ จำนวนหลังขาย */}
                                         <td>
                                             {lot.expiryDate
                                                 ? new Date(lot.expiryDate).toLocaleDateString("th-TH")
@@ -135,7 +128,7 @@ const StockLotModal: React.FC<Props> = ({ product, po, lots, onClose, refreshDat
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={7} style={{ textAlign: "center", padding: "20px" }}>
+                                    <td colSpan={8} style={{ textAlign: "center", padding: "20px" }}>
                                         ❌ ไม่มีข้อมูลล็อต
                                     </td>
                                 </tr>
@@ -151,10 +144,7 @@ const StockLotModal: React.FC<Props> = ({ product, po, lots, onClose, refreshDat
 
             {/* === Popup ปิดล็อต === */}
             {showPopup && (
-                <div
-                    className="stocklots-modal-popup-overlay"
-                    onClick={() => setShowPopup(false)}
-                >
+                <div className="stocklots-modal-popup-overlay" onClick={() => setShowPopup(false)}>
                     <div
                         className="stocklots-modal-popup-content"
                         onClick={(e) => e.stopPropagation()}

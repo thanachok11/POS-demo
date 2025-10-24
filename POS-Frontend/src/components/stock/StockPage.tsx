@@ -313,7 +313,7 @@ const StockPage: React.FC = () => {
             </div>
 
             <div className="summary-item low">
-              <label>⚠️ เหลือน้อย</label>
+              <label>⚠️ สินค้าเหลือน้อย</label>
               <span>{summary.lowStock}</span>
             </div>
 

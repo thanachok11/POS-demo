@@ -103,7 +103,7 @@ export const getStocks = async (req: Request, res: Response): Promise<void> => {
       userId: ownerId,
       isActive: true,
     })
-      .select("stockId batchNumber productId expiryDate quantity qcStatus isActive isClosed expiryStatus")
+      .select("stockId batchNumber productId expiryDate quantity qcStatus isActive isClosed expiryStatus remainingQty")
       .lean();
 
     const now = new Date();

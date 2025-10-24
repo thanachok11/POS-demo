@@ -4,8 +4,8 @@ import StockLotModal from "./StockLotModal";
 
 interface Props {
     data: any;
-    currentPage?: number;   // ✅ รับค่าหน้าปัจจุบัน
-    itemsPerPage?: number;  // ✅ รับจำนวนรายการต่อหน้า
+    currentPage?: number;
+    itemsPerPage?: number;
 }
 
 const StockLotByProduct: React.FC<Props> = ({
@@ -15,15 +15,14 @@ const StockLotByProduct: React.FC<Props> = ({
 }) => {
     const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
-    // ✅ เพิ่มฟังก์ชันรีเฟรช (ใช้ได้จริงในอนาคต)
     const refreshData = async () => {
         console.log("🔄 Refreshing stock lot data...");
-        // TODO: ดึงข้อมูลใหม่หรืออัปเดต state ที่จำเป็น
     };
 
     const lotsArray = Array.isArray(data.lots) ? data.lots : data.lots?.data || [];
     const stocksArray = Array.isArray(data.stocks) ? data.stocks : data.stocks?.data || [];
 
+    // ✅ Normalize stock data
     const normalizedStocks = stocksArray.map((p: any) => ({
         _id: p._id,
         name: p.productId?.name || p.name || "ไม่ระบุชื่อสินค้า",
@@ -38,14 +37,22 @@ const StockLotByProduct: React.FC<Props> = ({
         lots: [],
     }));
 
+    // ✅ รวม remainingQty ของแต่ละ product
     const productGroups = normalizedStocks.map((p: any) => {
         const relatedLots = lotsArray.filter((lot: any) => lot.barcode === p.barcode);
+        const totalRemainingQty = relatedLots.reduce(
+            (sum: number, lot: any) => sum + (Number(lot.remainingQty) || 0),
+            0
+        );
+
         return {
             ...p,
             lotCount: relatedLots.length,
             lots: relatedLots,
+            totalRemainingQty, // ✅ รวมจาก remainingQty ของทุกล็อต
         };
     });
+
     const startIndex = (currentPage - 1) * itemsPerPage;
 
     return (
@@ -58,7 +65,7 @@ const StockLotByProduct: React.FC<Props> = ({
                         "ชื่อสินค้า",
                         "Barcode",
                         "คลังสินค้า",
-                        "จำนวนคงเหลือ",
+                        "จำนวนคงเหลือ (จากล็อต)",
                         "จำนวนล็อต",
                         "การจัดการ",
                     ]}
@@ -67,7 +74,7 @@ const StockLotByProduct: React.FC<Props> = ({
                         p.name,
                         p.barcode,
                         p.warehouse,
-                        `${p.totalQuantity} ชิ้น`,
+                        `${p.totalRemainingQty} ชิ้น`, // ✅ ใช้ค่าจริงจาก remainingQty รวม
                         p.lotCount,
                         <button className="table-btn" onClick={() => setSelectedProduct(p)}>
                             ดูล็อต
@@ -81,7 +88,7 @@ const StockLotByProduct: React.FC<Props> = ({
                     product={selectedProduct}
                     lots={selectedProduct.lots}
                     onClose={() => setSelectedProduct(null)}
-                    refreshData={refreshData} // ✅ ส่งเข้าไป
+                    refreshData={refreshData}
                 />
             )}
         </div>
