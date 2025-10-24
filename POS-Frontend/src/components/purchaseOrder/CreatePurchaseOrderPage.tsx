@@ -140,7 +140,7 @@ const CreatePurchaseOrderPage: React.FC = () => {
     return (
         <div className="create-order-container-suppliers">
             <div className="create-order-header-suppliers">
-            <h2>🧾 สร้างใบสั่งซื้อ (Purchase Order)</h2>
+            <h2>สร้างใบสั่งซื้อ (Purchase Order)</h2>
             </div>
             {message && <p>{message}</p>}
 

@@ -86,7 +86,7 @@ const StockLotSchema = new Schema<IStockLot>(
 
         qcStatus: {
             type: String,
-            enum: ["ผ่าน", "ไม่ผ่าน", "รอตรวจสอบ"],
+            enum: ["ผ่าน", "ไม่ผ่าน","ผ่านบางส่วน","รอตรวจสอบ"],
             default: "รอตรวจสอบ",
         },
 

@@ -15,6 +15,12 @@ const StockLotByProduct: React.FC<Props> = ({
 }) => {
     const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
+    // ✅ เพิ่มฟังก์ชันรีเฟรช (ใช้ได้จริงในอนาคต)
+    const refreshData = async () => {
+        console.log("🔄 Refreshing stock lot data...");
+        // TODO: ดึงข้อมูลใหม่หรืออัปเดต state ที่จำเป็น
+    };
+
     const lotsArray = Array.isArray(data.lots) ? data.lots : data.lots?.data || [];
     const stocksArray = Array.isArray(data.stocks) ? data.stocks : data.stocks?.data || [];
 
@@ -44,9 +50,7 @@ const StockLotByProduct: React.FC<Props> = ({
 
     return (
         <div className="stocklot-section">
-            <h2 className="section-title">🧾 สินค้าทั้งหมด</h2>
-
-            {/* ✅ Table wrapper สำหรับ scroll เฉพาะ table */}
+            <h2 className="section-title">สินค้าทั้งหมด</h2>
             <div className="table-scroll-container">
                 <StockLotTable
                     headers={[
@@ -59,7 +63,7 @@ const StockLotByProduct: React.FC<Props> = ({
                         "การจัดการ",
                     ]}
                     data={productGroups.map((p: any, index: number) => [
-                        startIndex + index + 1, // ✅ ใช้ offset บวก index
+                        startIndex + index + 1,
                         p.name,
                         p.barcode,
                         p.warehouse,
@@ -77,6 +81,7 @@ const StockLotByProduct: React.FC<Props> = ({
                     product={selectedProduct}
                     lots={selectedProduct.lots}
                     onClose={() => setSelectedProduct(null)}
+                    refreshData={refreshData} // ✅ ส่งเข้าไป
                 />
             )}
         </div>

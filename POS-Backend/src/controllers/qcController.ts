@@ -11,6 +11,7 @@ import StockTransaction from "../models/StockTransaction";
 import cloudinary from "../utils/cloudinary";
 import { verifyToken } from "../utils/auth";
 import { updateStockTotalFromLots } from "../utils/qcHelpers";
+import { ReturnDocument } from "mongodb";
 
 /* =========================================================
    Helpers
@@ -211,15 +212,11 @@ export const updateQCRecord = async (req: Request, res: Response): Promise<void>
         res.status(500).json({ success: false, message: "Server error while updating QC record" });
     }
 };
-
-/* =========================================================
-   🧪 UPDATE QC STATUS (สรุป QC ทั้งใบ + เติมสต็อกเฉพาะสินค้าที่ผ่าน)
-========================================================= */
 export const updateQCStatus = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const qcStatus = req.body.qcStatus || req.body.status;
 
+        // ✅ ตรวจ token
         const token = req.header("Authorization")?.split(" ")[1];
         if (!token) {
             res.status(401).json({ success: false, message: "Unauthorized" });
@@ -241,7 +238,9 @@ export const updateQCStatus = async (req: Request, res: Response): Promise<void>
 
         po.updatedBy = userId;
 
-        // ✅ Helper
+        /* =========================================================
+           Helper Function
+        ========================================================== */
         const normalizeQCStatus = (v: string) => (v === "รอตรวจ" ? "รอตรวจสอบ" : v);
         const mapQCToPOStatus = (qc: string): string => {
             switch (qc) {
@@ -257,60 +256,65 @@ export const updateQCStatus = async (req: Request, res: Response): Promise<void>
             }
         };
 
-        let passedCount = 0,
-            failedCount = 0,
-            restockedCount = 0; // ✅ นับจำนวนล็อตที่เติมใหม่ในรอบนี้
+        /* =========================================================
+           ตัวแปรเก็บค่ารวม
+        ========================================================== */
+        let passedCount = 0;
+        let failedCount = 0;
+        let partialCount = 0;
+        let restockedCount = 0;
         const totalCount = po.items?.length || 0;
 
-        // ✅ Loop สินค้าทั้งหมดใน PO
+        const updatedLots: any[] = [];
+        const stockTransactions: any[] = [];
+
+        /* =========================================================
+           🔁 Loop ผ่านทุกสินค้าใน PO
+        ========================================================== */
         for (const item of po.items as any[]) {
             const lot = await StockLot.findOne({ batchNumber: item.batchNumber });
             if (!lot) continue;
 
+            const qcStatus = lot.qcStatus || "รอตรวจสอบ";
+
             // 🔒 ถ้าล็อตถูกเติมแล้ว → ข้าม
-            if (lot.isStocked === true) {
-                item.qcStatus = lot.qcStatus || "ผ่าน";
-                if (lot.qcStatus === "ผ่าน") passedCount++;
-                if (lot.qcStatus === "ไม่ผ่าน") failedCount++;
+            if (lot.isStocked) {
+                item.qcStatus = qcStatus;
+                if (qcStatus === "ผ่าน") passedCount++;
+                if (qcStatus === "ไม่ผ่าน") failedCount++;
+                if (qcStatus === "ผ่านบางส่วน") partialCount++;
                 continue;
             }
 
-            // 🔍 ตรวจสถานะ QC ของล็อต
-            const status = lot.qcStatus || "รอตรวจสอบ";
+            const stock = await Stock.findById(lot.stockId);
+            if (!stock) continue;
 
-            if (status === "ผ่าน") {
-                const stock = await Stock.findById(lot.stockId);
-
-                if (!stock) {
-                    console.warn(`⚠️ ไม่พบ Stock หลักของสินค้า ${lot.productId}`);
-                    continue;
-                }
-
-                // ✅ ตรวจว่ามีล็อตอื่นที่ผ่านและ active แล้วหรือไม่
-                const existingPassedLots = await StockLot.find({
+            /* =========================================================
+               ✅ 1. ผ่านทั้งหมด
+            ========================================================== */
+            if (qcStatus === "ผ่าน") {
+                // ตรวจว่ามีล็อตเก่าที่เติมแล้วหรือยัง
+                const existingLots = await StockLot.find({
                     productId: lot.productId,
                     location: lot.location,
-                    qcStatus: "ผ่าน",
-                    isActive: true,
                     isStocked: true,
+                    isActive: true,
+                    qcStatus: "ผ่าน",
                     _id: { $ne: lot._id },
                 });
 
-                // ✅ ถ้ายังไม่มีล็อตอื่นเลย (ล็อตแรก)
-                if (existingPassedLots.length === 0) {
-                    console.log(`🟢 ล็อตแรกของสินค้า ${lot.productId} → ตั้งค่า Stock.totalQuantity = ${lot.quantity}`);
+                // ถ้าไม่มีล็อตก่อนหน้า → เซตใหม่แทนการบวก
+                if (existingLots.length === 0) {
                     stock.totalQuantity = lot.quantity;
                 } else {
-                    const newQty = (stock.totalQuantity ?? 0) + lot.quantity;
-                    console.log(`➕ เติมเพิ่มล็อตใหม่ (${lot.batchNumber}) → totalQuantity ${stock.totalQuantity} → ${newQty}`);
-                    stock.totalQuantity = newQty;
+                    stock.totalQuantity = (stock.totalQuantity ?? 0) + lot.quantity;
                 }
 
                 stock.lastRestocked = new Date();
                 await stock.save();
 
-                // ✅ สร้างรายการเคลื่อนไหวสินค้า
-                await StockTransaction.create({
+                // สร้าง Transaction
+                const txn = await StockTransaction.create({
                     stockId: stock._id,
                     productId: lot.productId,
                     stockLotId: lot._id,
@@ -320,64 +324,150 @@ export const updateQCStatus = async (req: Request, res: Response): Promise<void>
                     userId,
                     notes: `นำเข้าสินค้าจาก | PO ${po.purchaseOrderNumber}`,
                 });
+                stockTransactions.push(txn);
 
-                // ✅ อัปเดต lot
+                // อัปเดต LOT
                 lot.status = "สินค้าพร้อมขาย";
                 lot.isActive = true;
                 lot.isTemporary = false;
                 lot.isStocked = true;
+                lot.remainingQty = lot.quantity;
                 lot.lastRestocked = new Date();
                 await lot.save();
 
+                item.qcStatus = "ผ่าน";
                 passedCount++;
                 restockedCount++;
-                item.qcStatus = "ผ่าน";
-            
-            } else if (status === "ไม่ผ่าน") {
+                updatedLots.push(lot);
+            }
+
+            /* =========================================================
+               ⚙️ 2. ผ่านบางส่วน
+            ========================================================== */
+            else if (qcStatus === "ผ่านบางส่วน") {
+                const qcRecord = await QC.findOne({ batchNumber: lot.batchNumber });
+                const passedQty = qcRecord?.passedQuantity ?? Math.floor(item.quantity / 2);
+                const failedQty = item.quantity - passedQty;
+
+                // ตรวจล็อตก่อนหน้า
+                const existingLots = await StockLot.find({
+                    productId: lot.productId,
+                    location: lot.location,
+                    isStocked: true,
+                    isActive: true,
+                    qcStatus: "ผ่าน",
+                    _id: { $ne: lot._id },
+                });
+
+                if (existingLots.length === 0) {
+                    stock.totalQuantity = passedQty;
+                } else {
+                    stock.totalQuantity = (stock.totalQuantity ?? 0) + passedQty;
+                }
+
+                stock.lastRestocked = new Date();
+                await stock.save();
+
+                // บันทึก Transaction
+                const txn = await StockTransaction.create({
+                    stockId: stock._id,
+                    productId: lot.productId,
+                    stockLotId: lot._id,
+                    type: "RESTOCK",
+                    quantity: passedQty,
+                    costPrice: lot.costPrice,
+                    userId,
+                    notes: `นำเข้าสินค้าบางส่วนจาก | PO ${po.purchaseOrderNumber}`,
+                });
+                stockTransactions.push(txn);
+
+                // อัปเดต LOT
+                lot.status = "สินค้าพร้อมขาย";
+                lot.isActive = true;
+                lot.isTemporary = false;
+                lot.isStocked = true;
+                lot.remainingQty = passedQty;
+                lot.lastRestocked = new Date();
+                await lot.save();
+
+                item.qcStatus = "ผ่านบางส่วน";
+                item.returnedQuantity = failedQty;
+                partialCount++;
+                restockedCount++;
+                updatedLots.push(lot);
+            }
+
+            /* =========================================================
+               ❌ 3. ไม่ผ่าน
+            ========================================================== */
+            else if (qcStatus === "ไม่ผ่าน") {
                 lot.status = "รอคัดออก";
                 lot.isActive = false;
                 lot.isTemporary = true;
+                lot.remainingQty = 0;
                 await lot.save();
-                failedCount++;
+
                 item.qcStatus = "ไม่ผ่าน";
-            } else {
+                item.returnedQuantity = item.quantity;
+                failedCount++;
+                updatedLots.push(lot);
+            }
+
+            /* =========================================================
+               🕐 4. รอตรวจสอบ
+            ========================================================== */
+            else {
                 item.qcStatus = "รอตรวจสอบ";
             }
         }
 
-        // ✅ คำนวณ qcStatus รวมใหม่
+        /* =========================================================
+           🧮 สรุปสถานะรวมของใบสั่งซื้อ
+        ========================================================== */
         let newQCStatus = "รอตรวจสอบ";
         if (passedCount === totalCount) newQCStatus = "ผ่าน";
         else if (failedCount === totalCount) newQCStatus = "ไม่ผ่าน";
-        else if (passedCount > 0 && failedCount > 0) newQCStatus = "ผ่านบางส่วน";
-        else if (passedCount > 0 || failedCount > 0) newQCStatus = "ตรวจบางส่วน";
+        else if (partialCount > 0 || (passedCount > 0 && failedCount > 0))
+            newQCStatus = "ผ่านบางส่วน";
+        else if (passedCount > 0 || failedCount > 0)
+            newQCStatus = "ตรวจบางส่วน";
 
         po.qcStatus = normalizeQCStatus(newQCStatus);
         po.status = mapQCToPOStatus(po.qcStatus);
         po.qcCheckedAt = new Date();
         await po.save();
 
-        // ✅ ถ้าไม่มีล็อตไหนถูกตรวจเลย → เตือนแทนการผ่าน
-        if (passedCount === 0 && failedCount === 0) {
+        /* =========================================================
+           🚫 ถ้ายังไม่มีสินค้าผ่านเลย
+        ========================================================== */
+        if (passedCount === 0 && failedCount === 0 && partialCount === 0) {
             res.status(400).json({
                 success: false,
-                message: "⚠️ ยังไม่มีสินค้าล็อตใดผ่าน QC หรือไม่ผ่าน กรุณาตรวจอย่างน้อย 1 รายการก่อนสรุป",
+                message: "⚠️ ยังไม่มีสินค้าผ่าน QC กรุณาตรวจอย่างน้อย 1 รายการก่อนสรุป",
             });
             return;
         }
 
+        /* =========================================================
+           ✅ ส่งผลลัพธ์กลับ
+        ========================================================== */
         res.status(200).json({
             success: true,
-            message: `✅ สรุป QC สำเร็จ (${passedCount} ผ่าน / ${failedCount} ไม่ผ่าน / เติมใหม่ ${restockedCount} ล็อต)`,
-            data: po,
+            message: `✅ สรุป QC สำเร็จ (${passedCount} ผ่าน / ${failedCount} ไม่ผ่าน / ${partialCount} ผ่านบางส่วน / เติม ${restockedCount} ล็อต)`,
+            data: {
+                purchaseOrder: po,
+                updatedLots,
+                stockTransactions,
+            },
         });
     } catch (error) {
         console.error("❌ Update QC Error:", error);
-        res.status(500).json({ success: false, message: "Server error while updating QC" });
+        res.status(500).json({
+            success: false,
+            message: "Server error while updating QC",
+        });
     }
 };
-
-
 /**
  * ลบข้อมูล QC
  * (หมายเหตุ: การลบ QC จะไม่ย้อนสถานะ LOT/Stock อัตโนมัติ เพื่อความปลอดภัยด้านข้อมูล)
