@@ -48,9 +48,9 @@ const PurchaseOrderItemsTable: React.FC<Props> = ({
                         <th>สินค้า</th>
                         <th>Barcode</th>
                         <th>จำนวน</th>
-                        <th>ราคาต่อหน่วย (บาท)</th>
+                        <th>ราคาต่อหน่วย</th>
                         <th>ราคารวม</th>
-                        <th>Batch</th>
+                        <th>เลขล็อตสินค้า</th>
                         <th>สถานะ QC</th>
                         <th>การคืนสินค้า</th>
                         <th>วันหมดอายุ</th>

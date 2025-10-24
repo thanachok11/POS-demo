@@ -27,7 +27,7 @@ const QCTable: React.FC<QCTableProps> = ({
             <thead>
                 <tr>
                     <th>สินค้า</th>
-                    <th>Batch</th>
+                    <th>เลขล็อตสินค้า</th>
                     <th>วันหมดอายุ</th> {/* ✅ เพิ่มคอลัมน์นี้ */}
                     <th>สถานะ QC</th>
                     <th>หมายเหตุ</th>

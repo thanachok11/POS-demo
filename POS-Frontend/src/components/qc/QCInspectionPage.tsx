@@ -189,8 +189,9 @@ const QCInspectionPage: React.FC = () => {
 
                 // ✅ Redirect หลังจาก popup
                 setTimeout(() => {
-                    window.location.href = "/purchase-orders";
+                    navigate("/purchase-orders");
                 }, 1500);
+
             } else {
                 setPopupMessage("❌ ไม่สามารถสรุป QC ได้");
                 setPopupSuccess(false);

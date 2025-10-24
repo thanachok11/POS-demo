@@ -106,7 +106,9 @@
 }
 
 .qc-pass {
-    background-color: #2ecc71;
+background: #d1fae5;
+    color: #047857;
+    border: 1px solid #10b981;
 }
 
 .qc-fail {
@@ -114,7 +116,9 @@
 }
 
 .qc-pending {
-    background-color: #f39c12;
+background: #e2e8f0;
+    color: #475569;
+    border: 1px solid #cbd5e1;
 }
 
 .qc-partial {
@@ -172,6 +176,62 @@
     background-color: rgba(0, 0, 0, 0.4);
 }
 
+.stocklots-modal-popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+.stocklots-modal-popup-content {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    width: 400px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.stocklots-modal-popup-content h3 {
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.stocklots-modal-popup-select,
+.stocklots-modal-popup-textarea {
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 8px;
+}
+
+.stocklots-modal-popup-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+.stocklots-confirm-btn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.stocklots-cancel-btn {
+    background: #e5e7eb;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+}
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
     .stocklots-modal-content {

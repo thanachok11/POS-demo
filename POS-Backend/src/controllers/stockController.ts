@@ -5,6 +5,8 @@ import Stock from "../models/Stock";
 import Product from "../models/Product";
 import StockTransaction from "../models/StockTransaction";
 import Supplier from "../models/Supplier";
+import StockLot from "../models/StockLot";
+
 import { verifyToken } from "../utils/auth";
 import Warehouse from "../models/Warehouse";
 
@@ -66,7 +68,10 @@ export const getStockByProductId = async (req: Request, res: Response): Promise<
     res.status(500).json({ success: false, message: "Server error while fetching stock data" });
   }
 };
-// ดึง stock ทั้งหมด
+
+/* =========================================================
+   📦 ดึง Stock ทั้งหมด (รวม StockLots และสถานะวันหมดอายุละเอียด)
+========================================================= */
 export const getStocks = async (req: Request, res: Response): Promise<void> => {
   try {
     const token = req.header("Authorization")?.split(" ")[1];
@@ -81,20 +86,98 @@ export const getStocks = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const ownerId = await getOwnerId(decoded.userId);
+    const ownerId = await getOwnerId((decoded as any).userId);
 
+    // ✅ ดึง stocks ทั้งหมด
     const stocks = await Stock.find({ userId: ownerId })
       .populate({
         path: "productId",
-        populate: { path: "category" }
+        populate: { path: "category" },
       })
       .populate("supplierId")
-      .populate("location");
+      .populate("location")
+      .lean();
 
-    res.status(200).json({ success: true, data: stocks });
+    // ✅ ดึง stocklots ของ user เดียวกันทั้งหมด (เฉพาะที่ active)
+    const lots = await StockLot.find({
+      userId: ownerId,
+      isActive: true,
+    })
+      .select("stockId batchNumber productId expiryDate quantity qcStatus isActive isClosed expiryStatus")
+      .lean();
+
+    const now = new Date();
+
+    // ✅ รวมข้อมูล: เพิ่ม field lots + expiryDate + expiryStatus
+    const stockWithLots = stocks.map((stock) => {
+      const relatedLots = lots.filter(
+        (lot) => String(lot.stockId) === String(stock._id)
+      );
+
+      // 🧮 หาวันหมดอายุที่ใกล้สุด
+      let nearestExpiry: Date | null = null;
+      if (relatedLots.length > 0) {
+        const expiries = relatedLots
+          .filter((l) => l.expiryDate)
+          .map((l) => new Date(l.expiryDate!))
+          .sort((a, b) => a.getTime() - b.getTime());
+        nearestExpiry = expiries[0] || null;
+      }
+
+      // 🧮 จำแนกล็อตตามวันหมดอายุ
+      const expiredLots = relatedLots.filter(
+        (l) => l.expiryDate && new Date(l.expiryDate) < now
+      );
+      const nearExpiryLots = relatedLots.filter((l) => {
+        if (!l.expiryDate) return false;
+        const exp = new Date(l.expiryDate);
+        const diffDays = Math.ceil(
+          (exp.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        return diffDays >= 0 && diffDays <= 10;
+      });
+
+      // ✅ กำหนดสถานะรวมละเอียด 5 ระดับ
+      let expiryStatus:
+        | "ปกติ"
+        | "ใกล้หมดอายุบางล็อต"
+        | "ใกล้หมดอายุทั้งหมด"
+        | "หมดอายุบางล็อต"
+        | "หมดอายุทั้งหมด" = "ปกติ";
+
+      if (relatedLots.length > 0) {
+        if (expiredLots.length === relatedLots.length) {
+          expiryStatus = "หมดอายุทั้งหมด";
+        } else if (expiredLots.length > 0) {
+          expiryStatus = "หมดอายุบางล็อต";
+        } else if (nearExpiryLots.length === relatedLots.length) {
+          expiryStatus = "ใกล้หมดอายุทั้งหมด";
+        } else if (nearExpiryLots.length > 0) {
+          expiryStatus = "ใกล้หมดอายุบางล็อต";
+        }
+      }
+
+      return {
+        ...stock,
+        lots: relatedLots,
+        expiryDate: nearestExpiry ? nearestExpiry.toISOString() : null,
+        expiryStatus,
+        expiredLotsCount: expiredLots.length,
+        nearExpiryLotsCount: nearExpiryLots.length,
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "✅ ดึงข้อมูล stock พร้อม lot และสถานะวันหมดอายุสำเร็จ",
+      data: stockWithLots,
+    });
   } catch (error) {
-    console.error("Get Stocks Error:", error);
-    res.status(500).json({ success: false, message: "Server error while fetching stocks" });
+    console.error("❌ Get Stocks Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching stocks",
+    });
   }
 };
 

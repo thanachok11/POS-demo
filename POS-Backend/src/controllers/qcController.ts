@@ -279,22 +279,39 @@ export const updateQCStatus = async (req: Request, res: Response): Promise<void>
             const status = lot.qcStatus || "รอตรวจสอบ";
 
             if (status === "ผ่าน") {
-                // ✅ เติมสต็อกเฉพาะล็อตที่ผ่านและยังไม่เคยเติม
-                lot.status = "สินค้าพร้อมขาย";
-                lot.isActive = true;
-                lot.isTemporary = false;
-                lot.lastRestocked = new Date();
+                const stock = await Stock.findById(lot.stockId);
 
-                await Stock.updateOne(
-                    { _id: lot.stockId },
-                    {
-                        $inc: { totalQuantity: lot.quantity },
-                        $set: { lastRestocked: new Date() },
-                    }
-                );
+                if (!stock) {
+                    console.warn(`⚠️ ไม่พบ Stock หลักของสินค้า ${lot.productId}`);
+                    continue;
+                }
 
+                // ✅ ตรวจว่ามีล็อตอื่นที่ผ่านและ active แล้วหรือไม่
+                const existingPassedLots = await StockLot.find({
+                    productId: lot.productId,
+                    location: lot.location,
+                    qcStatus: "ผ่าน",
+                    isActive: true,
+                    isStocked: true,
+                    _id: { $ne: lot._id },
+                });
+
+                // ✅ ถ้ายังไม่มีล็อตอื่นเลย (ล็อตแรก)
+                if (existingPassedLots.length === 0) {
+                    console.log(`🟢 ล็อตแรกของสินค้า ${lot.productId} → ตั้งค่า Stock.totalQuantity = ${lot.quantity}`);
+                    stock.totalQuantity = lot.quantity;
+                } else {
+                    const newQty = (stock.totalQuantity ?? 0) + lot.quantity;
+                    console.log(`➕ เติมเพิ่มล็อตใหม่ (${lot.batchNumber}) → totalQuantity ${stock.totalQuantity} → ${newQty}`);
+                    stock.totalQuantity = newQty;
+                }
+
+                stock.lastRestocked = new Date();
+                await stock.save();
+
+                // ✅ สร้างรายการเคลื่อนไหวสินค้า
                 await StockTransaction.create({
-                    stockId: lot.stockId,
+                    stockId: stock._id,
                     productId: lot.productId,
                     stockLotId: lot._id,
                     type: "RESTOCK",
@@ -304,14 +321,18 @@ export const updateQCStatus = async (req: Request, res: Response): Promise<void>
                     notes: `นำเข้าสินค้าจาก | PO ${po.purchaseOrderNumber}`,
                 });
 
-                await updateStockTotalFromLots(lot.stockId.toString());
-
-                lot.isStocked = true; // ✅ Mark เติมแล้ว
+                // ✅ อัปเดต lot
+                lot.status = "สินค้าพร้อมขาย";
+                lot.isActive = true;
+                lot.isTemporary = false;
+                lot.isStocked = true;
+                lot.lastRestocked = new Date();
                 await lot.save();
 
                 passedCount++;
                 restockedCount++;
                 item.qcStatus = "ผ่าน";
+            
             } else if (status === "ไม่ผ่าน") {
                 lot.status = "รอคัดออก";
                 lot.isActive = false;
