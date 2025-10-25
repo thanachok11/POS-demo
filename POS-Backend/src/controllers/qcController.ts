@@ -27,6 +27,9 @@ function getUserIdFromReq(req: Request): string | null {
 /* =========================================================
    CREATE QC RECORD (แนบรูป + อัปเดตวันหมดอายุใน StockLot)
 ========================================================= */
+/* =========================================================
+   CREATE QC RECORD (แนบรูป + อัปเดตวันหมดอายุใน StockLot)
+========================================================= */
 export const createQCRecord = async (req: Request, res: Response): Promise<void> => {
     try {
         const userId = getUserIdFromReq(req);
@@ -102,14 +105,14 @@ export const createQCRecord = async (req: Request, res: Response): Promise<void>
                                 });
                             }
                         );
-                        uploadStream.end(file.buffer); // ใช้ buffer upload
+                        uploadStream.end(file.buffer);
                     }
                 );
                 attachments.push(result);
             }
         }
 
-        // ✅ บันทึกข้อมูลทั้งหมดรวมจำนวนเข้าไปด้วย
+        // ✅ บันทึกข้อมูล QC
         const qcRecord = await QC.create({
             batchNumber,
             productId,
@@ -132,6 +135,23 @@ export const createQCRecord = async (req: Request, res: Response): Promise<void>
         lot.qcStatus = status || "รอตรวจสอบ";
         lot.status = "รอตรวจสอบ QC";
         if (expiryDate) lot.expiryDate = expiryDate;
+
+        // ✅ เพิ่ม returnStatus (เพื่อใช้บน UI)
+        switch (status) {
+            case "ผ่าน":
+                lot.returnStatus = null;
+                break;
+            case "ไม่ผ่าน":
+                lot.returnStatus = "รอคืนสินค้า";
+                break;
+            case "ผ่านบางส่วน":
+            case "ตรวจบางส่วน":
+                lot.returnStatus = "ยังไม่คืน";
+                break;
+            default:
+                lot.returnStatus = null;
+        }
+
         await lot.save();
 
         const updatedLot = await StockLot.findOne({ batchNumber });
@@ -146,7 +166,6 @@ export const createQCRecord = async (req: Request, res: Response): Promise<void>
         res.status(500).json({ success: false, message: "Server error" });
     }
 };
-
 
 
 /* =========================================================
@@ -261,7 +280,7 @@ export const updateQCStatus = async (req: Request, res: Response): Promise<void>
             const stock = await Stock.findById(lot.stockId);
             if (!stock) continue;
 
-            // ✅ ฟังก์ชันช่วยอัปเดตสถานะตาม threshold
+            // ✅ ฟังก์ชันช่วยอัปเดตสถานะ stock ตาม threshold
             const updateStockStatus = async (stk: any) => {
                 if (stk.totalQuantity <= 0) {
                     stk.status = "สินค้าหมด";
@@ -319,6 +338,7 @@ export const updateQCStatus = async (req: Request, res: Response): Promise<void>
                 lot.isStocked = true;
                 lot.remainingQty = lot.quantity;
                 lot.lastRestocked = new Date();
+                lot.returnStatus = null; // ✅ ของใหม่
                 await lot.save();
 
                 item.qcStatus = "ผ่าน";
@@ -373,6 +393,7 @@ export const updateQCStatus = async (req: Request, res: Response): Promise<void>
                 lot.isStocked = true;
                 lot.remainingQty = passedQty;
                 lot.lastRestocked = new Date();
+                lot.returnStatus = "ยังไม่คืน"; // ✅ ของใหม่
                 await lot.save();
 
                 item.qcStatus = "ผ่านบางส่วน";
@@ -390,6 +411,7 @@ export const updateQCStatus = async (req: Request, res: Response): Promise<void>
                 lot.isActive = false;
                 lot.isTemporary = true;
                 lot.remainingQty = 0;
+                lot.returnStatus = "รอคืนสินค้า"; // ✅ ของใหม่
                 await lot.save();
 
                 item.qcStatus = "ไม่ผ่าน";
@@ -403,6 +425,8 @@ export const updateQCStatus = async (req: Request, res: Response): Promise<void>
             ========================================================== */
             else {
                 item.qcStatus = "รอตรวจสอบ";
+                lot.returnStatus = null; // ✅ reset ไว้เฉย ๆ
+                await lot.save();
             }
         }
 
@@ -442,6 +466,7 @@ export const updateQCStatus = async (req: Request, res: Response): Promise<void>
         });
     }
 };
+
 
 /**
  * ลบข้อมูล QC
