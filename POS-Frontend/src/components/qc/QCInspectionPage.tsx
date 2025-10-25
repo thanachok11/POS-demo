@@ -67,7 +67,6 @@ const QCInspectionPage: React.FC = () => {
         const token = localStorage.getItem("token") || "";
         if (!batchNumber) return;
 
-        // ✅ ตรวจสอบวันหมดอายุเมื่อสถานะเป็น "ผ่าน"
         if (current.status === "ผ่าน" && !current.expiryDate) {
             setPopupMessage(`⚠️ กรุณากรอกวันหมดอายุของ ${item.productName} ก่อนบันทึก`);
             setPopupSuccess(false);
@@ -83,7 +82,6 @@ const QCInspectionPage: React.FC = () => {
             formData.append("supplierId", po.supplierId?._id || po.supplierId || "");
             formData.append("warehouseId", po.location?._id || po.location || "");
 
-            // ✅ คำนวณจำนวนผ่าน / ไม่ผ่าน
             const total = item.quantity || 0;
             const failed = Number(current.failedQuantity) || 0;
             const passed = Math.max(0, total - failed);
@@ -92,7 +90,6 @@ const QCInspectionPage: React.FC = () => {
             formData.append("failedQuantity", String(failed));
             formData.append("passedQuantity", String(passed));
 
-            // ✅ กำหนดสถานะอัตโนมัติ
             let status = current.status || "รอตรวจสอบ";
             if (failed > 0 && failed < total) status = "ผ่านบางส่วน";
             else if (failed === total) status = "ไม่ผ่าน";
@@ -101,19 +98,24 @@ const QCInspectionPage: React.FC = () => {
             formData.append("status", status);
             formData.append("remarks", current.remarks || "");
 
-            // ✅ เพิ่มวันหมดอายุ (ถ้ามี)
             if (current.expiryDate) {
                 formData.append("expiryDate", current.expiryDate);
-            } else {
-                formData.append("expiryDate", "");
             }
 
-            // ✅ แนบไฟล์แนบ (attachments)
-            (files[batchNumber] || []).forEach((file) =>
-                formData.append("attachments", file)
-            );
+            // ✅ แนบไฟล์ (เฉพาะที่เป็น File จริง)
+            (files[batchNumber] || []).forEach((file) => {
+                if (file instanceof File) {
+                    formData.append("attachments", file);
+                }
+            });
 
-            // ✅ เรียก API สร้าง / บันทึก QC
+            console.log("📤 ส่งข้อมูล QC:", {
+                batchNumber,
+                productId: item.productId,
+                attachments: (files[batchNumber] || []).map((f) => f.name),
+            });
+
+            // ✅ เรียก API
             const res = await createQCRecord(formData, token);
 
             if (res.success) {
@@ -125,7 +127,6 @@ const QCInspectionPage: React.FC = () => {
                 setShowPopup(true);
                 setPopupLocked(true);
 
-                // ✅ โหลดข้อมูล QC ล่าสุดจาก backend
                 const updated = await getQCByBatch(batchNumber, token);
                 if (updated.success && updated.data.length > 0) {
                     setQcData((prev) => ({
@@ -134,7 +135,7 @@ const QCInspectionPage: React.FC = () => {
                     }));
                 }
             } else {
-                setPopupMessage("❌ บันทึก QC ไม่สำเร็จ");
+                setPopupMessage(res.message || "❌ บันทึก QC ไม่สำเร็จ");
                 setPopupSuccess(false);
                 setShowPopup(true);
             }

@@ -131,7 +131,7 @@ const PurchaseOrderActions: React.FC<Props> = ({
                 </>
             )}
 
-            {/* ---------- ถ้ามีสินค้าทั้งผ่านและไม่ผ่าน ---------- */}
+            {/* ---------- ถ้ามีสินค้าที่ไม่ผ่าน ---------- */}
             {showReturnButton && (
                 <button
                     className="po-return-button"
@@ -142,9 +142,9 @@ const PurchaseOrderActions: React.FC<Props> = ({
                     <FontAwesomeIcon icon={faUndoAlt} /> คืนสินค้าที่ไม่ผ่าน QC
                 </button>
             )}
-            {/* ---------- ถ้ายังมีรอตรวจหรือยังไม่ผ่านบางส่วน ---------- */}
+
+            {/* ---------- ถ้ามีสินค้าที่รอตรวจหรือยังไม่ตรวจครบ ---------- */}
             {po.status !== "รอดำเนินการ" &&
-                !showReturnButton &&
                 showGoToQCButton &&
                 !allPassed && (
                     <button
@@ -157,6 +157,7 @@ const PurchaseOrderActions: React.FC<Props> = ({
                             : "ไปตรวจ QC"}
                     </button>
                 )}
+
 
             {/* ---------- ถ้าผ่านหมด ---------- */}
             {allPassed && (

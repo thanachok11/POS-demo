@@ -26,7 +26,6 @@ function getUserIdFromReq(req: Request): string | null {
 
 /* =========================================================
    CREATE QC RECORD (แนบรูป + อัปเดตวันหมดอายุใน StockLot)
-   ❗️ไม่แตะ stock หรือ transaction แล้ว
 ========================================================= */
 export const createQCRecord = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -46,7 +45,10 @@ export const createQCRecord = async (req: Request, res: Response): Promise<void>
             status,
             issues,
             remarks,
-            expiryDate, // ✅ เพิ่มฟิลด์วันหมดอายุ
+            expiryDate,
+            totalQuantity,
+            failedQuantity,
+            passedQuantity,
         } = req.body;
 
         if (!batchNumber || !productId || !supplierId || !warehouseId) {
@@ -54,7 +56,6 @@ export const createQCRecord = async (req: Request, res: Response): Promise<void>
             return;
         }
 
-        // ✅ ตรวจสอบความถูกต้องของข้อมูลอ้างอิง
         const [product, supplier, warehouse] = await Promise.all([
             Product.findById(productId),
             Supplier.findById(supplierId),
@@ -71,25 +72,44 @@ export const createQCRecord = async (req: Request, res: Response): Promise<void>
 
         const lot = await StockLot.findOne({ batchNumber });
         if (!lot) {
-            res
-                .status(404)
-                .json({ success: false, message: "ไม่พบล็อตสินค้าที่ตรงกับ batchNumber" });
+            res.status(404).json({ success: false, message: "ไม่พบล็อตสินค้าที่ตรงกับ batchNumber" });
             return;
         }
 
-        // ✅ Upload attachments (ถ้ามี)
+        /* =====================================================
+           ✅ Upload attachments (รองรับหลายไฟล์)
+        ===================================================== */
         let attachments: { url: string; public_id: string }[] = [];
+
         if (req.files && Object.keys(req.files).length > 0) {
-            const list = Array.isArray(req.files)
+            const filesArray = Array.isArray(req.files)
                 ? req.files
                 : Object.values(req.files).flat();
-            for (const file of list as any[]) {
-                const result = await cloudinary.uploader.upload(file.path, { folder: "qc" });
-                attachments.push({ url: result.secure_url, public_id: result.public_id });
+
+            for (const file of filesArray as Express.Multer.File[]) {
+                const result = await new Promise<{ url: string; public_id: string }>(
+                    (resolve, reject) => {
+                        const uploadStream = cloudinary.uploader.upload_stream(
+                            { folder: "qc", resource_type: "image" },
+                            (err, result) => {
+                                if (err || !result) {
+                                    console.error("❌ Upload error:", err);
+                                    return reject(err);
+                                }
+                                resolve({
+                                    url: result.secure_url,
+                                    public_id: result.public_id,
+                                });
+                            }
+                        );
+                        uploadStream.end(file.buffer); // ใช้ buffer upload
+                    }
+                );
+                attachments.push(result);
             }
         }
 
-        // ✅ สร้าง QC record
+        // ✅ บันทึกข้อมูลทั้งหมดรวมจำนวนเข้าไปด้วย
         const qcRecord = await QC.create({
             batchNumber,
             productId,
@@ -101,27 +121,25 @@ export const createQCRecord = async (req: Request, res: Response): Promise<void>
             status: status || "รอตรวจสอบ",
             issues: issues || [],
             remarks,
+            expiryDate: expiryDate ? new Date(expiryDate) : null,
+            totalQuantity: Number(totalQuantity) || 0,
+            failedQuantity: Number(failedQuantity) || 0,
+            passedQuantity: Number(passedQuantity) || 0,
             attachments,
         });
 
-        // ✅ อัปเดต StockLot (รวม expiryDate)
+        // ✅ Sync สถานะกับ StockLot
         lot.qcStatus = status || "รอตรวจสอบ";
         lot.status = "รอตรวจสอบ QC";
         if (expiryDate) lot.expiryDate = expiryDate;
         await lot.save();
 
-        // ✅ ดึง StockLot ล่าสุดหลังอัปเดต
         const updatedLot = await StockLot.findOne({ batchNumber });
 
-        // ✅ ส่งกลับทั้ง QC record และ StockLot
         res.status(201).json({
             success: true,
-            message:
-                "บันทึกข้อมูลการตรวจสอบคุณภาพสำเร็จ และอัปเดตวันหมดอายุใน StockLot แล้ว",
-            data: {
-                qcRecord,
-                updatedLot,
-            },
+            message: "✅ บันทึกข้อมูลการตรวจสอบคุณภาพสำเร็จ และอัปโหลดรูปเรียบร้อย",
+            data: { qcRecord, updatedLot },
         });
     } catch (error) {
         console.error("❌ createQCRecord Error:", error);
@@ -132,13 +150,13 @@ export const createQCRecord = async (req: Request, res: Response): Promise<void>
 
 
 /* =========================================================
-   ดึงข้อมูล QC ตาม batchNumber (พร้อมวันหมดอายุจาก StockLot)
+   ดึงข้อมูล QC ตาม batchNumber (แนบ expiryDate ถ้ามี)
 ========================================================= */
 export const getQCByBatch = async (req: Request, res: Response): Promise<void> => {
     try {
         const { batchNumber } = req.params;
 
-        // ✅ ดึงข้อมูล QC ทั้งหมดของ batch นั้น
+        // ✅ ดึงข้อมูล QC ของ batch นั้น
         const qcRecord = await QC.find({ batchNumber })
             .populate("productId", "name barcode")
             .populate("supplierId", "companyName code")
@@ -146,72 +164,37 @@ export const getQCByBatch = async (req: Request, res: Response): Promise<void> =
             .populate("userId", "username email");
 
         if (!qcRecord || qcRecord.length === 0) {
-            res
-                .status(404)
-                .json({ success: false, message: "ไม่พบข้อมูล QC สำหรับล็อตนี้" });
+            res.status(404).json({
+                success: false,
+                message: "ไม่พบข้อมูล QC สำหรับล็อตนี้",
+            });
             return;
         }
 
-        // ✅ ดึงวันหมดอายุจาก StockLot
-        const lot = await StockLot.findOne({ batchNumber }, "expiryDate");
+        // ✅ ตรวจสอบว่ามี StockLot แล้วหรือยัง (อาจยังไม่สร้าง)
+        const lot = await StockLot.findOne(
+            { batchNumber: new RegExp(`^${batchNumber}$`, "i") },
+            "expiryDate"
+        );
 
-        // ✅ แนบ expiryDate เข้าไปในผลลัพธ์แต่ละ record
+        // ✅ แนบ expiryDate เฉพาะกรณีที่มี lot
         const enriched = qcRecord.map((record) => ({
             ...record.toObject(),
-            expiryDate: lot?.expiryDate || null,
+            expiryDate: lot?.expiryDate || record.expiryDate || null,
         }));
 
-        res.status(200).json({ success: true, data: enriched });
+        res.status(200).json({
+            success: true,
+            message: "ดึงข้อมูล QC สำเร็จ",
+            data: enriched,
+        });
     } catch (error) {
         console.error("❌ getQCByBatch Error:", error);
         res.status(500).json({ success: false, message: "Server error" });
     }
 };
 
-/* =========================================================
-   UPDATE QC RECORD (แค่บันทึกผลล็อตเดียว)
-========================================================= */
-export const updateQCRecord = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const { id } = req.params;
-        const { status, remarks } = req.body;
-        const userId = getUserIdFromReq(req);
-        if (!userId) {
-            res.status(401).json({ success: false, message: "Unauthorized" });
-            return;
-        }
 
-        const qcRecord = await QC.findById(id);
-        if (!qcRecord) {
-            res.status(404).json({ success: false, message: "QC Record not found" });
-            return;
-        }
-
-        const lot = await StockLot.findOne({ batchNumber: qcRecord.batchNumber });
-        if (!lot) {
-            res.status(404).json({ success: false, message: "ไม่พบล็อตสินค้า" });
-            return;
-        }
-
-        // บันทึกผลเฉพาะ QC
-        qcRecord.status = status || qcRecord.status;
-        qcRecord.remarks = remarks || qcRecord.remarks;
-        await qcRecord.save();
-
-        // แค่ sync สถานะในล็อต (ไม่แตะสต็อก)
-        lot.qcStatus = status || "รอตรวจสอบ";
-        await lot.save();
-
-        res.status(200).json({
-            success: true,
-            message: `บันทึกผล QC ล็อต ${lot.batchNumber} สำเร็จ`,
-            data: qcRecord,
-        });
-    } catch (error) {
-        console.error("❌ updateQCRecord Error:", error);
-        res.status(500).json({ success: false, message: "Server error while updating QC record" });
-    }
-};
 export const updateQCStatus = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
