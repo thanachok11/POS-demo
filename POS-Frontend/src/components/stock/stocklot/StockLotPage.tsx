@@ -54,130 +54,133 @@ const StockLotPage: React.FC = () => {
   };
 
   return (
-    <div className="stocklot-page">
-      <h2>📦 จัดการล็อตสินค้า</h2>
+    <div className="display">
 
-      {/* 🔍 Search */}
-      <div className="search-bar">
-        <input
-          type="text"
-          placeholder="กรอกหรือยิง Barcode..."
-          value={barcode}
-          onChange={(e) => setBarcode(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-        />
-        <button onClick={handleSearch} disabled={loading}>
-          {loading ? "กำลังค้นหา..." : "ค้นหา"}
-        </button>
-      </div>
+      <div className="stocklot-page">
+        <h2>📦 จัดการล็อตสินค้า</h2>
 
-      {/* 📋 ตารางล็อต */}
-      <table className="lot-table">
-        <thead>
-          <tr>
-            <th>สินค้า</th>
-            <th>Batch</th>
-            <th>วันหมดอายุ</th>
-            <th>จำนวน</th>
-            <th>Supplier</th>
-            <th>คลังสินค้า</th>
-            <th>สถานะ</th>
-            <th>QC</th>
-            <th>จัดการ</th>
-          </tr>
-        </thead>
-        <tbody>
-          {lots.map((lot) => (
-            <tr key={lot._id}>
-              <td>{lot.productId?.name || "-"}</td>
-              <td>{lot.batchNumber}</td>
-              <td>
-                {lot.expiryDate
-                  ? new Date(lot.expiryDate).toLocaleDateString("th-TH")
-                  : "-"}
-              </td>
-              <td>{lot.quantity}</td>
-              <td>{lot.supplierName || lot.supplierId?.name || "-"}</td>
-              <td>{lot.location?.name || "-"}</td>
-              <td>{lot.status}</td>
-              <td>{lot.qcStatus}</td>
-              <td>
-                <button
-                  className="btn-edit"
-                  onClick={() => setShowExpiryModal(lot)}
-                >
-                  🗓️ วันหมดอายุ
-                </button>
-                <button
-                  className="btn-delete"
-                  onClick={() => handleDeactivate(lot._id)}
-                >
-                  🚫 ปิดล็อต
-                </button>
-              </td>
+        {/* 🔍 Search */}
+        <div className="search-bar">
+          <input
+            type="text"
+            placeholder="กรอกหรือยิง Barcode..."
+            value={barcode}
+            onChange={(e) => setBarcode(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+          />
+          <button onClick={handleSearch} disabled={loading}>
+            {loading ? "กำลังค้นหา..." : "ค้นหา"}
+          </button>
+        </div>
+
+        {/* 📋 ตารางล็อต */}
+        <table className="lot-table">
+          <thead>
+            <tr>
+              <th>สินค้า</th>
+              <th>Batch</th>
+              <th>วันหมดอายุ</th>
+              <th>จำนวน</th>
+              <th>Supplier</th>
+              <th>คลังสินค้า</th>
+              <th>สถานะ</th>
+              <th>QC</th>
+              <th>จัดการ</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {lots.map((lot) => (
+              <tr key={lot._id}>
+                <td>{lot.productId?.name || "-"}</td>
+                <td>{lot.batchNumber}</td>
+                <td>
+                  {lot.expiryDate
+                    ? new Date(lot.expiryDate).toLocaleDateString("th-TH")
+                    : "-"}
+                </td>
+                <td>{lot.quantity}</td>
+                <td>{lot.supplierName || lot.supplierId?.name || "-"}</td>
+                <td>{lot.location?.name || "-"}</td>
+                <td>{lot.status}</td>
+                <td>{lot.qcStatus}</td>
+                <td>
+                  <button
+                    className="btn-edit"
+                    onClick={() => setShowExpiryModal(lot)}
+                  >
+                    🗓️ วันหมดอายุ
+                  </button>
+                  <button
+                    className="btn-delete"
+                    onClick={() => handleDeactivate(lot._id)}
+                  >
+                    🚫 ปิดล็อต
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
-      {/* 🗓️ Modal วันหมดอายุ */}
-      {showExpiryModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3>อัปเดตวันหมดอายุ</h3>
-            <input
-              type="date"
-              defaultValue={
-                showExpiryModal.expiryDate
-                  ? new Date(showExpiryModal.expiryDate)
-                    .toISOString()
-                    .split("T")[0]
-                  : ""
-              }
-              onChange={(e) =>
-                (showExpiryModal.expiryDate = e.target.value)
-              }
-            />
-            <div className="modal-actions">
-              <button
-                onClick={() =>
-                  handleUpdateExpiry(
-                    showExpiryModal._id,
-                    showExpiryModal.expiryDate
-                  )
+        {/* 🗓️ Modal วันหมดอายุ */}
+        {showExpiryModal && (
+          <div className="modal-overlay">
+            <div className="modal">
+              <h3>อัปเดตวันหมดอายุ</h3>
+              <input
+                type="date"
+                defaultValue={
+                  showExpiryModal.expiryDate
+                    ? new Date(showExpiryModal.expiryDate)
+                      .toISOString()
+                      .split("T")[0]
+                    : ""
                 }
-              >
-                บันทึก
-              </button>
-              <button onClick={() => setShowExpiryModal(null)}>ยกเลิก</button>
+                onChange={(e) =>
+                  (showExpiryModal.expiryDate = e.target.value)
+                }
+              />
+              <div className="modal-actions">
+                <button
+                  onClick={() =>
+                    handleUpdateExpiry(
+                      showExpiryModal._id,
+                      showExpiryModal.expiryDate
+                    )
+                  }
+                >
+                  บันทึก
+                </button>
+                <button onClick={() => setShowExpiryModal(null)}>ยกเลิก</button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* 🧪 Modal QC */}
-      {showQCModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3>อัปเดตสถานะ QC</h3>
-            <select
-              defaultValue={showQCModal.qcStatus}
-              onChange={(e) =>
-                (showQCModal.qcStatus = e.target.value)
-              }
-            >
-              <option value="ผ่าน">ผ่าน</option>
-              <option value="ไม่ผ่าน">ไม่ผ่าน</option>
-              <option value="รอตรวจสอบ">รอตรวจสอบ</option>
-            </select>
-            <textarea
-              placeholder="หมายเหตุ (ถ้ามี)"
-              defaultValue={showQCModal.notes}
-              onChange={(e) => (showQCModal.notes = e.target.value)}
-            />
+        {/* 🧪 Modal QC */}
+        {showQCModal && (
+          <div className="modal-overlay">
+            <div className="modal">
+              <h3>อัปเดตสถานะ QC</h3>
+              <select
+                defaultValue={showQCModal.qcStatus}
+                onChange={(e) =>
+                  (showQCModal.qcStatus = e.target.value)
+                }
+              >
+                <option value="ผ่าน">ผ่าน</option>
+                <option value="ไม่ผ่าน">ไม่ผ่าน</option>
+                <option value="รอตรวจสอบ">รอตรวจสอบ</option>
+              </select>
+              <textarea
+                placeholder="หมายเหตุ (ถ้ามี)"
+                defaultValue={showQCModal.notes}
+                onChange={(e) => (showQCModal.notes = e.target.value)}
+              />
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

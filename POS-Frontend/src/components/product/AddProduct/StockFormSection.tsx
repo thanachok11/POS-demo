@@ -140,6 +140,7 @@ const StockFormSection: React.FC<Props> = ({
                             {s.companyName}
                         </option>
                     ))}
+                    <option value="อื่นๆ">อื่นๆ</option>
                 </select>
             </div>
 

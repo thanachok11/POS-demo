@@ -89,7 +89,7 @@ const App: React.FC = () => {
   };
   useEffect(() => {
     const pathToMenu: Record<string, string> = {
-      "/shop": "ซื้อสินค้า",
+      "/shop": "ขายสินค้า",
       "/reports/sales": "รายงานยอดขาย",
       "/reports/stock": "รายงานสินค้าคงเหลือ",
       "/reports/receipts": "ใบเสร็จ",
@@ -107,6 +107,7 @@ const App: React.FC = () => {
       "/qc": "ตรวจสอบสินค้า (QC)",
       "/warehouse": "จัดการคลังสินค้า",
       "/refund": "คืนสินค้า",
+      "/": "ยินดีต้อนรับสู่ EAZYPOS",
     };
 
     const menuName = pathToMenu[location.pathname];

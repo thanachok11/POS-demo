@@ -29,33 +29,50 @@ const getOwnerId = async (userId: string): Promise<string> => {
 export const createPayment = async (req: Request, res: Response): Promise<void> => {
     const session = await mongoose.startSession();
     session.startTransaction();
-
     try {
         const token = req.header("Authorization")?.split(" ")[1];
-        if (!token) {
-            res.status(401).json({ success: false, message: "Unauthorized" });
-            return;
-        }
+        if (!token) { res.status(401).json({ success: false, message: "Unauthorized" }); return; }
 
         const decoded = verifyToken(token);
         if (typeof decoded === "string" || !("userId" in decoded)) {
-            res.status(401).json({ success: false, message: "Invalid token" });
-            return;
+            res.status(401).json({ success: false, message: "Invalid token" }); return;
         }
 
         const ownerId = await getOwnerId(decoded.userId);
 
-        // ✅ รับค่าจาก body
         const {
             saleId,
-            employeeName,
+            employeeName,          // <- อาจว่างมาจาก client
             paymentMethod,
             amountReceived,
             items,
-            discount = 0, // ✅ เพิ่มส่วนลด
+            discount = 0,
         } = req.body;
 
-        if (!saleId || !employeeName || !paymentMethod || !amountReceived || !items?.length) {
+        // ✅ หา “ชื่อพนักงาน” ให้แน่ ๆ
+        const actor =
+            (await User.findById(decoded.userId).lean()) ||
+            (await Employee.findById(decoded.userId).lean());
+
+        const tokenName =
+            (decoded as any).username ||
+                (decoded as any).name ||
+                (decoded as any).firstname && (decoded as any).lastname
+                ? `${(decoded as any).firstname} ${(decoded as any).lastname}`
+                : "";
+
+        const empName =
+            employeeName ||
+            tokenName ||
+            (actor && ("username" in actor) ? (actor as any).username : "") ||
+            (actor && ("firstName" in actor || "lastName" in actor)
+                ? [(actor as any).firstName, (actor as any).lastName].filter(Boolean).join(" ")
+                : "") ||
+            (actor as any)?.email ||
+            "Employee";
+
+        // ❗️ผ่อนเงื่อนไข: ไม่ต้องเช็ค employeeName แล้ว เพราะเรามี empName เสมอ
+        if (!saleId || !paymentMethod || !amountReceived || !items?.length) {
             res.status(400).json({ success: false, message: "ข้อมูลไม่ครบถ้วน" });
             return;
         }
@@ -89,7 +106,7 @@ export const createPayment = async (req: Request, res: Response): Promise<void> 
                 {
                     userId: ownerId,          // <-- บันทึกว่าเป็นของ owner
                     saleId,
-                    employeeName,
+                    employeeName: empName,
                     paymentMethod,
                     type: "SALE",
                     amountReceived,
@@ -108,7 +125,7 @@ export const createPayment = async (req: Request, res: Response): Promise<void> 
                 {
                     userId: ownerId,          // <-- ของ owner
                     paymentId: newPayment._id,
-                    employeeName,
+                    employeeName: empName,
                     items: calculatedItems,
                     totalPrice,
                     discount,
