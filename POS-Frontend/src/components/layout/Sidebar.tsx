@@ -5,6 +5,7 @@ import {
   faClipboardList, faReceipt, faHistory, faBox, faCartPlus, faBarcode,
   faScroll, faExclamationTriangle, faCog, faUserPlus, faTruck, faPercent,
   faWarehouse, faMoneyBillTransfer, faBoxesStacked,
+  faBarChart,
 } from "@fortawesome/free-solid-svg-icons";
 import "../../styles/layout/Sidebar.css";
 
@@ -200,6 +201,13 @@ const Sidebar: React.FC<SidebarProps> = ({
               className={`dropdown-icon ${openDropdown === "home" ? "open" : ""}`}
             />
           </li>
+          <ul className={`item-details ${openDropdown === "home" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
+            <li onClick={() => handleMenuClick("/", "หน้าแรก")}>
+              <FontAwesomeIcon icon={faBarChart} className="icon" />{" "}
+              <span className="dropdown-text-buy">หน้าแรก</span>
+            </li>
+          </ul>
+
           <ul className={`item-details ${openDropdown === "home" ? "open" : ""} ${isSidebarOpen ? "" : "floating"}`}>
             <li onClick={() => handleMenuClick("/shop", "ขายสินค้า")}>
               <FontAwesomeIcon icon={faShoppingCart} className="icon" />{" "}
